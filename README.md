@@ -1,3 +1,2 @@
-# term-project-sadigaxund
-term-project-sadigaxund created by GitHub Classroom
-Project Idea: MetroMap
+# Metro-Map
+Term Project by Sadig Akhund on Data Structures and Algorithms course
