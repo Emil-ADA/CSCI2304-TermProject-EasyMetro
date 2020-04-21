@@ -1,13 +1,13 @@
-package main;
+package Utils;
 
 import java.util.Random;
 
-public class Util {
+public class JUtil {
 
     public static void main(String[] args) {
-	int A[] = Util.rand_arr_Real(12, 20);
-	Util.print(A);
-	Util.print(min(A));
+	int A[] = JUtil.rand_arr_Real(12, 20);
+	JUtil.print(A);
+	JUtil.print(min(A));
     }
 
     public static int[] range(int from, int to) {
