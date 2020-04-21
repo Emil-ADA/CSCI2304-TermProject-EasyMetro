@@ -5,18 +5,18 @@ import java.awt.EventQueue;
 import javax.swing.JFrame;
 
 import Utils.JHardware;
+
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
+import javax.swing.JOptionPane;
 import javax.swing.JMenu;
-import java.awt.Insets;
 import java.awt.Point;
 
 import javax.swing.JPanel;
+
 import java.awt.Color;
-import javax.swing.border.CompoundBorder;
-import javax.swing.border.MatteBorder;
-import javax.swing.border.TitledBorder;
-import javax.swing.UIManager;
+import java.awt.Component;
+
 import javax.swing.border.BevelBorder;
 import javax.swing.border.SoftBevelBorder;
 import javax.swing.JLabel;
@@ -24,12 +24,20 @@ import javax.swing.SwingConstants;
 import java.awt.Font;
 import java.awt.SystemColor;
 import javax.swing.border.EtchedBorder;
-import javax.swing.JSplitPane;
 import javax.swing.JButton;
-import javax.swing.JSeparator;
 import javax.swing.JTextField;
 import java.awt.event.MouseMotionAdapter;
+import java.io.IOException;
 import java.awt.event.MouseEvent;
+import java.awt.event.ActionListener;
+import java.awt.event.ActionEvent;
+import javax.swing.JRadioButtonMenuItem;
+import java.awt.event.ItemListener;
+import java.awt.event.ItemEvent;
+
+import com.gnostice.pdfone.PdfDocument;
+import com.gnostice.pdfone.PdfException;
+import com.gnostice.pdfone.PdfViewer;
 
 public class MainMenu {
 
@@ -49,6 +57,16 @@ public class MainMenu {
     private JTextField textField;
     private JTextField textField_1;
     private JTextField textField_2;
+
+    /* Points used for dragging left navigation bar */
+    Point prev_p;
+    Point onscreen_p;
+
+    public int mode = 0; // By default it is 0; 0 means Fastest route, 1 means Shortest route, 2 means to
+			 // find minimum of these
+    public boolean drag = false; // Dragging disabled by default
+
+    public String mapPath = ".//map.pdf";
 
     class Size {
 	int w;
@@ -121,6 +139,9 @@ public class MainMenu {
 	// mnEdit.setPreferredSize(new Dimension(menu_size.w, menu_size.h));
 	menuBar.add(mnEdit);
 
+	JMenuItem mntmRefresh = new JMenuItem("Refresh");
+	mnEdit.add(mntmRefresh);
+
 	JMenuItem mntmCut = new JMenuItem("Cut");
 	mnEdit.add(mntmCut);
 
@@ -132,6 +153,12 @@ public class MainMenu {
 
 	JMenuItem mntmDelete = new JMenuItem("Delete");
 	mnEdit.add(mntmDelete);
+
+	JMenu mnNewMenu = new JMenu("Settings");
+	menuBar.add(mnNewMenu);
+
+	JRadioButtonMenuItem rdbtnmntmDrag = new JRadioButtonMenuItem("Drag");
+	mnNewMenu.add(rdbtnmntmDrag);
 
 	JPanel panel = new JPanel();
 	panel.setBackground(Color.LIGHT_GRAY);
@@ -156,14 +183,18 @@ public class MainMenu {
 	left_navbar.add(lblNewLabel);
 
 	JButton btnNewButton = new JButton("Fastest");
+	btnNewButton.setFont(new Font("Arial", Font.PLAIN, 13));
+	btnNewButton.setForeground(SystemColor.textHighlight);
 	btnNewButton.setBounds(10, 113, 110, 39);
 	left_navbar.add(btnNewButton);
 
 	JButton btnShortest = new JButton("Shortest");
+	btnShortest.setFont(new Font("Arial", Font.PLAIN, 13));
 	btnShortest.setBounds(123, 113, 110, 39);
 	left_navbar.add(btnShortest);
 
 	JButton btnMinimum = new JButton("Minimum");
+	btnMinimum.setFont(new Font("Arial", Font.PLAIN, 13));
 	btnMinimum.setBounds(236, 113, 110, 39);
 	left_navbar.add(btnMinimum);
 
@@ -213,31 +244,103 @@ public class MainMenu {
 	btnSubmit.setBounds(157, 324, 89, 23);
 	left_navbar.add(btnSubmit);
 
-	JPanel drag_pnl = new JPanel();
-	drag_pnl.setOpaque(false);
-	drag_pnl.setBackground(SystemColor.activeCaptionBorder);
-	drag_pnl.addMouseMotionListener(new MouseMotionAdapter() {
-	    Point prev;
+	/** PDF VIEWER */
+	PdfViewer viewer = new PdfViewer();
+	viewer.setBounds(379, 11, 779, 581);
+	panel.add(viewer);
+	PdfDocument d;
+	try {
+	    // Read PDF document specified by the user
+	    // in the text field
+	    d = new PdfDocument();
+	    d.load(mapPath);
+
+	    // Display the document in viewer
+	    viewer.loadDocument(d);
+	} catch (PdfException pdfEx) {
+	} catch (IOException ioEx) {
+	}
+
+	/* LISTENERS */
+	left_navbar.addMouseMotionListener(new MouseMotionAdapter() {
 
 	    @Override
 	    public void mouseDragged(MouseEvent e) {
-		Point onscreen = e.getLocationOnScreen();
+		if (!drag)
+		    return;
 
-		if (prev == null)
-		    prev = onscreen;
+		onscreen_p = e.getLocationOnScreen();
 
-		left_navbar.setLocation(left_navbar.getX() + (onscreen.x - prev.x), left_navbar.getY());
-		prev = onscreen;
+		if (prev_p == null)
+		    prev_p = onscreen_p;
 
-		// if (left_navbar.getX() < -left_navbar_size.w + drag_pnl.getWidth() / 2) {
-		// left_navbar.setLocation(-left_navbar_size.w + drag_pnl.getWidth() / 2,
-		// left_navbar.getY());
-		// prev = null;
-		// }
+		left_navbar.setLocation(left_navbar.getX() + (onscreen_p.x - prev_p.x), left_navbar.getY());
+		prev_p = onscreen_p;
+
+		// FIXME: MAKE SO THAT DRAGING DOES NOT GO TO FAR
+
 	    }
 	});
-	drag_pnl.setBounds(347, 0, 20, 603);
-	left_navbar.add(drag_pnl);
+	btnNewButton.addActionListener(new ActionListener() {
+	    public void actionPerformed(ActionEvent e) {
+		btnNewButton.setForeground(SystemColor.textHighlight);
+		btnMinimum.setForeground(SystemColor.BLACK);
+		btnShortest.setForeground(SystemColor.BLACK);
+		mode = 0;
+	    }
+	});
+	btnMinimum.addActionListener(new ActionListener() {
+	    public void actionPerformed(ActionEvent e) {
+		btnMinimum.setForeground(SystemColor.textHighlight);
+		btnNewButton.setForeground(SystemColor.BLACK);
+		btnShortest.setForeground(SystemColor.BLACK);
+		mode = 1;
+	    }
+	});
+	btnShortest.addActionListener(new ActionListener() {
+	    public void actionPerformed(ActionEvent e) {
+		btnShortest.setForeground(SystemColor.textHighlight);
+		btnMinimum.setForeground(SystemColor.BLACK);
+		btnNewButton.setForeground(SystemColor.BLACK);
+		mode = 2;
+	    }
+	});
+	btnRefresh.addActionListener(new ActionListener() {
+	    public void actionPerformed(ActionEvent arg0) {
+		refresh(new Component[] { left_navbar, btnNewButton, btnMinimum, btnShortest, rdbtnmntmDrag });
+	    }
+	});
+
+	/* Refresh option, menu item, Refreshes the screen */
+	mntmRefresh.addActionListener(new ActionListener() {
+	    public void actionPerformed(ActionEvent e) {
+		refresh(new Component[] { left_navbar, btnNewButton, btnMinimum, btnShortest, rdbtnmntmDrag });
+		// FIXME: in case if the photo of map added. Refresh its location too
+	    }
+	});
+	/* Radio button, menu item, flag for dragging */
+	rdbtnmntmDrag.addItemListener(new ItemListener() {
+	    public void itemStateChanged(ItemEvent arg0) {
+		drag = rdbtnmntmDrag.isSelected();
+		System.out.println(drag);
+	    }
+	});
+    }
+
+    private void refresh(Component[] a) {
+	a[0].setBounds(0, 0, 369, 605);
+	prev_p = null;
+	onscreen_p = null;
+	a[1].setForeground(SystemColor.textHighlight);
+	a[2].setForeground(SystemColor.BLACK);
+	a[3].setForeground(SystemColor.BLACK);
+	mode = 0;
+	textField.setText("");
+	textField_1.setText("");
+	textField_2.setText("");
+	((JRadioButtonMenuItem) a[4]).setSelected(false);
+	drag = false;
+
     }
 
     private int toInt(double a) {
