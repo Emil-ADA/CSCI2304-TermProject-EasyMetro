@@ -8,7 +8,6 @@ import Utils.JHardware;
 
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
-import javax.swing.JOptionPane;
 import javax.swing.JMenu;
 import java.awt.Point;
 
@@ -19,9 +18,15 @@ import java.awt.Component;
 
 import javax.swing.border.BevelBorder;
 import javax.swing.border.SoftBevelBorder;
+
+import com.gnostice.pdfone.PdfDocument;
+import com.gnostice.pdfone.PdfException;
+import com.gnostice.pdfone.PdfViewer;
+
 import javax.swing.JLabel;
 import javax.swing.SwingConstants;
 import java.awt.Font;
+import java.awt.Image;
 import java.awt.SystemColor;
 import javax.swing.border.EtchedBorder;
 import javax.swing.JButton;
@@ -35,9 +40,10 @@ import javax.swing.JRadioButtonMenuItem;
 import java.awt.event.ItemListener;
 import java.awt.event.ItemEvent;
 
-import com.gnostice.pdfone.PdfDocument;
-import com.gnostice.pdfone.PdfException;
-import com.gnostice.pdfone.PdfViewer;
+import DS.Graph;
+import java.awt.ScrollPane;
+import javax.swing.JScrollBar;
+import javax.swing.ImageIcon;
 
 public class MainMenu {
 
@@ -49,6 +55,18 @@ public class MainMenu {
     public static final int SCREEN_HEIGHT = (int) JHardware.getScreenSize().getHeight();
     /** The size of the frame determined by the ratio of screen size */
     public static final double RATIO = 0.86;
+    /** The unit increment of the Vertical scroll bar of Scroll pane */
+    public static final short VSCROLL_RATE = 16;
+    /** The unit increment of the Horizontal scroll bar of Scroll pane */
+    public static final short HSCROLL_RATE = 16;
+
+    /** Label component containing the image of the map */
+    public static JLabel MAP_IMG = new JLabel("");
+    public static final Image MAP_IMAGE = new ImageIcon(
+	    "C:\\Users\\sadig\\eclipse-workspace\\DSA Project\\data\\Istanbul Rail Systems Accessibility Map.png")
+		    .getImage();
+    public static final double ZOOM_SCALE = 0.1;// Percent
+
     /** The size of the frame */
     public Size frame_size = new Size(toInt(SCREEN_WIDTH * RATIO), toInt(SCREEN_HEIGHT * RATIO));
 
@@ -66,7 +84,7 @@ public class MainMenu {
 			 // find minimum of these
     public boolean drag = false; // Dragging disabled by default
 
-    public String mapPath = ".//map.pdf";
+    public String mapPath = ".//data//Istanbul Rail Systems Accessibility Map.pdf";
 
     class Size {
 	int w;
@@ -78,6 +96,11 @@ public class MainMenu {
 	}
     }
 
+    /***************************************************************************
+     * VARIABLES FOR ALGO
+     ***************************************************************************/
+    Graph lines[] = new Graph[1];
+
     /**
      * Launch the application.
      */
@@ -87,6 +110,7 @@ public class MainMenu {
 		try {
 		    MainMenu window = new MainMenu();
 		    window.frame.setVisible(true);
+		    scaleMAP(MAP_IMG, -ZOOM_SCALE*7);
 		} catch (Exception e) {
 		    e.printStackTrace();
 		}
@@ -244,24 +268,31 @@ public class MainMenu {
 	btnSubmit.setBounds(157, 324, 89, 23);
 	left_navbar.add(btnSubmit);
 
-	/** PDF VIEWER */
-	PdfViewer viewer = new PdfViewer();
-	viewer.setBounds(379, 11, 779, 581);
-	panel.add(viewer);
-	PdfDocument d;
-	try {
-	    // Read PDF document specified by the user
-	    // in the text field
-	    d = new PdfDocument();
-	    d.load(mapPath);
+	JButton btnNewButton_1 = new JButton("+");
+	btnNewButton_1.setFont(new Font("MS Reference Sans Serif", Font.BOLD, 14));
+	btnNewButton_1.setBorder(null);
+	btnNewButton_1.setBounds(1115, 15, 30, 30);
+	panel.add(btnNewButton_1);
 
-	    // Display the document in viewer
-	    viewer.loadDocument(d);
-	} catch (PdfException pdfEx) {
-	} catch (IOException ioEx) {
-	}
+	JButton button = new JButton("-");
+	button.setFont(new Font("MS Reference Sans Serif", Font.BOLD, 14));
+	button.setBorder(null);
+	button.setBounds(1085, 15, 30, 30);
+	panel.add(button);
 
-	/* LISTENERS */
+	ScrollPane scrollPane = new ScrollPane();
+	scrollPane.setBounds(375, 0, 793, 605);
+	panel.add(scrollPane);
+	scrollPane.getVAdjustable().setUnitIncrement(VSCROLL_RATE);
+	scrollPane.getHAdjustable().setUnitIncrement(HSCROLL_RATE);
+
+	MAP_IMG.setIcon(new ImageIcon(
+		"C:\\Users\\sadig\\eclipse-workspace\\DSA Project\\data\\Istanbul Rail Systems Accessibility Map.png"));
+	MAP_IMG.setBounds(519, 102, 46, 14);
+	scrollPane.add(MAP_IMG);
+	/***************************************************************************
+	 * LISTENERS
+	 ***************************************************************************/
 	left_navbar.addMouseMotionListener(new MouseMotionAdapter() {
 
 	    @Override
@@ -325,6 +356,27 @@ public class MainMenu {
 		System.out.println(drag);
 	    }
 	});
+
+	btnNewButton_1.addActionListener(new ActionListener() {
+	    public void actionPerformed(ActionEvent arg0) {
+		scaleMAP(MAP_IMG, ZOOM_SCALE);
+	    }
+	});
+	button.addActionListener(new ActionListener() {
+	    public void actionPerformed(ActionEvent e) {
+		scaleMAP(MAP_IMG, -ZOOM_SCALE);
+	    }
+	});
+
+    }
+
+    public static void scaleMAP(JLabel label, double scale) {
+	ImageIcon myImage = (ImageIcon) label.getIcon();
+	Image img = myImage.getImage();
+	int w = label.getWidth();
+	int h = label.getHeight();
+	Image newImg = MAP_IMAGE.getScaledInstance(toInt(w + w * scale), toInt(h + h * scale), Image.SCALE_DEFAULT);
+	label.setIcon(new ImageIcon(newImg));
     }
 
     private void refresh(Component[] a) {
@@ -343,7 +395,8 @@ public class MainMenu {
 
     }
 
-    private int toInt(double a) {
+    private static int toInt(double a) {
 	return (int) a;
     }
+
 }

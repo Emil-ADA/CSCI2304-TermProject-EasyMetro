@@ -42,15 +42,6 @@ public class testframe {
 	frame = new JFrame();
 	frame.setBounds(100, 100, 450, 300);
 	frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-
-	NativeInterface.initialize();
-	NativeInterface.open();
-	JWebBrowser fileBrowser = new JWebBrowser();
-	fileBrowser.setVisible(true);
-	fileBrowser.setBarsVisible(false);
-	fileBrowser.setStatusBarVisible(false);
-	frame.add(fileBrowser, BorderLayout.CENTER);
-	fileBrowser.navigate(".\\Cut-Rod.pdf");
     }
 
 }
