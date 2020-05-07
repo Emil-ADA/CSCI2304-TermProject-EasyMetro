@@ -4,6 +4,7 @@ import java.awt.Dimension;
 import java.awt.EventQueue;
 import javax.swing.JFrame;
 
+import Utils.Autosuggestion;
 import Utils.JHardware;
 
 import javax.swing.JMenuBar;
@@ -31,8 +32,14 @@ import java.awt.SystemColor;
 import javax.swing.border.EtchedBorder;
 import javax.swing.JButton;
 import javax.swing.JTextField;
+import javax.swing.JToolTip;
+import javax.swing.Popup;
+import javax.swing.PopupFactory;
+
 import java.awt.event.MouseMotionAdapter;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.awt.event.MouseEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
@@ -44,6 +51,9 @@ import DS.Graph;
 import java.awt.ScrollPane;
 import javax.swing.JScrollBar;
 import javax.swing.ImageIcon;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+import javax.swing.JCheckBoxMenuItem;
 
 public class MainMenu {
 
@@ -110,7 +120,7 @@ public class MainMenu {
 		try {
 		    MainMenu window = new MainMenu();
 		    window.frame.setVisible(true);
-		    scaleMAP(MAP_IMG, -ZOOM_SCALE*7);
+		    scaleMAP(MAP_IMG, -ZOOM_SCALE * 7);
 		} catch (Exception e) {
 		    e.printStackTrace();
 		}
@@ -181,6 +191,80 @@ public class MainMenu {
 	JMenu mnNewMenu = new JMenu("Settings");
 	menuBar.add(mnNewMenu);
 
+	JMenu mnMapScale = new JMenu("Map Scale");
+	mnNewMenu.add(mnMapScale);
+
+	JCheckBoxMenuItem chcDEF = new JCheckBoxMenuItem("Default");
+	chcDEF.setState(true);
+	mnMapScale.add(chcDEF);
+
+	JCheckBoxMenuItem chcSM = new JCheckBoxMenuItem("Smooth");
+	mnMapScale.add(chcSM);
+
+	JCheckBoxMenuItem chcFAST = new JCheckBoxMenuItem("Fast");
+	mnMapScale.add(chcFAST);
+
+	JCheckBoxMenuItem chcAREA = new JCheckBoxMenuItem("Area Averaging");
+	mnMapScale.add(chcAREA);
+
+	JCheckBoxMenuItem chcREP = new JCheckBoxMenuItem("Replicate");
+	mnMapScale.add(chcREP);
+
+	chcDEF.addActionListener(new ActionListener() {
+	    public void actionPerformed(ActionEvent e) {
+		if (chcDEF.isEnabled()) {
+		    MAP_SCALE_HINTS = Image.SCALE_DEFAULT;
+		    chcSM.setState(false);
+		    chcFAST.setState(false);
+		    chcAREA.setState(false);
+		    chcREP.setState(false);
+		}
+	    }
+	});
+	chcSM.addActionListener(new ActionListener() {
+	    public void actionPerformed(ActionEvent e) {
+		if (chcSM.isEnabled()) {
+		    MAP_SCALE_HINTS = Image.SCALE_SMOOTH;
+		    chcDEF.setState(false);
+		    chcFAST.setState(false);
+		    chcAREA.setState(false);
+		    chcREP.setState(false);
+		}
+	    }
+	});
+	chcFAST.addActionListener(new ActionListener() {
+	    public void actionPerformed(ActionEvent e) {
+		if (chcFAST.isEnabled()) {
+		    MAP_SCALE_HINTS = Image.SCALE_FAST;
+		    chcSM.setState(false);
+		    chcDEF.setState(false);
+		    chcAREA.setState(false);
+		    chcREP.setState(false);
+		}
+	    }
+	});
+	chcAREA.addActionListener(new ActionListener() {
+	    public void actionPerformed(ActionEvent e) {
+		if (chcAREA.isEnabled()) {
+		    MAP_SCALE_HINTS = Image.SCALE_AREA_AVERAGING;
+		    chcSM.setState(false);
+		    chcFAST.setState(false);
+		    chcDEF.setState(false);
+		    chcREP.setState(false);
+		}
+	    }
+	});
+	chcREP.addActionListener(new ActionListener() {
+	    public void actionPerformed(ActionEvent e) {
+		if (chcREP.isEnabled()) {
+		    MAP_SCALE_HINTS = Image.SCALE_REPLICATE;
+		    chcSM.setState(false);
+		    chcFAST.setState(false);
+		    chcAREA.setState(false);
+		    chcDEF.setState(false);
+		}
+	    }
+	});
 	JRadioButtonMenuItem rdbtnmntmDrag = new JRadioButtonMenuItem("Drag");
 	mnNewMenu.add(rdbtnmntmDrag);
 
@@ -227,17 +311,30 @@ public class MainMenu {
 	left_navbar.add(panel_1);
 	panel_1.setLayout(null);
 
+	List<String> TESTLIST = new ArrayList<>();
+	TESTLIST.add("Basaksehir Metrokent");
+	TESTLIST.add("Basak Konutlari");
+	TESTLIST.add("Siteler");
+	TESTLIST.add("Turgut Ozal");
+	TESTLIST.add("Ziya Gokalp Mah");
+	TESTLIST.add("Olimpiyat");
+	TESTLIST.add("Ikitelli Sanay");
+	TESTLIST.add("Mahmutbey");
+	TESTLIST.add("Yenimahalle");
+
 	textField = new JTextField();
 	textField.setBounds(113, 10, 212, 30);
 	panel_1.add(textField);
 	textField.setColumns(10);
 
 	textField_1 = new JTextField();
+
 	textField_1.setColumns(10);
 	textField_1.setBounds(113, 60, 212, 30);
 	panel_1.add(textField_1);
 
 	textField_2 = new JTextField();
+
 	textField_2.setColumns(10);
 	textField_2.setBounds(113, 110, 212, 30);
 	panel_1.add(textField_2);
@@ -264,9 +361,9 @@ public class MainMenu {
 	btnRefresh.setBounds(256, 324, 89, 23);
 	left_navbar.add(btnRefresh);
 
-	JButton btnSubmit = new JButton("Submit");
-	btnSubmit.setBounds(157, 324, 89, 23);
-	left_navbar.add(btnSubmit);
+	JButton btnSearch = new JButton("Search");
+	btnSearch.setBounds(157, 324, 89, 23);
+	left_navbar.add(btnSearch);
 
 	JButton btnNewButton_1 = new JButton("+");
 	btnNewButton_1.setFont(new Font("MS Reference Sans Serif", Font.BOLD, 14));
@@ -299,6 +396,7 @@ public class MainMenu {
 	    public void mouseDragged(MouseEvent e) {
 		if (!drag)
 		    return;
+		popup_show(false);
 
 		onscreen_p = e.getLocationOnScreen();
 
@@ -306,6 +404,7 @@ public class MainMenu {
 		    prev_p = onscreen_p;
 
 		left_navbar.setLocation(left_navbar.getX() + (onscreen_p.x - prev_p.x), left_navbar.getY());
+
 		prev_p = onscreen_p;
 
 		// FIXME: MAKE SO THAT DRAGING DOES NOT GO TO FAR
@@ -339,6 +438,7 @@ public class MainMenu {
 	btnRefresh.addActionListener(new ActionListener() {
 	    public void actionPerformed(ActionEvent arg0) {
 		refresh(new Component[] { left_navbar, btnNewButton, btnMinimum, btnShortest, rdbtnmntmDrag });
+		scrollPane.setScrollPosition(0, 0);
 	    }
 	});
 
@@ -346,7 +446,8 @@ public class MainMenu {
 	mntmRefresh.addActionListener(new ActionListener() {
 	    public void actionPerformed(ActionEvent e) {
 		refresh(new Component[] { left_navbar, btnNewButton, btnMinimum, btnShortest, rdbtnmntmDrag });
-		// FIXME: in case if the photo of map added. Refresh its location too
+		scrollPane.setScrollPosition(0, 0);
+
 	    }
 	});
 	/* Radio button, menu item, flag for dragging */
@@ -367,15 +468,66 @@ public class MainMenu {
 		scaleMAP(MAP_IMG, -ZOOM_SCALE);
 	    }
 	});
+	textField.addKeyListener(addAutoSuggestion(textField, TESTLIST));
+	textField_1.addKeyListener(addAutoSuggestion(textField_1, TESTLIST));
+	textField_2.addKeyListener(addAutoSuggestion(textField_2, TESTLIST));
 
     }
 
+    /***************************************************************************
+     * AUTO-SUGGESTION
+     ***************************************************************************/
+    /* VARIABLES FOR AUTO-SUGGESTION */
+    /*
+     * These Variables are shared between 3 text fields in order to reduce memory
+     * usage plus only one instance of suggestion needed at a time
+     */
+    JToolTip toolTip = new JToolTip();
+    PopupFactory pf = new PopupFactory();
+    Popup popup;
+    List<String> sugg = new ArrayList<String>();
+
+    private KeyAdapter addAutoSuggestion(JTextField textField, List<String> list) {
+	return new KeyAdapter() {
+	    @Override
+	    public void keyTyped(KeyEvent key) {
+
+		sugg = Autosuggestion.query(textField.getText(), list);
+
+		if (textField.getText().length() == 0 || sugg.size() == 0 || !textField.hasFocus()) {
+		    popup_show(false);
+		    return;
+		}
+
+		toolTip.setTipText(sugg.get(0));
+
+		int x = toInt(textField.getLocationOnScreen().getX());
+		int y = toInt(textField.getLocationOnScreen().getY()) + textField.getHeight();
+		popup = pf.getPopup(textField, toolTip, x, y);
+		popup_show(true);
+	    }
+	};
+    }
+
+    private void popup_show(boolean yes) {
+	if (popup == null)
+	    return;
+	if (yes)
+	    popup.show();
+	else
+	    popup.hide();
+    }
+
+    /***************************************************************************
+     * AUX-METHODS
+     ***************************************************************************/
+
+    static int MAP_SCALE_HINTS = Image.SCALE_DEFAULT;
+
     public static void scaleMAP(JLabel label, double scale) {
-	ImageIcon myImage = (ImageIcon) label.getIcon();
-	Image img = myImage.getImage();
 	int w = label.getWidth();
 	int h = label.getHeight();
-	Image newImg = MAP_IMAGE.getScaledInstance(toInt(w + w * scale), toInt(h + h * scale), Image.SCALE_DEFAULT);
+	Image newImg = MAP_IMAGE.getScaledInstance(toInt(w + w * scale), toInt(h + h * scale), MAP_SCALE_HINTS);
 	label.setIcon(new ImageIcon(newImg));
     }
 
@@ -398,5 +550,4 @@ public class MainMenu {
     private static int toInt(double a) {
 	return (int) a;
     }
-
 }

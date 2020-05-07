@@ -1,8 +1,8 @@
 package DS;
 /******************************************************************************
- *  Compilation:  javac EdgeWeightedGraph.java
- *  Execution:    java EdgeWeightedGraph filename.txt
- *  Dependencies: Bag.java Edge.java In.java StdOut.java
+ *  Compilation:  javac DirectedEdgeWeightedGraph.java
+ *  Execution:    java DirectedEdgeWeightedGraph filename.txt
+ *  Dependencies: Bag.java DirectedEdge.java In.java StdOut.java
  *  Data files:   https://algs4.cs.princeton.edu/43mst/tinyEWG.txt
  *                https://algs4.cs.princeton.edu/43mst/mediumEWG.txt
  *                https://algs4.cs.princeton.edu/43mst/largeEWG.txt
@@ -10,7 +10,7 @@ package DS;
  *  An edge-weighted undirected graph, implemented using adjacency lists.
  *  Parallel edges and self-loops are permitted.
  *
- *  % java EdgeWeightedGraph tinyEWG.txt 
+ *  % java DirectedEdgeWeightedGraph tinyEWG.txt 
  *  8 16
  *  0: 6-0 0.58000  0-2 0.26000  0-4 0.38000  0-7 0.16000  
  *  1: 1-3 0.29000  1-2 0.36000  1-7 0.19000  1-5 0.32000  
@@ -33,9 +33,9 @@ import Dependencies.StdOut;
 import Dependencies.StdRandom;
 
 /**
- *  The {@code EdgeWeightedGraph} class represents an edge-weighted
+ *  The {@code DirectedEdgeWeightedGraph} class represents an edge-weighted
  *  graph of vertices named 0 through <em>V</em> – 1, where each
- *  undirected edge is of type {@link Edge} and has a real-valued weight.
+ *  undirected edge is of type {@link DirectedEdge} and has a real-valued weight.
  *  It supports the following two primary operations: add an edge to the graph,
  *  iterate over all of the edges incident to a vertex. It also provides
  *  methods for returning the degree of a vertex, the number of vertices
@@ -69,7 +69,7 @@ public class Graph {
 
     private final int V;
     private int E;
-    private Bag<Edge>[] adj;
+    private Bag<DirectedEdge>[] adj;
     
     /**
      * Initializes an empty edge-weighted graph with {@code V} vertices and 0 edges.
@@ -81,9 +81,9 @@ public class Graph {
         if (V < 0) throw new IllegalArgumentException("Number of vertices must be nonnegative");
         this.V = V;
         this.E = 0;
-        adj = (Bag<Edge>[]) new Bag[V];
+        adj = (Bag<DirectedEdge>[]) new Bag[V];
         for (int v = 0; v < V; v++) {
-            adj[v] = new Bag<Edge>();
+            adj[v] = new Bag<DirectedEdge>();
         }
     }
 
@@ -102,8 +102,8 @@ public class Graph {
             int v = StdRandom.uniform(V);
             int w = StdRandom.uniform(V);
             double weight = Math.round(100 * StdRandom.uniform()) / 100.0;
-            Edge e = new Edge(v, w, weight);
-            addEdge(e);
+            DirectedEdge e = new DirectedEdge(v, w, weight);
+            addDirectedEdge(e);
         }
     }
 
@@ -124,9 +124,9 @@ public class Graph {
 
         try {
             V = in.readInt();
-            adj = (Bag<Edge>[]) new Bag[V];
+            adj = (Bag<DirectedEdge>[]) new Bag[V];
             for (int v = 0; v < V; v++) {
-                adj[v] = new Bag<Edge>();
+                adj[v] = new Bag<DirectedEdge>();
             }
 
             int E = in.readInt();
@@ -137,12 +137,12 @@ public class Graph {
                 validateVertex(v);
                 validateVertex(w);
                 double weight = in.readDouble();
-                Edge e = new Edge(v, w, weight);
-                addEdge(e);
+                DirectedEdge e = new DirectedEdge(v, w, weight);
+                addDirectedEdge(e);
             }
         }   
         catch (NoSuchElementException e) {
-            throw new IllegalArgumentException("invalid input format in EdgeWeightedGraph constructor", e);
+            throw new IllegalArgumentException("invalid input format in DirectedEdgeWeightedGraph constructor", e);
         }
 
     }
@@ -157,11 +157,11 @@ public class Graph {
         this.E = G.E();
         for (int v = 0; v < G.V(); v++) {
             // reverse so that adjacency list is in same order as original 
-            Stack<Edge> reverse = new Stack<Edge>();
-            for (Edge e : G.adj[v]) {
+            Stack<DirectedEdge> reverse = new Stack<DirectedEdge>();
+            for (DirectedEdge e : G.adj[v]) {
                 reverse.push(e);
             }
-            for (Edge e : reverse) {
+            for (DirectedEdge e : reverse) {
                 adj[v].add(e);
             }
         }
@@ -198,7 +198,7 @@ public class Graph {
      * @param  e the edge
      * @throws IllegalArgumentException unless both endpoints are between {@code 0} and {@code V-1}
      */
-    public void addEdge(Edge e) {
+    public void addDirectedEdge(DirectedEdge e) {
         int v = e.either();
         int w = e.other(v);
         validateVertex(v);
@@ -215,7 +215,7 @@ public class Graph {
      * @return the edges incident on vertex {@code v} as an Iterable
      * @throws IllegalArgumentException unless {@code 0 <= v < V}
      */
-    public Iterable<Edge> adj(int v) {
+    public Iterable<DirectedEdge> adj(int v) {
         validateVertex(v);
         return adj[v];
     }
@@ -235,15 +235,15 @@ public class Graph {
     /**
      * Returns all edges in this edge-weighted graph.
      * To iterate over the edges in this edge-weighted graph, use foreach notation:
-     * {@code for (Edge e : G.edges())}.
+     * {@code for (DirectedEdge e : G.edges())}.
      *
      * @return all edges in this edge-weighted graph, as an iterable
      */
-    public Iterable<Edge> edges() {
-        Bag<Edge> list = new Bag<Edge>();
+    public Iterable<DirectedEdge> edges() {
+        Bag<DirectedEdge> list = new Bag<DirectedEdge>();
         for (int v = 0; v < V; v++) {
             int selfLoops = 0;
-            for (Edge e : adj(v)) {
+            for (DirectedEdge e : adj(v)) {
                 if (e.other(v) > v) {
                     list.add(e);
                 }
@@ -266,10 +266,10 @@ public class Graph {
      */
     public String toString() {
         StringBuilder s = new StringBuilder();
-        s.append("Vertices: " + V + ", Edges: " + E + NEWLINE);
+        s.append("Vertices: " + V + ", DirectedEdges: " + E + NEWLINE);
         for (int v = 0; v < V; v++) {
             s.append(v + ": ");
-            for (Edge e : adj[v]) {
+            for (DirectedEdge e : adj[v]) {
                 s.append(e + "  ");
             }
             s.append(NEWLINE);
@@ -280,10 +280,10 @@ public class Graph {
 
     public static void main(String[] args) {
         Graph G = new Graph(5);
-        G.addEdge(new Edge(0, 1, 5));
-        G.addEdge(new Edge(2, 1, 4));
-        G.addEdge(new Edge(3, 1, 3));
-        G.addEdge(new Edge(4, 2, 2));
+        G.addDirectedEdge(new DirectedEdge(0, 1, 5));
+        G.addDirectedEdge(new DirectedEdge(2, 1, 4));
+        G.addDirectedEdge(new DirectedEdge(3, 1, 3));
+        G.addDirectedEdge(new DirectedEdge(4, 2, 2));
         StdOut.println(G);
         
         PrimMST mst = new PrimMST(G);

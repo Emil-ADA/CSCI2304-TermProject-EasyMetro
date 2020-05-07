@@ -25,9 +25,9 @@ package DS;
  */
 public class Edge implements Comparable<Edge> {
 
-    private final int v;
-    private final int w;
-    private final double weight;
+    final int v;
+    final int w;
+    final double weight;
 
     /**
      * Initializes an edge between vertices {@code v} and {@code w} of the given
