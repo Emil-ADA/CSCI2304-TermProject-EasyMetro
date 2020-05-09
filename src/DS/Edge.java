@@ -24,7 +24,8 @@ package DS;
  * @author Kevin Wayne
  */
 public class Edge implements Comparable<Edge> {
-
+    final String v_name;
+    final String w_name;
     final int v;
     final int w;
     final double weight;
@@ -45,13 +46,15 @@ public class Edge implements Comparable<Edge> {
      * @throws IllegalArgumentException
      *                                      if {@code weight} is {@code NaN}
      */
-    public Edge(int v, int w, double weight) {
+    public Edge(String v_name, String w_name, int v, int w, double weight) {
 	if (v < 0)
 	    throw new IllegalArgumentException("vertex index must be a nonnegative integer");
 	if (w < 0)
 	    throw new IllegalArgumentException("vertex index must be a nonnegative integer");
 	if (Double.isNaN(weight))
 	    throw new IllegalArgumentException("Weight is NaN");
+	this.v_name = v_name;
+	this.w_name = w_name;
 	this.v = v;
 	this.w = w;
 	this.weight = weight;
@@ -126,7 +129,7 @@ public class Edge implements Comparable<Edge> {
      *                 the command-line arguments
      */
     public static void main(String[] args) {
-	Edge e = new Edge(12, 34, 5.67);
-	System.out.println(e);
+//	Edge e = new Edge("1", 12, 34, 5.67);
+//	System.out.println(e);
     }
 }

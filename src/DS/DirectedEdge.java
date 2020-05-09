@@ -24,7 +24,7 @@ import Dependencies.StdOut;
  * @author Kevin Wayne
  */
 
-public class DirectedEdge extends Edge{
+public class DirectedEdge extends Edge {
 
     /**
      * Initializes a directed edge from vertex {@code v} to vertex {@code w} with
@@ -42,8 +42,8 @@ public class DirectedEdge extends Edge{
      * @throws IllegalArgumentException
      *                                      if {@code weight} is {@code NaN}
      */
-    public DirectedEdge(int v, int w, double weight) {
-	super(v, w, weight);
+    public DirectedEdge(String v_name, String w_name, int v, int w, double weight) {
+	super(v_name, w_name, v, w, weight);
     }
 
     /**
@@ -79,17 +79,12 @@ public class DirectedEdge extends Edge{
      * @return a string representation of the directed edge
      */
     public String toString() {
-	return v + "->" + w + " " + String.format("%5.2f", weight);
+	// + ":" + v + "->" + w + " "
+	return v_name + "->" + w_name + String.format("%5.2f", weight);
     }
 
-    /**
-     * Unit tests the {@code DirectedEdge} data type.
-     *
-     * @param args
-     *                 the command-line arguments
-     */
     public static void main(String[] args) {
-	DirectedEdge e = new DirectedEdge(12, 34, 5.67);
-	StdOut.println(e);
+//	DirectedEdge e = new DirectedEdge("Istanbul", 12, 34, 5.67);
+//	StdOut.println(e);
     }
 }

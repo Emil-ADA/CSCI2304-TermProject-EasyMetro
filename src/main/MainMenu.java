@@ -4,13 +4,14 @@ import java.awt.Dimension;
 import java.awt.EventQueue;
 import javax.swing.JFrame;
 
-import Utils.Autosuggestion;
+import Utils.Autocompletion;
 import Utils.JHardware;
 
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JMenu;
 import java.awt.Point;
+import java.awt.Rectangle;
 
 import javax.swing.JPanel;
 
@@ -70,41 +71,42 @@ public class MainMenu {
     /** The unit increment of the Horizontal scroll bar of Scroll pane */
     public static final short HSCROLL_RATE = 16;
 
+    /** The directory of the map */
+    public static final String MAP_PATH = ".//data//Istanbul Rail Systems Accessibility Map.png";
+
     /** Label component containing the image of the map */
     public static JLabel MAP_IMG = new JLabel("");
-    public static final Image MAP_IMAGE = new ImageIcon(
-	    "C:\\Users\\sadig\\eclipse-workspace\\DSA Project\\data\\Istanbul Rail Systems Accessibility Map.png")
-		    .getImage();
-    public static final double ZOOM_SCALE = 0.1;// Percent
 
-    /** The size of the frame */
-    public Size frame_size = new Size(toInt(SCREEN_WIDTH * RATIO), toInt(SCREEN_HEIGHT * RATIO));
+    public static final Image MAP_IMAGE = new ImageIcon(MAP_PATH).getImage();
 
-    public Size menu_size = new Size(60, 22);
-    public Size left_navbar_size = new Size(355, 603);
-    private JTextField textField;
-    private JTextField textField_1;
-    private JTextField textField_2;
+    /** Variable ratio for zooming in and out, default value 10% */
+    public static final double ZOOM_SCALE = 0.1;
+
+    /** The dimension of the frame */
+    public Rectangle frame_size = new Rectangle(toInt(SCREEN_WIDTH * RATIO), toInt(SCREEN_HEIGHT * RATIO));
+    /** The dimension of the menu bar */
+    public Rectangle menu_size = new Rectangle(60, 22);
+    /** The dimension of the navigation bar on the left */
+    public Rectangle left_navbar_size = new Rectangle(355, 603);
 
     /* Points used for dragging left navigation bar */
     Point prev_p;
     Point onscreen_p;
+    /**
+     * By default it is 0; 0 means Fastest route, 1 means Shortest route, 2 means to
+     * find minimum of these
+     */
+    public int mode = 0;
 
-    public int mode = 0; // By default it is 0; 0 means Fastest route, 1 means Shortest route, 2 means to
-			 // find minimum of these
-    public boolean drag = false; // Dragging disabled by default
+    /**
+     * Flag variable, shows whether left navbar can be dragged or not, Dragging
+     * disabled by default
+     */
+    public boolean drag = false;
 
-    public String mapPath = ".//data//Istanbul Rail Systems Accessibility Map.pdf";
-
-    class Size {
-	int w;
-	int h;
-
-	public Size(int W, int H) {
-	    w = W;
-	    h = H;
-	}
-    }
+    private JTextField textField;
+    private JTextField textField_1;
+    private JTextField textField_2;
 
     /***************************************************************************
      * VARIABLES FOR ALGO
@@ -142,7 +144,7 @@ public class MainMenu {
 
 	frame = new JFrame();
 	frame.setResizable(false);
-	frame.setBounds(SCREEN_WIDTH / 2 - frame_size.w / 2, SCREEN_HEIGHT / 2 - frame_size.h / 2, 1174, 660);
+	frame.setBounds(SCREEN_WIDTH / 2 - frame_size.width / 2, SCREEN_HEIGHT / 2 - frame_size.height / 2, 1174, 660);
 	// frame.setBounds(SCREEN_WIDTH / 2 - frame_size.w / 2, SCREEN_HEIGHT / 2 -
 	// frame_size.h / 2, frame_size.w,
 	// frame_size.h);
@@ -210,61 +212,6 @@ public class MainMenu {
 	JCheckBoxMenuItem chcREP = new JCheckBoxMenuItem("Replicate");
 	mnMapScale.add(chcREP);
 
-	chcDEF.addActionListener(new ActionListener() {
-	    public void actionPerformed(ActionEvent e) {
-		if (chcDEF.isEnabled()) {
-		    MAP_SCALE_HINTS = Image.SCALE_DEFAULT;
-		    chcSM.setState(false);
-		    chcFAST.setState(false);
-		    chcAREA.setState(false);
-		    chcREP.setState(false);
-		}
-	    }
-	});
-	chcSM.addActionListener(new ActionListener() {
-	    public void actionPerformed(ActionEvent e) {
-		if (chcSM.isEnabled()) {
-		    MAP_SCALE_HINTS = Image.SCALE_SMOOTH;
-		    chcDEF.setState(false);
-		    chcFAST.setState(false);
-		    chcAREA.setState(false);
-		    chcREP.setState(false);
-		}
-	    }
-	});
-	chcFAST.addActionListener(new ActionListener() {
-	    public void actionPerformed(ActionEvent e) {
-		if (chcFAST.isEnabled()) {
-		    MAP_SCALE_HINTS = Image.SCALE_FAST;
-		    chcSM.setState(false);
-		    chcDEF.setState(false);
-		    chcAREA.setState(false);
-		    chcREP.setState(false);
-		}
-	    }
-	});
-	chcAREA.addActionListener(new ActionListener() {
-	    public void actionPerformed(ActionEvent e) {
-		if (chcAREA.isEnabled()) {
-		    MAP_SCALE_HINTS = Image.SCALE_AREA_AVERAGING;
-		    chcSM.setState(false);
-		    chcFAST.setState(false);
-		    chcDEF.setState(false);
-		    chcREP.setState(false);
-		}
-	    }
-	});
-	chcREP.addActionListener(new ActionListener() {
-	    public void actionPerformed(ActionEvent e) {
-		if (chcREP.isEnabled()) {
-		    MAP_SCALE_HINTS = Image.SCALE_REPLICATE;
-		    chcSM.setState(false);
-		    chcFAST.setState(false);
-		    chcAREA.setState(false);
-		    chcDEF.setState(false);
-		}
-	    }
-	});
 	JRadioButtonMenuItem rdbtnmntmDrag = new JRadioButtonMenuItem("Drag");
 	mnNewMenu.add(rdbtnmntmDrag);
 
@@ -383,11 +330,12 @@ public class MainMenu {
 	scrollPane.getVAdjustable().setUnitIncrement(VSCROLL_RATE);
 	scrollPane.getHAdjustable().setUnitIncrement(HSCROLL_RATE);
 
-	MAP_IMG.setIcon(new ImageIcon(
-		"C:\\Users\\sadig\\eclipse-workspace\\DSA Project\\data\\Istanbul Rail Systems Accessibility Map.png"));
+	MAP_IMG.setIcon(new ImageIcon(MAP_IMAGE));
 	MAP_IMG.setBounds(519, 102, 46, 14);
 	scrollPane.add(MAP_IMG);
-	/***************************************************************************
+
+	/*
+	 * .**************************************************************************
 	 * LISTENERS
 	 ***************************************************************************/
 	left_navbar.addMouseMotionListener(new MouseMotionAdapter() {
@@ -450,11 +398,11 @@ public class MainMenu {
 
 	    }
 	});
+
 	/* Radio button, menu item, flag for dragging */
 	rdbtnmntmDrag.addItemListener(new ItemListener() {
 	    public void itemStateChanged(ItemEvent arg0) {
 		drag = rdbtnmntmDrag.isSelected();
-		System.out.println(drag);
 	    }
 	});
 
@@ -468,15 +416,74 @@ public class MainMenu {
 		scaleMAP(MAP_IMG, -ZOOM_SCALE);
 	    }
 	});
-	textField.addKeyListener(addAutoSuggestion(textField, TESTLIST));
-	textField_1.addKeyListener(addAutoSuggestion(textField_1, TESTLIST));
-	textField_2.addKeyListener(addAutoSuggestion(textField_2, TESTLIST));
+
+	/*----------------------ADDING AUTOCOMPLETION-----------------------*/
+	textField.addKeyListener(addAutoCompletion(textField, TESTLIST));
+	textField_1.addKeyListener(addAutoCompletion(textField_1, TESTLIST));
+	textField_2.addKeyListener(addAutoCompletion(textField_2, TESTLIST));
+
+	/*-------------------------------------------------------------------*/
+	/*-----------------MENUBAR -> SETTINGS -> MAP SCALE-----------------*/
+	/*-----------------------------------------------------------------*/
+	chcDEF.addActionListener(new ActionListener() {
+	    public void actionPerformed(ActionEvent e) {
+		if (chcDEF.isEnabled()) {
+		    MAP_SCALE_HINTS = Image.SCALE_DEFAULT;
+		    chcSM.setState(false);
+		    chcFAST.setState(false);
+		    chcAREA.setState(false);
+		    chcREP.setState(false);
+		}
+	    }
+	});
+	chcSM.addActionListener(new ActionListener() {
+	    public void actionPerformed(ActionEvent e) {
+		if (chcSM.isEnabled()) {
+		    MAP_SCALE_HINTS = Image.SCALE_SMOOTH;
+		    chcDEF.setState(false);
+		    chcFAST.setState(false);
+		    chcAREA.setState(false);
+		    chcREP.setState(false);
+		}
+	    }
+	});
+	chcFAST.addActionListener(new ActionListener() {
+	    public void actionPerformed(ActionEvent e) {
+		if (chcFAST.isEnabled()) {
+		    MAP_SCALE_HINTS = Image.SCALE_FAST;
+		    chcSM.setState(false);
+		    chcDEF.setState(false);
+		    chcAREA.setState(false);
+		    chcREP.setState(false);
+		}
+	    }
+	});
+	chcAREA.addActionListener(new ActionListener() {
+	    public void actionPerformed(ActionEvent e) {
+		if (chcAREA.isEnabled()) {
+		    MAP_SCALE_HINTS = Image.SCALE_AREA_AVERAGING;
+		    chcSM.setState(false);
+		    chcFAST.setState(false);
+		    chcDEF.setState(false);
+		    chcREP.setState(false);
+		}
+	    }
+	});
+	chcREP.addActionListener(new ActionListener() {
+	    public void actionPerformed(ActionEvent e) {
+		if (chcREP.isEnabled()) {
+		    MAP_SCALE_HINTS = Image.SCALE_REPLICATE;
+		    chcSM.setState(false);
+		    chcFAST.setState(false);
+		    chcAREA.setState(false);
+		    chcDEF.setState(false);
+		}
+	    }
+	});
+	/*------------------------------------------------------------------*/
 
     }
 
-    /***************************************************************************
-     * AUTO-SUGGESTION
-     ***************************************************************************/
     /* VARIABLES FOR AUTO-SUGGESTION */
     /*
      * These Variables are shared between 3 text fields in order to reduce memory
@@ -487,12 +494,12 @@ public class MainMenu {
     Popup popup;
     List<String> sugg = new ArrayList<String>();
 
-    private KeyAdapter addAutoSuggestion(JTextField textField, List<String> list) {
+    private KeyAdapter addAutoCompletion(JTextField textField, List<String> list) {
 	return new KeyAdapter() {
 	    @Override
 	    public void keyTyped(KeyEvent key) {
 
-		sugg = Autosuggestion.query(textField.getText(), list);
+		sugg = Autocompletion.query(textField.getText(), list);
 
 		if (textField.getText().length() == 0 || sugg.size() == 0 || !textField.hasFocus()) {
 		    popup_show(false);

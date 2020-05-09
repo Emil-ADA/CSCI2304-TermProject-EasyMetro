@@ -67,7 +67,7 @@ import Dependencies.StdOut;
  * @author Robert Sedgewick
  * @author Kevin Wayne
  */
-public class PrimMST {
+public class Prim {
     private static final double FLOATING_POINT_EPSILON = 1E-12;
 
     private Edge[] edgeTo; // edgeTo[v] = shortest edge from tree vertex to non-tree vertex
@@ -81,7 +81,7 @@ public class PrimMST {
      * @param G
      *              the edge-weighted graph
      */
-    public PrimMST(Graph G) {
+    public Prim(Graph G) {
 	edgeTo = new Edge[G.V()];
 	distTo = new double[G.V()];
 	marked = new boolean[G.V()];
@@ -223,7 +223,7 @@ public class PrimMST {
     public static void main(String[] args) {
 	In in = new In(new File(".//data//ex-data-8.txt"));
 	Graph G = new Graph(in);
-	PrimMST mst = new PrimMST(G);
+	Prim mst = new Prim(G);
 	for (Edge e : mst.edges()) {
 	    StdOut.println(e);
 	}

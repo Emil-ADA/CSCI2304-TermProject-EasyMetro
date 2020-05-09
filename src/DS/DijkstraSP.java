@@ -236,20 +236,32 @@ public class DijkstraSP {
      *                 the command-line arguments
      */
     public static void main(String[] args) {
-	In in = new In(new File(".//data//tinyEWD.txt"));
-	Graph G = new Graph(in);
-	int s = 0;
+	// In in = new In(new File(".//data//tinyEWD.txt"));
+	// Graph G = new Graph(in);
+	Graph G = new Graph(7);
+	String V[] = { "Bagcilar", "Gunestepe", "Yavuz Selim", "Gungoren", "Sirkeci", "Tophane", "Kabatas" };
+	G.addDirectedEdge(new DirectedEdge(V[0], V[1], 0, 1, 0.2));
+	G.addDirectedEdge(new DirectedEdge(V[1], V[2], 1, 2, 0.5));
+	G.addDirectedEdge(new DirectedEdge(V[1], V[3], 1, 3, 0.2));
+	G.addDirectedEdge(new DirectedEdge(V[1], V[5], 1, 5, 0.9));
+	G.addDirectedEdge(new DirectedEdge(V[3], V[5], 3, 5, 0.4));
+	G.addDirectedEdge(new DirectedEdge(V[2], V[4], 2, 4, 0.3));
+	G.addDirectedEdge(new DirectedEdge(V[4], V[5], 4, 5, 0.2));
+	G.addDirectedEdge(new DirectedEdge(V[4], V[6], 4, 6, 0.1));
 
+	int s = 5;
+	System.out.println("Searching for " + V[s] + "...");
 	// compute shortest paths
 	DijkstraSP sp = new DijkstraSP(G, s);
 
 	// print shortest path
 	for (int t = 0; t < G.V(); t++) {
 	    if (sp.hasPathTo(t)) {
-		StdOut.printf("%d to %d (%.2f)  ", s, t, sp.distTo(t));
-		for (DirectedEdge e : sp.pathTo(t)) {
-		    StdOut.print(e + "   ");
-		}
+		// System.out.print(V[s] + " to " + V[t] + sp.distTo(v));
+		StdOut.printf("%s to %s (%.2f) ", V[s], V[t], sp.distTo(t));
+		// for (DirectedEdge e : sp.pathTo(t)) {
+		// StdOut.print(e + " ");
+		// }
 		StdOut.println();
 	    } else {
 		StdOut.printf("%d to %d         no path\n", s, t);

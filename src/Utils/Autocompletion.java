@@ -3,7 +3,7 @@ package Utils;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Autosuggestion {
+public class Autocompletion {
 
     public static List<String> query(String queryStr, List<String> list) {
 	List<String> suggestion = new ArrayList<>();
