@@ -1,7 +1,6 @@
 package DS;
 
-import java.io.File;
-import java.io.FileNotFoundException;
+
 
 /******************************************************************************
  *  Compilation:  javac MinPQ.java
@@ -25,7 +24,6 @@ import java.io.FileNotFoundException;
 import java.util.Comparator;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
-import java.util.Scanner;
 
 /**
  * The {@code MinPQ} class represents a priority queue of generic keys. It

@@ -1,72 +1,43 @@
 package DS;
 
-/******************************************************************************
- *  Compilation:  javac Edge.java
- *  Execution:    java Edge
- *  Dependencies: StdOut.java
- *
- *  Immutable weighted edge.
- *
- ******************************************************************************/
+import Dependencies.StdOut;
 
-/**
- * The {@code Edge} class represents a weighted edge in an
- * {@link EdgeWeightedGraph}. Each edge consists of two integers (naming the two
- * vertices) and a real-value weight. The data type provides methods for
- * accessing the two endpoints of the edge and the weight. The natural order for
- * this data type is by ascending order of weight.
- * <p>
- * For additional documentation, see
- * <a href="https://algs4.cs.princeton.edu/43mst">Section 4.3</a> of
- * <i>Algorithms, 4th Edition</i> by Robert Sedgewick and Kevin Wayne.
- *
- * @author Robert Sedgewick
- * @author Kevin Wayne
- */
+// MULTI-WEIGHTED EDGE
 public class Edge implements Comparable<Edge> {
-    final String v_name;
-    final String w_name;
+    public static int MAX_NAME_LENGTH = 1;
     final int v;
     final int w;
-    final double weight;
+    String v_name;
+    String w_name;
+    final double[] weights;
 
-    /**
-     * Initializes an edge between vertices {@code v} and {@code w} of the given
-     * {@code weight}.
-     *
-     * @param v
-     *                   one vertex
-     * @param w
-     *                   the other vertex
-     * @param weight
-     *                   the weight of this edge
-     * @throws IllegalArgumentException
-     *                                      if either {@code v} or {@code w} is a
-     *                                      negative integer
-     * @throws IllegalArgumentException
-     *                                      if {@code weight} is {@code NaN}
-     */
-    public Edge(String v_name, String w_name, int v, int w, double weight) {
+    public Edge(int v, int w, double... weights) {
 	if (v < 0)
 	    throw new IllegalArgumentException("vertex index must be a nonnegative integer");
 	if (w < 0)
 	    throw new IllegalArgumentException("vertex index must be a nonnegative integer");
-	if (Double.isNaN(weight))
-	    throw new IllegalArgumentException("Weight is NaN");
-	this.v_name = v_name;
-	this.w_name = w_name;
+
+	for (double weight : weights) {
+	    if (Double.isNaN(weight))
+		throw new IllegalArgumentException("Weight is NaN");
+	}
 	this.v = v;
 	this.w = w;
-	this.weight = weight;
+	this.weights = weights;
     }
 
-    /**
-     * Returns the weight of this edge.
-     *
-     * @return the weight of this edge
-     */
-    public double weight() {
-	return weight;
+    public void setVertexNames(String vertex_v, String vertex_w) {
+	MAX_NAME_LENGTH = Math.max(MAX_NAME_LENGTH, stringify(vertex_v, vertex_w).length() + 1); // +1 is important
+	v_name = vertex_v;
+	w_name = vertex_w;
+    }
+
+    public String stringify(String a, String b) {
+	return a + " - " + b + ":";
+    }
+
+    public double weight(int in) {
+	return weights[in];
     }
 
     /**
@@ -97,20 +68,12 @@ public class Edge implements Comparable<Edge> {
 	    throw new IllegalArgumentException("Illegal endpoint");
     }
 
-    /**
-     * Compares two edges by weight. Note that {@code compareTo()} is not consistent
-     * with {@code equals()}, which uses the reference equality implementation
-     * inherited from {@code Object}.
-     *
-     * @param that
-     *                 the other edge
-     * @return a negative integer, zero, or positive integer depending on whether
-     *         the weight of this is less than, equal to, or greater than the
-     *         argument edge
-     */
-    @Override
-    public int compareTo(Edge that) {
-	return Double.compare(this.weight, that.weight);
+    public int compareTo(Edge that, int i) {
+	if (this.weights.length != that.weights.length)
+	    throw new IllegalArgumentException("Edges are not compatible");
+
+	return Double.compare(this.weights[i], that.weights[i]);
+
     }
 
     /**
@@ -119,17 +82,33 @@ public class Edge implements Comparable<Edge> {
      * @return a string representation of this edge
      */
     public String toString() {
-	return String.format("%d-%d %.5f", v, w, weight);
+	StringBuilder sb = new StringBuilder();
+	sb.append(stringify(v_name, w_name));
+	String format = "%-" + (MAX_NAME_LENGTH - sb.length()) + "s";
+	sb.append(String.format(format, ""));
+	sb.append("[");
+	for (Double weight : weights) {
+	    sb.append(String.format("%.1f", weight));
+	    sb.append(", ");
+	}
+
+	sb.delete(sb.length() - 2, sb.length());
+	sb.append("]");
+	return sb.toString();
     }
 
-    /**
-     * Unit tests the {@code Edge} data type.
-     *
-     * @param args
-     *                 the command-line arguments
-     */
-    public static void main(String[] args) {
-//	Edge e = new Edge("1", 12, 34, 5.67);
-//	System.out.println(e);
+    @Override
+    public int compareTo(Edge arg0) {
+	return compareTo(arg0, 0); // Default: Compares time
     }
+
+    public static void main(String[] args) {
+	Edge e = new Edge(0, 1, 1, 2, 3, 4, 5, 6, 7);
+	Edge e2 = new Edge(0, 1, 1, 2, 3, 4, 5);
+	e.setVertexNames("aaaaaaa", "a");
+	e2.setVertexNames("b", "bb");
+	System.out.println(e);
+	System.out.println(e2);
+    }
+
 }

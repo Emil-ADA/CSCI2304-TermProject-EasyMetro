@@ -1,3 +1,4 @@
+10 2
 Kirazli Bagcilar
 Bagcilar Meydan
 Ucyuzlu
@@ -14,6 +15,8 @@ Atakoy-Sirinevler
 Yenibosna
 DTM-Istanbul Fuar Merkezi
 Ataturk Havalimani
+CR/LF
+Otogar
 Kocatepe
 Sagmalcilar
 Bayrampasa-Maltepe

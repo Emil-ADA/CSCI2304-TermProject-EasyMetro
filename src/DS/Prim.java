@@ -6,67 +6,25 @@ import Dependencies.In;
 import Dependencies.StdOut;
 
 /******************************************************************************
- *  Compilation:  javac PrimMST.java
- *  Execution:    java PrimMST filename.txt
- *  Dependencies: EdgeWeightedGraph.java Edge.java Queue.java
- *                IndexMinPQ.java UF.java In.java StdOut.java
- *  Data files:   https://algs4.cs.princeton.edu/43mst/tinyEWG.txt
- *                https://algs4.cs.princeton.edu/43mst/mediumEWG.txt
- *                https://algs4.cs.princeton.edu/43mst/largeEWG.txt
+ * Compilation: javac PrimMST.java Execution: java PrimMST filename.txt
+ * Dependencies: EdgeWeightedGraph.java Edge.java Queue.java IndexMinPQ.java
+ * UF.java In.java StdOut.java Data files:
+ * https://algs4.cs.princeton.edu/43mst/tinyEWG.txt
+ * https://algs4.cs.princeton.edu/43mst/mediumEWG.txt
+ * https://algs4.cs.princeton.edu/43mst/largeEWG.txt
  *
- *  Compute a minimum spanning forest using Prim's algorithm.
+ * Compute a minimum spanning forest using Prim's algorithm.
  *
- *  %  java PrimMST tinyEWG.txt 
- *  1-7 0.19000
- *  0-2 0.26000
- *  2-3 0.17000
- *  4-5 0.35000
- *  5-7 0.28000
- *  6-2 0.40000
- *  0-7 0.16000
- *  1.81000
+ * % java PrimMST tinyEWG.txt 1-7 0.19000 0-2 0.26000 2-3 0.17000 4-5 0.35000
+ * 5-7 0.28000 6-2 0.40000 0-7 0.16000 1.81000
  *
- *  % java PrimMST mediumEWG.txt
- *  1-72   0.06506
- *  2-86   0.05980
- *  3-67   0.09725
- *  4-55   0.06425
- *  5-102  0.03834
- *  6-129  0.05363
- *  7-157  0.00516
- *  ...
- *  10.46351
+ * % java PrimMST mediumEWG.txt 1-72 0.06506 2-86 0.05980 3-67 0.09725 4-55
+ * 0.06425 5-102 0.03834 6-129 0.05363 7-157 0.00516 ... 10.46351
  *
- *  % java PrimMST largeEWG.txt
- *  ...
- *  647.66307
+ * % java PrimMST largeEWG.txt ... 647.66307
  *
  ******************************************************************************/
 
-/**
- * The {@code PrimMST} class represents a data type for computing a <em>minimum
- * spanning tree</em> in an edge-weighted graph. The edge weights can be
- * positive, zero, or negative and need not be distinct. If the graph is not
- * connected, it computes a <em>minimum spanning forest</em>, which is the union
- * of minimum spanning trees in each connected component. The {@code weight()}
- * method returns the weight of a minimum spanning tree and the {@code edges()}
- * method returns its edges.
- * <p>
- * This implementation uses <em>Prim's algorithm</em> with an indexed binary
- * heap. The constructor takes &Theta;(<em>E</em> log <em>V</em>) time in the
- * worst case, where <em>V</em> is the number of vertices and <em>E</em> is the
- * number of edges. Each instance method takes &Theta;(1) time. It uses
- * &Theta;(<em>V</em>) extra space (not including the edge-weighted graph).
- * <p>
- * For additional documentation, see
- * <a href="https://algs4.cs.princeton.edu/43mst">Section 4.3</a> of
- * <i>Algorithms, 4th Edition</i> by Robert Sedgewick and Kevin Wayne. For
- * alternate implementations, see {@link LazyPrimMST}, {@link KruskalMST}, and
- * {@link BoruvkaMST}.
- *
- * @author Robert Sedgewick
- * @author Kevin Wayne
- */
 public class Prim {
     private static final double FLOATING_POINT_EPSILON = 1E-12;
 
@@ -74,6 +32,7 @@ public class Prim {
     private double[] distTo; // distTo[v] = weight of shortest such edge
     private boolean[] marked; // marked[v] = true if v on tree, false otherwise
     private IndexMinPQ<Double> pq;
+    int weight_index = 0;
 
     /**
      * Compute a minimum spanning tree (or forest) of an edge-weighted graph.
@@ -81,41 +40,42 @@ public class Prim {
      * @param G
      *              the edge-weighted graph
      */
-    public Prim(Graph G) {
+    public Prim(Graph G, int w_in) {
 	edgeTo = new Edge[G.V()];
 	distTo = new double[G.V()];
 	marked = new boolean[G.V()];
+	weight_index = w_in;
 	pq = new IndexMinPQ<Double>(G.V());
 	for (int v = 0; v < G.V(); v++)
 	    distTo[v] = Double.POSITIVE_INFINITY;
 
 	for (int v = 0; v < G.V(); v++) // run from each vertex to find
 	    if (!marked[v])
-		prim(G, v); // minimum spanning forest
+		prim(G, v, w_in); // minimum spanning forest
 
 	// check optimality conditions
-	assert check(G);
+	assert check(G, w_in);
     }
 
     // run Prim's algorithm in graph G, starting from vertex s
-    private void prim(Graph G, int s) {
+    private void prim(Graph G, int s, int w_in) {
 	distTo[s] = 0.0;
 	pq.insert(s, distTo[s]);
 	while (!pq.isEmpty()) {
 	    int v = pq.delMin();
-	    scan(G, v);
+	    scan(G, v, w_in);
 	}
     }
 
     // scan vertex v
-    private void scan(Graph G, int v) {
+    private void scan(Graph G, int v, int w_in) {
 	marked[v] = true;
 	for (Edge e : G.adj(v)) {
 	    int w = e.other(v);
 	    if (marked[w])
 		continue; // v-w is obsolete edge
-	    if (e.weight() < distTo[w]) {
-		distTo[w] = e.weight();
+	    if (e.weight(w_in) < distTo[w]) {
+		distTo[w] = e.weight(w_in);
 		edgeTo[w] = e;
 		if (pq.contains(w))
 		    pq.decreaseKey(w, distTo[w]);
@@ -150,17 +110,17 @@ public class Prim {
     public double weight() {
 	double weight = 0.0;
 	for (Edge e : edges())
-	    weight += e.weight();
+	    weight += e.weight(weight_index);
 	return weight;
     }
 
     // check optimality conditions (takes time proportional to E V lg* V)
-    private boolean check(Graph G) {
+    private boolean check(Graph G, int w_in) {
 
 	// check weight
 	double totalWeight = 0.0;
 	for (Edge e : edges()) {
-	    totalWeight += e.weight();
+	    totalWeight += e.weight(w_in);
 	}
 	if (Math.abs(totalWeight - weight()) > FLOATING_POINT_EPSILON) {
 	    System.err.printf("Weight of edges does not equal weight(): %f vs. %f\n", totalWeight, weight());
@@ -202,7 +162,7 @@ public class Prim {
 	    for (Edge f : G.edges()) {
 		int x = f.either(), y = f.other(x);
 		if (uf.find(x) != uf.find(y)) {
-		    if (f.weight() < e.weight()) {
+		    if (f.weight(w_in) < e.weight(w_in)) {
 			System.err.println("Edge " + f + " violates cut optimality conditions");
 			return false;
 		    }
@@ -221,13 +181,13 @@ public class Prim {
      *                 the command-line arguments
      */
     public static void main(String[] args) {
-	In in = new In(new File(".//data//ex-data-8.txt"));
-	Graph G = new Graph(in);
-	Prim mst = new Prim(G);
-	for (Edge e : mst.edges()) {
-	    StdOut.println(e);
-	}
-	StdOut.printf("%.5f\n", mst.weight());
+	// In in = new In(new File(".//data//ex-data-8.txt"));
+	// Graph G = new Graph(in);
+	// Prim mst = new Prim(G);
+	// for (Edge e : mst.edges()) {
+	// StdOut.println(e);
+	// }
+	// StdOut.printf("%.5f\n", mst.weight());
     }
 
 }

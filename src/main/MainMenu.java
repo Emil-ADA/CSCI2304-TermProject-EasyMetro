@@ -38,22 +38,34 @@ import javax.swing.Popup;
 import javax.swing.PopupFactory;
 
 import java.awt.event.MouseMotionAdapter;
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Scanner;
+import java.util.stream.StreamSupport;
 import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 import javax.swing.JRadioButtonMenuItem;
 import java.awt.event.ItemListener;
 import java.awt.event.ItemEvent;
 
+import DS.DijkstraUndirectedSP;
+import DS.Edge;
 import DS.Graph;
+import DS.LinearProbingHashST;
+import Dependencies.StdOut;
+
 import java.awt.ScrollPane;
 import javax.swing.JScrollBar;
 import javax.swing.ImageIcon;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
+
 import javax.swing.JCheckBoxMenuItem;
 
 public class MainMenu {
@@ -104,14 +116,17 @@ public class MainMenu {
      */
     public boolean drag = false;
 
-    private JTextField textField;
-    private JTextField textField_1;
-    private JTextField textField_2;
+    public JTextField textField;
+    public JTextField textField_1;
+    public JTextField textField_2;
 
     /***************************************************************************
      * VARIABLES FOR ALGO
      ***************************************************************************/
-    Graph lines[] = new Graph[1];
+    private LinearProbingHashST<String, Integer> hash;
+    private final String DATA_REPO = ".//data//Cities//";
+    private String city = "Istanbul";
+    private Graph map;
 
     /**
      * Launch the application.
@@ -134,7 +149,58 @@ public class MainMenu {
      * Create the application.
      */
     public MainMenu() {
+	initMAP();
 	initialize();
+    }
+
+    private void initMAP() {
+	hash = new LinearProbingHashST<>();
+	File[] roadlines = new File(DATA_REPO + city).listFiles();
+
+	int ID = 0;
+	for (File line : roadlines) {
+	    try (Scanner sc = new Scanner(line);) {
+		sc.nextLine();
+		while (sc.hasNext()) {
+		    String key = sc.nextLine();
+		    if (!hash.contains(key))
+			hash.put(key, ID++);
+		}
+	    } catch (FileNotFoundException e) {
+	    }
+	}
+
+	for (String s : hash.keys()) {
+	    StdOut.println(hash.get(s) + ":\t" + s);
+	}
+
+	map = new Graph(hash.size());
+
+	for (File line : roadlines) {
+	    try {
+		Scanner sc = new Scanner(line);
+		String[] first_line = sc.nextLine().split(" ");
+		double time = Double.parseDouble(first_line[0]);
+		double distance = Double.parseDouble(first_line[1]);
+
+		String prev = sc.nextLine();
+
+		while (sc.hasNext()) {
+		    String key = sc.nextLine();
+
+		    if (key.equals("CR/LF")) {
+			prev = sc.nextLine();
+			key = sc.nextLine();
+		    }
+		    Edge newEdge = new Edge(hash.get(prev), hash.get(key), time, distance);
+		    newEdge.setVertexNames(prev, key);
+		    map.addEdge(newEdge);
+		    prev = key;
+		}
+	    } catch (FileNotFoundException e) {
+	    }
+	}
+
     }
 
     /**
@@ -258,17 +324,6 @@ public class MainMenu {
 	left_navbar.add(panel_1);
 	panel_1.setLayout(null);
 
-	List<String> TESTLIST = new ArrayList<>();
-	TESTLIST.add("Basaksehir Metrokent");
-	TESTLIST.add("Basak Konutlari");
-	TESTLIST.add("Siteler");
-	TESTLIST.add("Turgut Ozal");
-	TESTLIST.add("Ziya Gokalp Mah");
-	TESTLIST.add("Olimpiyat");
-	TESTLIST.add("Ikitelli Sanay");
-	TESTLIST.add("Mahmutbey");
-	TESTLIST.add("Yenimahalle");
-
 	textField = new JTextField();
 	textField.setBounds(113, 10, 212, 30);
 	panel_1.add(textField);
@@ -367,19 +422,19 @@ public class MainMenu {
 		mode = 0;
 	    }
 	});
-	btnMinimum.addActionListener(new ActionListener() {
-	    public void actionPerformed(ActionEvent e) {
-		btnMinimum.setForeground(SystemColor.textHighlight);
-		btnNewButton.setForeground(SystemColor.BLACK);
-		btnShortest.setForeground(SystemColor.BLACK);
-		mode = 1;
-	    }
-	});
 	btnShortest.addActionListener(new ActionListener() {
 	    public void actionPerformed(ActionEvent e) {
 		btnShortest.setForeground(SystemColor.textHighlight);
 		btnMinimum.setForeground(SystemColor.BLACK);
 		btnNewButton.setForeground(SystemColor.BLACK);
+		mode = 1;
+	    }
+	});
+	btnMinimum.addActionListener(new ActionListener() {
+	    public void actionPerformed(ActionEvent e) {
+		btnMinimum.setForeground(SystemColor.textHighlight);
+		btnNewButton.setForeground(SystemColor.BLACK);
+		btnShortest.setForeground(SystemColor.BLACK);
 		mode = 2;
 	    }
 	});
@@ -418,9 +473,12 @@ public class MainMenu {
 	});
 
 	/*----------------------ADDING AUTOCOMPLETION-----------------------*/
-	textField.addKeyListener(addAutoCompletion(textField, TESTLIST));
-	textField_1.addKeyListener(addAutoCompletion(textField_1, TESTLIST));
-	textField_2.addKeyListener(addAutoCompletion(textField_2, TESTLIST));
+	ArrayList<String> list = new ArrayList<>();
+
+	hash.keys().iterator().forEachRemaining(list::add);
+	textField.addKeyListener(addAutoCompletion(textField, list));
+	textField_1.addKeyListener(addAutoCompletion(textField_1, list));
+	textField_2.addKeyListener(addAutoCompletion(textField_2, list));
 
 	/*-------------------------------------------------------------------*/
 	/*-----------------MENUBAR -> SETTINGS -> MAP SCALE-----------------*/
@@ -481,7 +539,19 @@ public class MainMenu {
 	    }
 	});
 	/*------------------------------------------------------------------*/
+	btnSearch.addActionListener(new ActionListener() {
+	    public void actionPerformed(ActionEvent arg0) {
+		search_map(textField.getText(), textField_2.getText());
+	    }
+	});
+    }
 
+    private void search_map(String from, String to) {
+	DijkstraUndirectedSP sp = new DijkstraUndirectedSP(map, hash.get(from), mode);
+	StdOut.println(sp.distTo(hash.get(to)));
+	for (Edge e : sp.pathTo(hash.get(to))) {
+	    StdOut.println(e + " ");
+	}
     }
 
     /* VARIABLES FOR AUTO-SUGGESTION */
@@ -494,24 +564,41 @@ public class MainMenu {
     Popup popup;
     List<String> sugg = new ArrayList<String>();
 
-    private KeyAdapter addAutoCompletion(JTextField textField, List<String> list) {
+    private KeyAdapter addAutoCompletion(JTextField text_field, List<String> list) {
 	return new KeyAdapter() {
 	    @Override
 	    public void keyTyped(KeyEvent key) {
 
-		sugg = Autocompletion.query(textField.getText(), list);
+		sugg = Autocompletion.query(text_field.getText(), list);
 
-		if (textField.getText().length() == 0 || sugg.size() == 0 || !textField.hasFocus()) {
+		if (text_field.getText().length() == 0 || sugg.size() == 0 || !text_field.hasFocus()) {
 		    popup_show(false);
 		    return;
 		}
 
 		toolTip.setTipText(sugg.get(0));
 
-		int x = toInt(textField.getLocationOnScreen().getX());
-		int y = toInt(textField.getLocationOnScreen().getY()) + textField.getHeight();
-		popup = pf.getPopup(textField, toolTip, x, y);
+		int x = toInt(text_field.getLocationOnScreen().getX());
+		int y = toInt(text_field.getLocationOnScreen().getY()) + text_field.getHeight();
+		popup = pf.getPopup(text_field, toolTip, x, y);
 		popup_show(true);
+
+		toolTip.addMouseListener(new MouseAdapter() {
+
+		    @Override
+		    public void mouseClicked(MouseEvent e) {
+			if (textField.hasFocus()) {
+			    textField.setText(toolTip.getTipText());
+			}
+			if (textField_1.hasFocus()) {
+			    textField_1.setText(toolTip.getTipText());
+			}
+			if (textField_2.hasFocus()) {
+			    textField_2.setText(toolTip.getTipText());
+			}
+			popup_show(false);
+		    }
+		});
 	    }
 	};
     }

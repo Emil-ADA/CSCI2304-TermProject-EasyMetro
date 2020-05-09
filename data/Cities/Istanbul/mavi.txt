@@ -1,9 +1,12 @@
+25 15
 Basaksehir Metrokent
 Basak Konutlari
 Siteler
 Turgut Ozal
+Ikitelli Sanayi
 Ziya Gokalp Mah
 Olimpiyat
+CR/LF
 Ikitelli Sanayi
 ISTOC
 Mahmutbey

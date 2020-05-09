@@ -1,14 +1,25 @@
+10 3.64
 Haciosma
 Darussafaka
 Ataturk Oto Sanayi
 ITU-Ayazaga
 Sanayi Mahallesi
 Seyrantepe
+CR/LF
+Sanayi Mahallesi
 4. Levent
+Levent
+Nispetiye
+Etiler
+Bogazici U.-Hisarustu
+CR/LF
 Levent
 Gayrettepe
 Sisli-Mecidiyekoy
 Osmanbey
+Taksim
+Kabatas
+CR/LF
 Taksim
 Sishane
 Halic
