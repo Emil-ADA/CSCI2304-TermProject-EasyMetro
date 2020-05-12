@@ -6,6 +6,7 @@ import javax.swing.JFrame;
 
 import Utils.Autocompletion;
 import Utils.JHardware;
+import edu.emory.mathcs.backport.java.util.Arrays;
 
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
@@ -41,7 +42,10 @@ import java.awt.event.MouseMotionAdapter;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.text.Format;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Scanner;
 import java.util.stream.StreamSupport;
@@ -57,6 +61,7 @@ import DS.DijkstraUndirectedSP;
 import DS.Edge;
 import DS.Graph;
 import DS.LinearProbingHashST;
+import Dependencies.FilenameUtils;
 import Dependencies.StdOut;
 
 import java.awt.ScrollPane;
@@ -67,8 +72,13 @@ import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 
 import javax.swing.JCheckBoxMenuItem;
+import javax.swing.JTextPane;
+import javax.swing.JScrollPane;
 
 public class MainMenu {
+    // FIXME: try to make input case insensitive when sober
+    // FIXME: TRY TO ADD VARIABLES TO .cfg file
+    // FIXME: DONT FORGET TO CHANGE MAGIC NUMBERS
 
     /** Main frame */
     private JFrame frame;
@@ -120,6 +130,8 @@ public class MainMenu {
     public JTextField textField_1;
     public JTextField textField_2;
 
+    private JTextPane textPane;
+
     /***************************************************************************
      * VARIABLES FOR ALGO
      ***************************************************************************/
@@ -127,6 +139,7 @@ public class MainMenu {
     private final String DATA_REPO = ".//data//Cities//";
     private String city = "Istanbul";
     private Graph map;
+    private StringBuilder searchResultsExtended;
 
     /**
      * Launch the application.
@@ -137,7 +150,7 @@ public class MainMenu {
 		try {
 		    MainMenu window = new MainMenu();
 		    window.frame.setVisible(true);
-		    scaleMAP(MAP_IMG, -ZOOM_SCALE * 7);
+		    scaleMAP(MAP_IMG, -ZOOM_SCALE * 8.9);
 		} catch (Exception e) {
 		    e.printStackTrace();
 		}
@@ -155,7 +168,7 @@ public class MainMenu {
 
     private void initMAP() {
 	hash = new LinearProbingHashST<>();
-	File[] roadlines = new File(DATA_REPO + city).listFiles();
+	File[] roadlines = new File(DATA_REPO + city + "//lines").listFiles();
 
 	int ID = 0;
 	for (File line : roadlines) {
@@ -194,9 +207,11 @@ public class MainMenu {
 		    }
 		    Edge newEdge = new Edge(hash.get(prev), hash.get(key), time, distance);
 		    newEdge.setVertexNames(prev, key);
+		    newEdge.setLine(FilenameUtils.getBaseName(line.getAbsolutePath()));
 		    map.addEdge(newEdge);
 		    prev = key;
 		}
+
 	    } catch (FileNotFoundException e) {
 	    }
 	}
@@ -300,45 +315,45 @@ public class MainMenu {
 	lblNewLabel.setForeground(SystemColor.textHighlight);
 	lblNewLabel.setFont(new Font("HP Simplified", Font.BOLD, 20));
 	lblNewLabel.setHorizontalAlignment(SwingConstants.CENTER);
-	lblNewLabel.setBounds(10, 11, 335, 58);
+	lblNewLabel.setBounds(10, 11, 349, 58);
 	left_navbar.add(lblNewLabel);
 
 	JButton btnNewButton = new JButton("Fastest");
 	btnNewButton.setFont(new Font("Arial", Font.PLAIN, 13));
 	btnNewButton.setForeground(SystemColor.textHighlight);
-	btnNewButton.setBounds(10, 113, 110, 39);
+	btnNewButton.setBounds(10, 80, 110, 39);
 	left_navbar.add(btnNewButton);
 
 	JButton btnShortest = new JButton("Shortest");
 	btnShortest.setFont(new Font("Arial", Font.PLAIN, 13));
-	btnShortest.setBounds(123, 113, 110, 39);
+	btnShortest.setBounds(130, 80, 110, 39);
 	left_navbar.add(btnShortest);
 
 	JButton btnMinimum = new JButton("Minimum");
 	btnMinimum.setFont(new Font("Arial", Font.PLAIN, 13));
-	btnMinimum.setBounds(236, 113, 110, 39);
+	btnMinimum.setBounds(249, 80, 110, 39);
 	left_navbar.add(btnMinimum);
 
 	JPanel panel_1 = new JPanel();
-	panel_1.setBounds(10, 163, 335, 150);
+	panel_1.setBounds(10, 130, 349, 150);
 	left_navbar.add(panel_1);
 	panel_1.setLayout(null);
 
 	textField = new JTextField();
-	textField.setBounds(113, 10, 212, 30);
+	textField.setBounds(113, 10, 226, 30);
 	panel_1.add(textField);
 	textField.setColumns(10);
 
 	textField_1 = new JTextField();
 
 	textField_1.setColumns(10);
-	textField_1.setBounds(113, 60, 212, 30);
+	textField_1.setBounds(113, 60, 226, 30);
 	panel_1.add(textField_1);
 
 	textField_2 = new JTextField();
 
 	textField_2.setColumns(10);
-	textField_2.setBounds(113, 110, 212, 30);
+	textField_2.setBounds(113, 110, 226, 30);
 	panel_1.add(textField_2);
 
 	JLabel lblNewLabel_1 = new JLabel("DPT.");
@@ -347,7 +362,7 @@ public class MainMenu {
 	lblNewLabel_1.setBounds(10, 10, 93, 26);
 	panel_1.add(lblNewLabel_1);
 
-	JLabel lblVia = new JLabel("VIA ");
+	JLabel lblVia = new JLabel("Via");
 	lblVia.setFont(new Font("Tahoma", Font.PLAIN, 15));
 	lblVia.setHorizontalAlignment(SwingConstants.CENTER);
 	lblVia.setBounds(10, 62, 93, 26);
@@ -360,11 +375,11 @@ public class MainMenu {
 	panel_1.add(lblArv);
 
 	JButton btnRefresh = new JButton("Refresh");
-	btnRefresh.setBounds(256, 324, 89, 23);
+	btnRefresh.setBounds(270, 291, 89, 23);
 	left_navbar.add(btnRefresh);
 
 	JButton btnSearch = new JButton("Search");
-	btnSearch.setBounds(157, 324, 89, 23);
+	btnSearch.setBounds(171, 291, 89, 23);
 	left_navbar.add(btnSearch);
 
 	JButton btnNewButton_1 = new JButton("+");
@@ -480,6 +495,29 @@ public class MainMenu {
 	textField_1.addKeyListener(addAutoCompletion(textField_1, list));
 	textField_2.addKeyListener(addAutoCompletion(textField_2, list));
 
+	JScrollPane scrollPane_1 = new JScrollPane();
+	scrollPane_1.setBounds(10, 325, 349, 269);
+	left_navbar.add(scrollPane_1);
+
+	textPane = new JTextPane();
+	textPane.setFont(new Font("Consolas", Font.PLAIN, 11));
+	// FIXME: VAXT QALANDA html output-a convert et
+	// textPane.setContentType("text/html");
+
+	textPane.setEditable(false);
+	scrollPane_1.setViewportView(textPane);
+
+	JButton btnExpand = new JButton("Expand");
+	btnExpand.addActionListener(new ActionListener() {
+	    public void actionPerformed(ActionEvent arg0) {
+		// FIXME: Might add: !sRE.toString().isEmpty()
+		if (searchResultsExtended != null)
+		    textPane.setText(searchResultsExtended.toString());
+	    }
+	});
+	btnExpand.setBounds(72, 291, 89, 23);
+	left_navbar.add(btnExpand);
+
 	/*-------------------------------------------------------------------*/
 	/*-----------------MENUBAR -> SETTINGS -> MAP SCALE-----------------*/
 	/*-----------------------------------------------------------------*/
@@ -541,17 +579,97 @@ public class MainMenu {
 	/*------------------------------------------------------------------*/
 	btnSearch.addActionListener(new ActionListener() {
 	    public void actionPerformed(ActionEvent arg0) {
-		search_map(textField.getText(), textField_2.getText());
+		if (hash.contains(textField.getText()) && hash.contains(textField_2.getText())) {
+
+		    // If the 'Via' Station has been set
+		    if (hash.contains(textField_1.getText())) {
+			// FIXME: CODE FOR VIA
+		    } else {
+			StringBuilder searchResults = search_map(textField.getText(), textField_2.getText());
+			textPane.setText(searchResults.toString());
+		    }
+		}
+
 	    }
 	});
     }
 
-    private void search_map(String from, String to) {
+    private StringBuilder search_map(String from, String to) {
 	DijkstraUndirectedSP sp = new DijkstraUndirectedSP(map, hash.get(from), mode);
-	StdOut.println(sp.distTo(hash.get(to)));
-	for (Edge e : sp.pathTo(hash.get(to))) {
-	    StdOut.println(e + " ");
+
+	StringBuilder searchResults = new StringBuilder();
+	searchResultsExtended = new StringBuilder();
+
+	String str2Append = "";
+	String line_changed = null;
+	searchResults.append("START\n");
+	searchResultsExtended.append("START\n");
+	// Iterating through path and generating output
+	Iterator<Edge> pathTo = sp.pathTo(hash.get(to)).iterator();
+	Edge e = null;
+
+	int transfer = 0;
+	int stations = 1; // Stations start at one, because oz mindiyin esseyi de saymaq lazimdir
+	while (pathTo.hasNext()) {
+	    e = pathTo.next();
+	    stations++;
+	    str2Append = e + "\n";
+
+	    searchResultsExtended.append(str2Append);
+
+	    if (!e.getLine().equals(line_changed)) {
+		transfer++;
+		searchResults.append(str2Append);
+	    }
+	    line_changed = e.getLine();
 	}
+
+	// append destination as well
+	searchResults.append(str2Append);
+
+	str2Append = "DESTINATION\n\n";
+	searchResults.append(str2Append);
+	searchResultsExtended.append(str2Append);
+
+	/*
+	 * Adding travel info.
+	 */
+
+	str2Append = "Fare: ";
+	try (Scanner sc = new Scanner(new File(DATA_REPO + city + "//general.txt"))) {
+	    String line = sc.nextLine();
+
+	    // Add total cost
+	    line = line.substring(line.indexOf('=') + 1, line.length());
+	    String cost = String.format("%.2f", Double.parseDouble(line) * transfer);
+	    str2Append += cost;
+
+	    // Add currency
+	    line = sc.nextLine();
+	    line = line.substring(line.indexOf('=') + 1, line.length());
+	    str2Append += " " + line + "\n";
+	} catch (FileNotFoundException e1) {
+	}
+	searchResults.replace(0, searchResults.length(), str2Append + searchResults.toString());
+
+	int temp = mode;
+	mode = 0;
+	str2Append = "Lead Time: " + formatResult(sp.distTo(hash.get(to))) + "\n";
+	searchResults.replace(0, searchResults.length(), str2Append + searchResults.toString());
+	searchResultsExtended.append(str2Append);
+
+	mode = 1;
+	str2Append = "Distance: " + formatResult(sp.distTo(hash.get(to))) + "\n";
+	searchResults.replace(0, searchResults.length(), str2Append + searchResults.toString());
+	searchResultsExtended.append(str2Append);
+
+	mode = temp;
+
+	str2Append = stations + " Station(s). | " + transfer + " Transfer(s)." + "\n";
+	searchResults.replace(0, searchResults.length(), str2Append + searchResults.toString());
+	searchResultsExtended.append(str2Append);
+
+	return searchResults;
     }
 
     /* VARIABLES FOR AUTO-SUGGESTION */
@@ -638,10 +756,25 @@ public class MainMenu {
 	textField_2.setText("");
 	((JRadioButtonMenuItem) a[4]).setSelected(false);
 	drag = false;
-
+	searchResultsExtended = new StringBuilder();
     }
 
     private static int toInt(double a) {
 	return (int) a;
+    }
+
+    private String formatResult(double res) {
+	String retval = "";
+	if (mode == 0) {
+	    if (res > 60)
+		retval += toInt(res / 60) + " hours, ";
+	    retval += toInt(res % 60) + " minutes";
+
+	} else if (mode == 1) {
+	    if (res > 1)
+		retval += toInt(res) + " kilometers, ";
+	    retval += toInt(1000 * (res - toInt(res))) + " meters";
+	}
+	return retval;
     }
 }

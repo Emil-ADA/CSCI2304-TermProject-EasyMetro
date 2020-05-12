@@ -7,9 +7,10 @@ public class Edge implements Comparable<Edge> {
     public static int MAX_NAME_LENGTH = 1;
     final int v;
     final int w;
-    String v_name;
-    String w_name;
-    final double[] weights;
+    public String v_name;
+    public String w_name;
+    public String line;
+    public final double[] weights;
 
     public Edge(int v, int w, double... weights) {
 	if (v < 0)
@@ -24,6 +25,14 @@ public class Edge implements Comparable<Edge> {
 	this.v = v;
 	this.w = w;
 	this.weights = weights;
+    }
+
+    public void setLine(String line) {
+	this.line = line;
+    }
+
+    public String getLine() {
+	return line;
     }
 
     public void setVertexNames(String vertex_v, String vertex_w) {
@@ -83,6 +92,11 @@ public class Edge implements Comparable<Edge> {
      */
     public String toString() {
 	StringBuilder sb = new StringBuilder();
+	try {
+	    sb.append(getLine().toUpperCase() + ":");
+	} catch (NullPointerException e) {
+	    System.err.println("Please set Edge-Line name");
+	}
 	sb.append(stringify(v_name, w_name));
 	String format = "%-" + (MAX_NAME_LENGTH - sb.length()) + "s";
 	sb.append(String.format(format, ""));

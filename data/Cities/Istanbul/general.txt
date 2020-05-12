@@ -1,0 +1,2 @@
+Fare=2.60
+Currency=TRY

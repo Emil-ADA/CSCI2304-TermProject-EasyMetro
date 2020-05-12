@@ -2,7 +2,7 @@
 Mescid-i Selam
 Cebeci
 Sultanciftligi
-Yenimahalle
+Yenimahalle.
 Haci Sukru
 50.Yil Bastabya
 Cumhuriyet Mahallesi
@@ -11,11 +11,13 @@ Karadeniz
 Taskopru
 Ali Fuat Basgil
 Bosna Cukurcesme
-Sagmalcilar
+Sagmalcilar.
 Uluyol-Berec
 Rami
 Topcular
-Demirkap
+Demirkapi
 Sehitlik
 Edirnekapi
+Topkapi-Ulubatli
+Fetihkapi
 Topkapi

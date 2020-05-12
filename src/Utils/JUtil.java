@@ -10,6 +10,8 @@ public class JUtil {
 	JUtil.print(min(A));
     }
 
+
+
     public static int[] range(int from, int to) {
 	int[] retval = new int[to - from];
 
