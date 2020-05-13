@@ -57,10 +57,13 @@ import javax.swing.JRadioButtonMenuItem;
 import java.awt.event.ItemListener;
 import java.awt.event.ItemEvent;
 
+import DS.DepthFirstSearch;
+import DS.DepthFirstSearch;
 import DS.DijkstraUndirectedSP;
 import DS.Edge;
 import DS.Graph;
 import DS.LinearProbingHashST;
+import DS.Stack;
 import Dependencies.FilenameUtils;
 import Dependencies.StdOut;
 
@@ -92,25 +95,27 @@ public class MainMenu {
     public static final short VSCROLL_RATE = 16;
     /** The unit increment of the Horizontal scroll bar of Scroll pane */
     public static final short HSCROLL_RATE = 16;
-
-    /** The directory of the map */
-    public static final String MAP_PATH = ".//data//Istanbul Rail Systems Accessibility Map.png";
-
-    /** Label component containing the image of the map */
-    public static JLabel MAP_IMG = new JLabel("");
-
-    public static final Image MAP_IMAGE = new ImageIcon(MAP_PATH).getImage();
-
     /** Variable ratio for zooming in and out, default value 10% */
     public static final double ZOOM_SCALE = 0.1;
-
+    /** Variable for scaling the map, defines which method will be used */
+    public static int MAP_SCALE_HINTS = Image.SCALE_DEFAULT;
     /** The dimension of the frame */
-    public Rectangle frame_size = new Rectangle(toInt(SCREEN_WIDTH * RATIO), toInt(SCREEN_HEIGHT * RATIO));
+    public static final Rectangle FRAME_SIZE = new Rectangle(toInt(SCREEN_WIDTH * RATIO), toInt(SCREEN_HEIGHT * RATIO));
     /** The dimension of the menu bar */
-    public Rectangle menu_size = new Rectangle(60, 22);
+    public static final Rectangle MENU_SIZE = new Rectangle(60, 22);
     /** The dimension of the navigation bar on the left */
-    public Rectangle left_navbar_size = new Rectangle(355, 603);
+    public static final Rectangle L_NAVBAR_SIZE = new Rectangle(355, 603);
+    /** The data repository */
+    private static final String DATA_REPO = ".//data//Cities//";
 
+    /** Current city of which map is displayed */
+    private static String city = "Istanbul";
+
+    /** Image of the map to be displayed */
+    private static Image MAP_IMAGE;
+
+    /** Label component containing the image of the map */
+    public static JLabel MAP_IMG;
     /* Points used for dragging left navigation bar */
     Point prev_p;
     Point onscreen_p;
@@ -136,8 +141,6 @@ public class MainMenu {
      * VARIABLES FOR ALGO
      ***************************************************************************/
     private LinearProbingHashST<String, Integer> hash;
-    private final String DATA_REPO = ".//data//Cities//";
-    private String city = "Istanbul";
     private Graph map;
     private StringBuilder searchResultsExtended;
 
@@ -150,7 +153,11 @@ public class MainMenu {
 		try {
 		    MainMenu window = new MainMenu();
 		    window.frame.setVisible(true);
-		    scaleMAP(MAP_IMG, -ZOOM_SCALE * 8.9);
+		    Thread.sleep(200);
+		    MAP_SCALE_HINTS = Image.SCALE_SMOOTH;
+		    // scaleMAP(MAP_IMG, -ZOOM_SCALE * 8.9);
+		    scaleMAP(MAP_IMG, -ZOOM_SCALE * 7);
+		    MAP_SCALE_HINTS = Image.SCALE_DEFAULT;
 		} catch (Exception e) {
 		    e.printStackTrace();
 		}
@@ -162,12 +169,21 @@ public class MainMenu {
      * Create the application.
      */
     public MainMenu() {
+	initVars();
 	initMAP();
 	initialize();
+
+    }
+
+    private void initVars() {
+	hash = new LinearProbingHashST<>();
+	MAP_IMAGE = new ImageIcon(DATA_REPO + city + "//map.png").getImage();
+	MAP_IMG = new JLabel("");
+
     }
 
     private void initMAP() {
-	hash = new LinearProbingHashST<>();
+
 	File[] roadlines = new File(DATA_REPO + city + "//lines").listFiles();
 
 	int ID = 0;
@@ -176,6 +192,10 @@ public class MainMenu {
 		sc.nextLine();
 		while (sc.hasNext()) {
 		    String key = sc.nextLine();
+		    if (key.contains("CR/LF")) {
+			continue;
+		    }
+
 		    if (!hash.contains(key))
 			hash.put(key, ID++);
 		}
@@ -201,7 +221,7 @@ public class MainMenu {
 		while (sc.hasNext()) {
 		    String key = sc.nextLine();
 
-		    if (key.equals("CR/LF")) {
+		    if (key.contains("CR/LF")) {
 			prev = sc.nextLine();
 			key = sc.nextLine();
 		    }
@@ -225,7 +245,7 @@ public class MainMenu {
 
 	frame = new JFrame();
 	frame.setResizable(false);
-	frame.setBounds(SCREEN_WIDTH / 2 - frame_size.width / 2, SCREEN_HEIGHT / 2 - frame_size.height / 2, 1174, 660);
+	frame.setBounds(SCREEN_WIDTH / 2 - FRAME_SIZE.width / 2, SCREEN_HEIGHT / 2 - FRAME_SIZE.height / 2, 1174, 660);
 	// frame.setBounds(SCREEN_WIDTH / 2 - frame_size.w / 2, SCREEN_HEIGHT / 2 -
 	// frame_size.h / 2, frame_size.w,
 	// frame_size.h);
@@ -579,6 +599,17 @@ public class MainMenu {
 	/*------------------------------------------------------------------*/
 	btnSearch.addActionListener(new ActionListener() {
 	    public void actionPerformed(ActionEvent arg0) {
+		if (mode == 2) {
+		    // DepthFirstSearch dfs = new DepthFirstSearch(map, hash, textField.getText(),
+		    // textField_2.getText());
+		    //
+		    // for (Stack<String> path : dfs.getAllPaths())
+		    // StdOut.println(path.toString());
+		    StdOut.println(map);
+
+		    return;
+		}
+
 		if (hash.contains(textField.getText()) && hash.contains(textField_2.getText())) {
 
 		    // If the 'Via' Station has been set
@@ -602,14 +633,22 @@ public class MainMenu {
 
 	String str2Append = "";
 	String line_changed = null;
-	searchResults.append("START\n");
-	searchResultsExtended.append("START\n");
+	searchResults.append("DEPARTURE\n");
+	searchResultsExtended.append("DEPARTURE\n");
 	// Iterating through path and generating output
 	Iterator<Edge> pathTo = sp.pathTo(hash.get(to)).iterator();
 	Edge e = null;
 
 	int transfer = 0;
 	int stations = 1; // Stations start at one, because oz mindiyin esseyi de saymaq lazimdir
+
+	/* DEPARTURE STATION */
+	e = pathTo.next();
+	stations++;
+	str2Append = e + "\n";
+	line_changed = e.getLine();
+	searchResults.append(str2Append);
+
 	while (pathTo.hasNext()) {
 	    e = pathTo.next();
 	    stations++;
@@ -619,13 +658,15 @@ public class MainMenu {
 
 	    if (!e.getLine().equals(line_changed)) {
 		transfer++;
-		searchResults.append(str2Append);
+		searchResults.append("TRANSFER" + str2Append.substring(str2Append.indexOf(':'), str2Append.length()));
+
 	    }
 	    line_changed = e.getLine();
 	}
 
 	// append destination as well
-	searchResults.append(str2Append);
+	if (!searchResults.toString().contains(str2Append))
+	    searchResults.append(str2Append);
 
 	str2Append = "DESTINATION\n\n";
 	searchResults.append(str2Append);
@@ -636,15 +677,19 @@ public class MainMenu {
 	 */
 
 	str2Append = "Fare: ";
-	try (Scanner sc = new Scanner(new File(DATA_REPO + city + "//general.txt"))) {
+	try (Scanner sc = new Scanner(new File(DATA_REPO + city + "//settings.cfg"))) {
 	    String line = sc.nextLine();
 
-	    // Add total cost
+	    /* Add total cost */
 	    line = line.substring(line.indexOf('=') + 1, line.length());
-	    String cost = String.format("%.2f", Double.parseDouble(line) * transfer);
+
+	    /**
+	     * Transfer + 1, because we pay when we enter the metro first time
+	     */
+	    String cost = String.format("%.2f", Double.parseDouble(line) * (transfer + 1));
 	    str2Append += cost;
 
-	    // Add currency
+	    /* Add currency */
 	    line = sc.nextLine();
 	    line = line.substring(line.indexOf('=') + 1, line.length());
 	    str2Append += " " + line + "\n";
@@ -677,10 +722,10 @@ public class MainMenu {
      * These Variables are shared between 3 text fields in order to reduce memory
      * usage plus only one instance of suggestion needed at a time
      */
-    JToolTip toolTip = new JToolTip();
-    PopupFactory pf = new PopupFactory();
-    Popup popup;
-    List<String> sugg = new ArrayList<String>();
+    private JToolTip toolTip = new JToolTip();
+    private PopupFactory pf = new PopupFactory();
+    private Popup popup;
+    private List<String> sugg = new ArrayList<String>();
 
     private KeyAdapter addAutoCompletion(JTextField text_field, List<String> list) {
 	return new KeyAdapter() {
@@ -733,8 +778,6 @@ public class MainMenu {
     /***************************************************************************
      * AUX-METHODS
      ***************************************************************************/
-
-    static int MAP_SCALE_HINTS = Image.SCALE_DEFAULT;
 
     public static void scaleMAP(JLabel label, double scale) {
 	int w = label.getWidth();

@@ -134,9 +134,10 @@ public class Stack<Item> implements Iterable<Item> {
 	StringBuilder s = new StringBuilder();
 	for (Item item : this) {
 	    s.append(item);
-	    s.append(' ');
+	    s.append("/");
 	}
-	return s.toString();
+
+	return s.toString().substring(0, s.length() - 1);
     }
 
     /**

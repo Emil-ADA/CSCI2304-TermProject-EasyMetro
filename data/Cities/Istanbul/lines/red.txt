@@ -24,5 +24,3 @@ Topkapi-Ulubatli
 Emniyet-Fatih
 Aksaray
 Yenikapi
-Topkapi-Ulubatli
-Fetihkapi

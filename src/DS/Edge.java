@@ -1,7 +1,5 @@
 package DS;
 
-import Dependencies.StdOut;
-
 // MULTI-WEIGHTED EDGE
 public class Edge implements Comparable<Edge> {
     public static int MAX_NAME_LENGTH = 1;
@@ -27,18 +25,20 @@ public class Edge implements Comparable<Edge> {
 	this.weights = weights;
     }
 
-    public void setLine(String line) {
+    public Edge setLine(String line) {
 	this.line = line;
+	return this;
     }
 
     public String getLine() {
 	return line;
     }
 
-    public void setVertexNames(String vertex_v, String vertex_w) {
+    public Edge setVertexNames(String vertex_v, String vertex_w) {
 	MAX_NAME_LENGTH = Math.max(MAX_NAME_LENGTH, stringify(vertex_v, vertex_w).length() + 1); // +1 is important
 	v_name = vertex_v;
 	w_name = vertex_w;
+	return this;
     }
 
     public String stringify(String a, String b) {
@@ -98,7 +98,7 @@ public class Edge implements Comparable<Edge> {
 	    System.err.println("Please set Edge-Line name");
 	}
 	sb.append(stringify(v_name, w_name));
-	String format = "%-" + (MAX_NAME_LENGTH - sb.length()) + "s";
+	String format = "%-" + Math.abs((MAX_NAME_LENGTH - sb.length())) + "s";
 	sb.append(String.format(format, ""));
 	sb.append("[");
 	for (Double weight : weights) {

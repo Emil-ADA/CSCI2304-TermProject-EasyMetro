@@ -1,27 +1,27 @@
 10 3.64
-Haciosma
-Darussafaka
-Ataturk Oto Sanayi
-ITU-Ayazaga
-Sanayi Mahallesi
-Seyrantepe
+Yenikapi
+Vezneciler Istanbul U.
+Halic
+Sishane
+Taksim
+Kabatas
 CR/LF
-Sanayi Mahallesi
-4. Levent
+Taksim
+Osmanbey
+Sisli-Mecidiyekoy
+Gayrettepe
 Levent
 Nispetiye
 Etiler
 Bogazici U.-Hisarustu
 CR/LF
 Levent
-Gayrettepe
-Sisli-Mecidiyekoy
-Osmanbey
-Taksim
-Kabatas
+4. Levent
+Sanayi Mahallesi
+Seyrantepe
 CR/LF
-Taksim
-Sishane
-Halic
-Vezneciler Istanbul
-Yenikapi
+Sanayi Mahallesi
+ITU-Ayazaga
+Ataturk Oto Sanayi
+Darussafaka
+Haciosman
