@@ -156,7 +156,7 @@ public class Graph {
      */
     public String toString() {
 	StringBuilder s = new StringBuilder();
-	s.append("Vertices: " + V + ", Edges: " + E + NEWLINE);
+	s.append("Stations: " + V + ", Routes: " + E + NEWLINE);
 	for (int v = 0; v < V; v++) {
 	    s.append(v + ": ");
 	    for (Edge e : adj[v]) {

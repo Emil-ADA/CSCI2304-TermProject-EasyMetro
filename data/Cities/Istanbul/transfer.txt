@@ -7,10 +7,10 @@ Bakirkoy Incirli/Zeytinburnu/Mithatpasa
 Bakirkoy Incirli/Zeytinburnu/Mehmet Akif
 Cevizlibag AOY/Topkapi/Fetihkapi
 Pazartekke/Topkapi/Fetihkapi
+Edirnekapi/Topkapi-Ulubatli/Bayrampasa-Maltepe
+Edirnekapi/Topkapi-Ulubatli/Emniyet-Fatih
 Fetihkapi/Topkapi-Ulubatli/Emniyet-Fatih
 Fetihkapi/Topkapi-Ulubatli/Bayrampasa-Maltepe
-Edirnekapi/Topkapi-Ulubatli/Emniyet-Fatih
-Edirnekapi/Topkapi-Ulubatli/Bayrampasa-Maltepe
 Laleli Istanbul/Aksaray/Emniyet-Fatih
 Haseki/Aksaray/Emniyet-Fatih
 Aksaray/Yenikapi/Vezneciler Istanbul U.

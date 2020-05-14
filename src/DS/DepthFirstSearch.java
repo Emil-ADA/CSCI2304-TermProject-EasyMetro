@@ -90,14 +90,14 @@ public class DepthFirstSearch {
 	DepthFirstSearch allpaths1 = new DepthFirstSearch(G, hash, "A0", "A6");
 	StdOut.println(allpaths1.paths.toString());
 	StdOut.println("# paths = " + allpaths1.numberOfPaths());
-
+	StdOut.println(allpaths1.getAllPaths().get(0).peek());
 	StdOut.println();
 	StdOut.println("all simple paths between 1 and 5:");
 	DepthFirstSearch allpaths2 = new DepthFirstSearch(G, hash, "A0", "A5");
 	StdOut.println("# paths = " + allpaths2.numberOfPaths());
 
 	StdOut.println(allpaths2.paths.toString());
-	
+
 	StdOut.println(G);
     }
 }

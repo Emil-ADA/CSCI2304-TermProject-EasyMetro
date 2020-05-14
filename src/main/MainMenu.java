@@ -22,9 +22,7 @@ import java.awt.Component;
 import javax.swing.border.BevelBorder;
 import javax.swing.border.SoftBevelBorder;
 
-import com.gnostice.pdfone.PdfDocument;
-import com.gnostice.pdfone.PdfException;
-import com.gnostice.pdfone.PdfViewer;
+import org.bouncycastle.jcajce.provider.keystore.bc.BcKeyStoreSpi.Std;
 
 import javax.swing.JLabel;
 import javax.swing.SwingConstants;
@@ -41,16 +39,11 @@ import javax.swing.PopupFactory;
 import java.awt.event.MouseMotionAdapter;
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.text.Format;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Scanner;
-import java.util.stream.StreamSupport;
 import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 import javax.swing.JRadioButtonMenuItem;
@@ -58,17 +51,16 @@ import java.awt.event.ItemListener;
 import java.awt.event.ItemEvent;
 
 import DS.DepthFirstSearch;
-import DS.DepthFirstSearch;
 import DS.DijkstraUndirectedSP;
 import DS.Edge;
 import DS.Graph;
 import DS.LinearProbingHashST;
+import DS.Queue;
 import DS.Stack;
 import Dependencies.FilenameUtils;
 import Dependencies.StdOut;
 
 import java.awt.ScrollPane;
-import javax.swing.JScrollBar;
 import javax.swing.ImageIcon;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
@@ -77,6 +69,7 @@ import java.awt.event.MouseAdapter;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JTextPane;
 import javax.swing.JScrollPane;
+import java.awt.Cursor;
 
 public class MainMenu {
     // FIXME: try to make input case insensitive when sober
@@ -158,11 +151,13 @@ public class MainMenu {
 		    // scaleMAP(MAP_IMG, -ZOOM_SCALE * 8.9);
 		    scaleMAP(MAP_IMG, -ZOOM_SCALE * 7);
 		    MAP_SCALE_HINTS = Image.SCALE_DEFAULT;
+
 		} catch (Exception e) {
 		    e.printStackTrace();
 		}
 	    }
 	});
+
     }
 
     /**
@@ -172,7 +167,6 @@ public class MainMenu {
 	initVars();
 	initMAP();
 	initialize();
-
     }
 
     private void initVars() {
@@ -210,8 +204,7 @@ public class MainMenu {
 	map = new Graph(hash.size());
 
 	for (File line : roadlines) {
-	    try {
-		Scanner sc = new Scanner(line);
+	    try (Scanner sc = new Scanner(line)) {
 		String[] first_line = sc.nextLine().split(" ");
 		double time = Double.parseDouble(first_line[0]);
 		double distance = Double.parseDouble(first_line[1]);
@@ -258,62 +251,94 @@ public class MainMenu {
 	frame.getContentPane().add(menuBar);
 
 	JMenu mnFile = new JMenu("File");
+	mnFile.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
 	mnFile.setPreferredSize(new Dimension(60, 22));
 	// mnFile.setPreferredSize(new Dimension(menu_size.w, menu_size.h));
 	menuBar.add(mnFile);
+	
+	JMenuItem mntmTest = new JMenuItem("Test");
+	mntmTest.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+	mnFile.add(mntmTest);
 
 	JMenuItem mntmNewFile = new JMenuItem("New");
+	mntmNewFile.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 	mnFile.add(mntmNewFile);
 
 	JMenuItem mntmNewMenuItem = new JMenuItem("Open...");
+	mntmNewMenuItem.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 	mnFile.add(mntmNewMenuItem);
 
 	JMenuItem mntmExit = new JMenuItem("Exit");
+	mntmExit.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 	mnFile.add(mntmExit);
 
 	JMenu mnEdit = new JMenu("Edit");
+	mnEdit.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
 	mnEdit.setPreferredSize(new Dimension(60, 22));
 	// mnEdit.setPreferredSize(new Dimension(menu_size.w, menu_size.h));
 	menuBar.add(mnEdit);
 
 	JMenuItem mntmRefresh = new JMenuItem("Refresh");
+	mntmRefresh.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 	mnEdit.add(mntmRefresh);
 
 	JMenuItem mntmCut = new JMenuItem("Cut");
+	mntmCut.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 	mnEdit.add(mntmCut);
 
 	JMenuItem mntmCopy = new JMenuItem("Copy");
+	mntmCopy.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 	mnEdit.add(mntmCopy);
 
 	JMenuItem mntmPaste = new JMenuItem("Paste");
+	mntmPaste.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 	mnEdit.add(mntmPaste);
 
 	JMenuItem mntmDelete = new JMenuItem("Delete");
+	mntmDelete.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 	mnEdit.add(mntmDelete);
 
 	JMenu mnNewMenu = new JMenu("Settings");
+	mnNewMenu.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
 	menuBar.add(mnNewMenu);
 
+	JMenuItem mntmShowMapDetails = new JMenuItem("Show Map Details");
+	mntmShowMapDetails.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+	mntmShowMapDetails.addActionListener(new ActionListener() {
+	    public void actionPerformed(ActionEvent arg0) {
+		textPane.setText(map.toString());
+		textPane.setCaretPosition(0);
+	    }
+	});
+	mnNewMenu.add(mntmShowMapDetails);
+
 	JMenu mnMapScale = new JMenu("Map Scale");
+	mnMapScale.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
 	mnNewMenu.add(mnMapScale);
 
 	JCheckBoxMenuItem chcDEF = new JCheckBoxMenuItem("Default");
+	chcDEF.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 	chcDEF.setState(true);
 	mnMapScale.add(chcDEF);
 
 	JCheckBoxMenuItem chcSM = new JCheckBoxMenuItem("Smooth");
+	chcSM.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 	mnMapScale.add(chcSM);
 
 	JCheckBoxMenuItem chcFAST = new JCheckBoxMenuItem("Fast");
+	chcFAST.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 	mnMapScale.add(chcFAST);
 
 	JCheckBoxMenuItem chcAREA = new JCheckBoxMenuItem("Area Averaging");
+	chcAREA.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 	mnMapScale.add(chcAREA);
 
 	JCheckBoxMenuItem chcREP = new JCheckBoxMenuItem("Replicate");
+	chcREP.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 	mnMapScale.add(chcREP);
 
 	JRadioButtonMenuItem rdbtnmntmDrag = new JRadioButtonMenuItem("Drag");
+	rdbtnmntmDrag.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 	mnNewMenu.add(rdbtnmntmDrag);
 
 	JPanel panel = new JPanel();
@@ -323,7 +348,7 @@ public class MainMenu {
 	panel.setLayout(null);
 
 	JPanel left_navbar = new JPanel();
-	left_navbar.setBackground(SystemColor.activeCaptionBorder);
+	left_navbar.setBackground(new Color(60, 60, 84));
 	left_navbar.setBorder(new SoftBevelBorder(BevelBorder.RAISED, SystemColor.windowBorder, null, null, null));
 	left_navbar.setBounds(0, 0, 369, 605);
 	panel.add(left_navbar);
@@ -338,77 +363,95 @@ public class MainMenu {
 	lblNewLabel.setBounds(10, 11, 349, 58);
 	left_navbar.add(lblNewLabel);
 
+	Color textHighlight = new Color(77, 159, 206);
+
 	JButton btnNewButton = new JButton("Fastest");
-	btnNewButton.setFont(new Font("Arial", Font.PLAIN, 13));
-	btnNewButton.setForeground(SystemColor.textHighlight);
+	btnNewButton.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+	btnNewButton.setFont(new Font("Courier New", Font.PLAIN, 13));
+	btnNewButton.setForeground(textHighlight);
 	btnNewButton.setBounds(10, 80, 110, 39);
 	left_navbar.add(btnNewButton);
 
 	JButton btnShortest = new JButton("Shortest");
-	btnShortest.setFont(new Font("Arial", Font.PLAIN, 13));
+	btnShortest.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+	btnShortest.setFont(new Font("Courier New", Font.PLAIN, 13));
 	btnShortest.setBounds(130, 80, 110, 39);
 	left_navbar.add(btnShortest);
 
 	JButton btnMinimum = new JButton("Minimum");
-	btnMinimum.setFont(new Font("Arial", Font.PLAIN, 13));
+	btnMinimum.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+	btnMinimum.setFont(new Font("Courier New", Font.PLAIN, 13));
 	btnMinimum.setBounds(249, 80, 110, 39);
 	left_navbar.add(btnMinimum);
 
 	JPanel panel_1 = new JPanel();
+	panel_1.setBackground(new Color(100, 100, 116));
 	panel_1.setBounds(10, 130, 349, 150);
 	left_navbar.add(panel_1);
 	panel_1.setLayout(null);
 
 	textField = new JTextField();
+	textField.setFont(new Font("Courier New", Font.PLAIN, 13));
 	textField.setBounds(113, 10, 226, 30);
 	panel_1.add(textField);
 	textField.setColumns(10);
 
 	textField_1 = new JTextField();
+	textField_1.setFont(new Font("Courier New", Font.PLAIN, 13));
 
 	textField_1.setColumns(10);
 	textField_1.setBounds(113, 60, 226, 30);
 	panel_1.add(textField_1);
 
 	textField_2 = new JTextField();
+	textField_2.setFont(new Font("Courier New", Font.PLAIN, 13));
 
 	textField_2.setColumns(10);
 	textField_2.setBounds(113, 110, 226, 30);
 	panel_1.add(textField_2);
 
 	JLabel lblNewLabel_1 = new JLabel("DPT.");
-	lblNewLabel_1.setFont(new Font("Tahoma", Font.PLAIN, 15));
+	lblNewLabel_1.setForeground(Color.WHITE);
+	lblNewLabel_1.setFont(new Font("Courier New", Font.PLAIN, 13));
 	lblNewLabel_1.setHorizontalAlignment(SwingConstants.CENTER);
 	lblNewLabel_1.setBounds(10, 10, 93, 26);
 	panel_1.add(lblNewLabel_1);
 
 	JLabel lblVia = new JLabel("Via");
-	lblVia.setFont(new Font("Tahoma", Font.PLAIN, 15));
+	lblVia.setForeground(Color.WHITE);
+	lblVia.setFont(new Font("Courier New", Font.PLAIN, 13));
 	lblVia.setHorizontalAlignment(SwingConstants.CENTER);
 	lblVia.setBounds(10, 62, 93, 26);
 	panel_1.add(lblVia);
 
 	JLabel lblArv = new JLabel("ARV.");
-	lblArv.setFont(new Font("Tahoma", Font.PLAIN, 15));
+	lblArv.setForeground(Color.WHITE);
+	lblArv.setFont(new Font("Courier New", Font.PLAIN, 13));
 	lblArv.setHorizontalAlignment(SwingConstants.CENTER);
 	lblArv.setBounds(10, 110, 93, 26);
 	panel_1.add(lblArv);
 
 	JButton btnRefresh = new JButton("Refresh");
-	btnRefresh.setBounds(270, 291, 89, 23);
+	btnRefresh.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+	btnRefresh.setFont(new Font("Courier New", Font.PLAIN, 13));
+	btnRefresh.setBounds(249, 291, 110, 23);
 	left_navbar.add(btnRefresh);
 
 	JButton btnSearch = new JButton("Search");
-	btnSearch.setBounds(171, 291, 89, 23);
+	btnSearch.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+	btnSearch.setFont(new Font("Courier New", Font.PLAIN, 13));
+	btnSearch.setBounds(130, 291, 110, 23);
 	left_navbar.add(btnSearch);
 
 	JButton btnNewButton_1 = new JButton("+");
+	btnNewButton_1.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
 	btnNewButton_1.setFont(new Font("MS Reference Sans Serif", Font.BOLD, 14));
 	btnNewButton_1.setBorder(null);
 	btnNewButton_1.setBounds(1115, 15, 30, 30);
 	panel.add(btnNewButton_1);
 
 	JButton button = new JButton("-");
+	button.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
 	button.setFont(new Font("MS Reference Sans Serif", Font.BOLD, 14));
 	button.setBorder(null);
 	button.setBounds(1085, 15, 30, 30);
@@ -451,7 +494,7 @@ public class MainMenu {
 	});
 	btnNewButton.addActionListener(new ActionListener() {
 	    public void actionPerformed(ActionEvent e) {
-		btnNewButton.setForeground(SystemColor.textHighlight);
+		btnNewButton.setForeground(textHighlight);
 		btnMinimum.setForeground(SystemColor.BLACK);
 		btnShortest.setForeground(SystemColor.BLACK);
 		mode = 0;
@@ -459,7 +502,7 @@ public class MainMenu {
 	});
 	btnShortest.addActionListener(new ActionListener() {
 	    public void actionPerformed(ActionEvent e) {
-		btnShortest.setForeground(SystemColor.textHighlight);
+		btnShortest.setForeground(textHighlight);
 		btnMinimum.setForeground(SystemColor.BLACK);
 		btnNewButton.setForeground(SystemColor.BLACK);
 		mode = 1;
@@ -467,7 +510,7 @@ public class MainMenu {
 	});
 	btnMinimum.addActionListener(new ActionListener() {
 	    public void actionPerformed(ActionEvent e) {
-		btnMinimum.setForeground(SystemColor.textHighlight);
+		btnMinimum.setForeground(textHighlight);
 		btnNewButton.setForeground(SystemColor.BLACK);
 		btnShortest.setForeground(SystemColor.BLACK);
 		mode = 2;
@@ -514,6 +557,24 @@ public class MainMenu {
 	textField.addKeyListener(addAutoCompletion(textField, list));
 	textField_1.addKeyListener(addAutoCompletion(textField_1, list));
 	textField_2.addKeyListener(addAutoCompletion(textField_2, list));
+	textField.addMouseListener(new MouseAdapter() {
+	    @Override
+	    public void mouseClicked(MouseEvent e) {
+		popup_show(false);
+	    }
+	});
+	textField_1.addMouseListener(new MouseAdapter() {
+	    @Override
+	    public void mouseClicked(MouseEvent e) {
+		popup_show(false);
+	    }
+	});
+	textField_2.addMouseListener(new MouseAdapter() {
+	    @Override
+	    public void mouseClicked(MouseEvent e) {
+		popup_show(false);
+	    }
+	});
 
 	JScrollPane scrollPane_1 = new JScrollPane();
 	scrollPane_1.setBounds(10, 325, 349, 269);
@@ -528,14 +589,18 @@ public class MainMenu {
 	scrollPane_1.setViewportView(textPane);
 
 	JButton btnExpand = new JButton("Expand");
+	btnExpand.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+	btnExpand.setFont(new Font("Courier New", Font.PLAIN, 13));
 	btnExpand.addActionListener(new ActionListener() {
 	    public void actionPerformed(ActionEvent arg0) {
 		// FIXME: Might add: !sRE.toString().isEmpty()
-		if (searchResultsExtended != null)
+		if (searchResultsExtended != null) {
 		    textPane.setText(searchResultsExtended.toString());
+		    textPane.setCaretPosition(0);
+		}
 	    }
 	});
-	btnExpand.setBounds(72, 291, 89, 23);
+	btnExpand.setBounds(10, 291, 110, 23);
 	left_navbar.add(btnExpand);
 
 	/*-------------------------------------------------------------------*/
@@ -599,75 +664,197 @@ public class MainMenu {
 	/*------------------------------------------------------------------*/
 	btnSearch.addActionListener(new ActionListener() {
 	    public void actionPerformed(ActionEvent arg0) {
-		if (mode == 2) {
-		    // DepthFirstSearch dfs = new DepthFirstSearch(map, hash, textField.getText(),
-		    // textField_2.getText());
-		    //
-		    // for (Stack<String> path : dfs.getAllPaths())
-		    // StdOut.println(path.toString());
-		    StdOut.println(map);
+		String from = textField.getText();
+		String via = (hash.contains(textField_1.getText())) ? textField_1.getText() : null;
+		String to = textField_2.getText();
 
-		    return;
-		}
-
-		if (hash.contains(textField.getText()) && hash.contains(textField_2.getText())) {
-
-		    // If the 'Via' Station has been set
-		    if (hash.contains(textField_1.getText())) {
-			// FIXME: CODE FOR VIA
-		    } else {
-			StringBuilder searchResults = search_map(textField.getText(), textField_2.getText());
+		if (hash.contains(from) && hash.contains(to)) {
+		    /** If the mode is on MINIMUM */
+		    if (mode == 2) {
+			StringBuilder searchResults = displayMin(from, via, to);
 			textPane.setText(searchResults.toString());
+			return;
 		    }
-		}
 
+		    /** For the modes SHORTEST and FASTEST */
+		    StringBuilder searchResults = search(from, via, to);
+		    textPane.setText(searchResults.toString());
+		}
+		textPane.setCaretPosition(0);
 	    }
 	});
     }
 
-    private StringBuilder search_map(String from, String to) {
-	DijkstraUndirectedSP sp = new DijkstraUndirectedSP(map, hash.get(from), mode);
+    private boolean hasTranfer(String path, String transfer) {
+	boolean retval = false;
+
+	retval = (retval || (path.contains(transfer)));
+
+	String arr[] = transfer.split("/");
+	/**
+	 * We need to consider, for ex.: <br>
+	 * Bayrampasa-Maltepe/Topkapi-Ulubatli/Fetihkapi<br>
+	 * AND <br>
+	 * Fetihkapi/Topkapi-Ulubatli/Bayrampasa-Maltepe
+	 */
+	transfer = arr[2] + "/" + arr[1] + "/" + arr[0];
+	retval = (retval || (path.contains(transfer)));
+
+	return retval;
+    }
+
+    private Queue<Edge> searchMin(String from, String to) {
+	DepthFirstSearch dfs = new DepthFirstSearch(map, hash, from, to);
+	ArrayList<Stack<String>> ALL_PATHS = dfs.getAllPaths();
+	int size = ALL_PATHS.size();
+	int W[] = new int[size];
+
+	/** Calculating the amount of transfers */
+	for (int i = 0; i < size; i++) {
+	    String path = ALL_PATHS.get(i).toString();
+	    try (Scanner sc = new Scanner(new File(DATA_REPO + city + "//transfer.txt"))) {
+		while (sc.hasNext()) {
+		    String transfer = sc.nextLine();
+		    if (hasTranfer(path, transfer)) {
+			W[i]++;
+		    }
+		}
+	    } catch (FileNotFoundException e) {
+		System.err.print("NOT FOUND" + e);
+	    }
+
+	}
+
+	int min = Integer.MAX_VALUE;
+	int ind = 0;
+	for (int i = 0; i < size; i++) {
+	    if (W[i] < min) {
+		min = W[i];
+		ind = i;
+	    }
+	}
+
+	System.out.println(map);
+	String min_path_vertices[] = ALL_PATHS.get(ind).toString().split("/");
+	Queue<Edge> path = new Queue<>();
+	for (Edge e : map.edges()) {
+	    String name = e.w_name + e.v_name;
+	    for (int i = 0; i < min_path_vertices.length - 1; i++) {
+
+		if (name.equals(min_path_vertices[i] + min_path_vertices[i + 1])
+			|| name.equals(min_path_vertices[i + 1] + min_path_vertices[i])) {
+		    path.enqueue(e);
+		}
+	    }
+
+	}
+
+	return path;
+    }
+
+    private StringBuilder displayMin(String from, String via, String to) {
+	/*-------------------------------------------------------------------*/
+	// I understand that this part is being repeated 3 times, but each case has
+	// minor difference that made it hard for me to short it out
+	/*-------------------------------------------------------------------*/
 
 	StringBuilder searchResults = new StringBuilder();
 	searchResultsExtended = new StringBuilder();
-
 	String str2Append = "";
-	String line_changed = null;
-	searchResults.append("DEPARTURE\n");
-	searchResultsExtended.append("DEPARTURE\n");
-	// Iterating through path and generating output
-	Iterator<Edge> pathTo = sp.pathTo(hash.get(to)).iterator();
-	Edge e = null;
+	double time = 0;
+	double distance = 0;
+	/*-------------------------------------------------------------------*/
+	/*----------------------------from->via-----------------------------*/
+	/*-----------------------------------------------------------------*/
 
+	/** if 'via' is missing, 'to' becomes 'via' */
+	if (via == null) {
+	    via = to;
+	    to = null;
+	}
+	/** ALL SHORTEST PATHS FROM 'from' */
+	Queue<Edge> pathTo = searchMin(from, via);
+	String line_changed = null;
+	str2Append = "\nDEPARTURE\n";
+	searchResults.append(str2Append);
+	searchResultsExtended.append(str2Append);
+
+	/** Shortest path between 'from' adn 'via */
+	Edge e = null;
 	int transfer = 0;
 	int stations = 1; // Stations start at one, because oz mindiyin esseyi de saymaq lazimdir
 
 	/* DEPARTURE STATION */
-	e = pathTo.next();
-	stations++;
+	e = pathTo.dequeue();
 	str2Append = e + "\n";
-	line_changed = e.getLine();
 	searchResults.append(str2Append);
+	searchResultsExtended.append(str2Append);
+	line_changed = e.getLine();
+	stations++;
 
-	while (pathTo.hasNext()) {
-	    e = pathTo.next();
+	while (!pathTo.isEmpty()) {
+	    e = pathTo.dequeue();
+	    time += e.weight(0);
+	    distance += e.weight(1);
 	    stations++;
 	    str2Append = e + "\n";
+	    searchResultsExtended.append(str2Append); // extended results saves all, while normal not
 
-	    searchResultsExtended.append(str2Append);
-
+	    /** Display the only edge where the transfer has happened */
 	    if (!e.getLine().equals(line_changed)) {
 		transfer++;
 		searchResults.append("TRANSFER" + str2Append.substring(str2Append.indexOf(':'), str2Append.length()));
-
 	    }
 	    line_changed = e.getLine();
 	}
 
-	// append destination as well
-	if (!searchResults.toString().contains(str2Append))
+	// append DESTINATION as well
+	if (!searchResults.toString().contains(str2Append) || !searchResults.toString()
+		.contains("TRANSFER" + str2Append.substring(str2Append.indexOf(':'), str2Append.length())))
+	    searchResults.append(str2Append);
+	/*-------------------------------------------------------------------*/
+	/*----------------------------via->to-----------------------------*/
+	/*-----------------------------------------------------------------*/
+
+	/** if via station has been given */
+	if (to != null) {
+	    str2Append = "STOP\n";
+	    searchResults.append(str2Append);
+	    searchResultsExtended.append(str2Append);
+
+	    pathTo = searchMin(via, to);
+	    e = null;
+
+	    /* DEPARTURE STATION */
+	    e = pathTo.dequeue();
+	    stations++;
+	    str2Append = e + "\n";
+	    line_changed = e.getLine();
 	    searchResults.append(str2Append);
 
+	    while (!pathTo.isEmpty()) {
+		e = pathTo.dequeue();
+		time += e.weight(0);
+		distance += e.weight(1);
+		stations++;
+		str2Append = e + "\n";
+
+		searchResultsExtended.append(str2Append);
+
+		if (!e.getLine().equals(line_changed)) {
+		    transfer++;
+		    searchResults
+			    .append("TRANSFER" + str2Append.substring(str2Append.indexOf(':'), str2Append.length()));
+
+		}
+		line_changed = e.getLine();
+	    }
+
+	    // append DESTINATION as well
+	    if (!searchResults.toString().contains(str2Append) || !searchResults.toString()
+		    .contains("TRANSFER" + str2Append.substring(str2Append.indexOf(':'), str2Append.length())))
+		searchResults.append(str2Append);
+	}
 	str2Append = "DESTINATION\n\n";
 	searchResults.append(str2Append);
 	searchResultsExtended.append(str2Append);
@@ -676,16 +863,14 @@ public class MainMenu {
 	 * Adding travel info.
 	 */
 
-	str2Append = "Fare: ";
 	try (Scanner sc = new Scanner(new File(DATA_REPO + city + "//settings.cfg"))) {
 	    String line = sc.nextLine();
-
 	    /* Add total cost */
 	    line = line.substring(line.indexOf('=') + 1, line.length());
-
 	    /**
 	     * Transfer + 1, because we pay when we enter the metro first time
 	     */
+	    str2Append = "Fare: ";
 	    String cost = String.format("%.2f", Double.parseDouble(line) * (transfer + 1));
 	    str2Append += cost;
 
@@ -695,16 +880,185 @@ public class MainMenu {
 	    str2Append += " " + line + "\n";
 	} catch (FileNotFoundException e1) {
 	}
+
+	/**
+	 * This substring concationation is done only because, results are calculated
+	 * only after traversing
+	 */
 	searchResults.replace(0, searchResults.length(), str2Append + searchResults.toString());
 
+	/** Temporarily changing modes for displaying different parameters */
 	int temp = mode;
+
+	/* Mode = 0, is for displaying time */
 	mode = 0;
-	str2Append = "Lead Time: " + formatResult(sp.distTo(hash.get(to))) + "\n";
+
+	str2Append = "Lead Time: " + formatResult(time) + "\n";
 	searchResults.replace(0, searchResults.length(), str2Append + searchResults.toString());
 	searchResultsExtended.append(str2Append);
 
+	/* Mode = 0, is for displaying distance */
 	mode = 1;
-	str2Append = "Distance: " + formatResult(sp.distTo(hash.get(to))) + "\n";
+
+	str2Append = "Distance: " + formatResult(distance) + "\n";
+	searchResults.replace(0, searchResults.length(), str2Append + searchResults.toString());
+	searchResultsExtended.append(str2Append);
+
+	mode = temp;
+
+	str2Append = stations + " Station(s). | " + transfer + " Transfer(s)." + "\n";
+	searchResults.replace(0, searchResults.length(), str2Append + searchResults.toString());
+	searchResultsExtended.append(str2Append);
+
+	return searchResults;
+    }
+
+    private StringBuilder search(String from, String via, String to) {
+	/** Output variables */
+	StringBuilder searchResults = new StringBuilder();
+	searchResultsExtended = new StringBuilder();
+	String str2Append = "";
+	/*-------------------------------------------------------------------*/
+	/*----------------------------from->via-----------------------------*/
+	/*-----------------------------------------------------------------*/
+
+	/** if 'via' is missing, 'to' becomes 'via' */
+	if (via == null) {
+	    via = to;
+	    to = null;
+	}
+	/** ALL SHORTEST PATHS FROM 'from' */
+	DijkstraUndirectedSP first = new DijkstraUndirectedSP(map, hash.get(from), mode);
+	String line_changed = null;
+	str2Append = "\nDEPARTURE\n";
+	searchResults.append(str2Append);
+	searchResultsExtended.append(str2Append);
+
+	/** Shortest path between 'from' adn 'via */
+	Iterator<Edge> pathTo = first.pathTo(hash.get(via)).iterator();
+	Edge e = null;
+	int transfer = 0;
+	int stations = 1; // Stations start at one, because oz mindiyin esseyi de saymaq lazimdir
+
+	/* DEPARTURE STATION */
+	e = pathTo.next();
+	str2Append = e + "\n";
+	searchResults.append(str2Append);
+	searchResultsExtended.append(str2Append);
+	line_changed = e.getLine();
+	stations++;
+
+	while (pathTo.hasNext()) {
+	    e = pathTo.next();
+	    stations++;
+	    str2Append = e + "\n";
+	    searchResultsExtended.append(str2Append); // extended results saves all, while normal not
+
+	    /** Display the only edge where the transfer has happened */
+	    if (!e.getLine().equals(line_changed)) {
+		transfer++;
+		searchResults.append("TRANSFER" + str2Append.substring(str2Append.indexOf(':'), str2Append.length()));
+	    }
+	    line_changed = e.getLine();
+	}
+
+	// append DESTINATION as well
+	if (!searchResults.toString().contains(str2Append) || !searchResults.toString()
+		.contains("TRANSFER" + str2Append.substring(str2Append.indexOf(':'), str2Append.length())))
+	    searchResults.append(str2Append);
+	/*-------------------------------------------------------------------*/
+	/*----------------------------via->to-----------------------------*/
+	/*-----------------------------------------------------------------*/
+	DijkstraUndirectedSP second = null;
+
+	/** if via station has been given */
+	if (to != null) {
+	    second = new DijkstraUndirectedSP(map, hash.get(via), mode);
+	    str2Append = "STOP\n";
+	    searchResults.append(str2Append);
+	    searchResultsExtended.append(str2Append);
+
+	    pathTo = second.pathTo(hash.get(to)).iterator();
+	    e = null;
+
+	    /* DEPARTURE STATION */
+	    e = pathTo.next();
+	    stations++;
+	    str2Append = e + "\n";
+	    line_changed = e.getLine();
+	    searchResults.append(str2Append);
+
+	    while (pathTo.hasNext()) {
+		e = pathTo.next();
+		stations++;
+		str2Append = e + "\n";
+
+		searchResultsExtended.append(str2Append);
+
+		if (!e.getLine().equals(line_changed)) {
+		    transfer++;
+		    searchResults
+			    .append("TRANSFER" + str2Append.substring(str2Append.indexOf(':'), str2Append.length()));
+
+		}
+		line_changed = e.getLine();
+	    }
+
+	    // append DESTINATION as well
+	    if (!searchResults.toString().contains(str2Append) || !searchResults.toString()
+		    .contains("TRANSFER" + str2Append.substring(str2Append.indexOf(':'), str2Append.length())))
+		searchResults.append(str2Append);
+	}
+	str2Append = "DESTINATION\n\n";
+	searchResults.append(str2Append);
+	searchResultsExtended.append(str2Append);
+
+	/*
+	 * Adding travel info.
+	 */
+
+	try (Scanner sc = new Scanner(new File(DATA_REPO + city + "//settings.cfg"))) {
+	    String line = sc.nextLine();
+	    /* Add total cost */
+	    line = line.substring(line.indexOf('=') + 1, line.length());
+	    /**
+	     * Transfer + 1, because we pay when we enter the metro first time
+	     */
+	    str2Append = "Fare: ";
+	    String cost = String.format("%.2f", Double.parseDouble(line) * (transfer + 1));
+	    str2Append += cost;
+
+	    /* Add currency */
+	    line = sc.nextLine();
+	    line = line.substring(line.indexOf('=') + 1, line.length());
+	    str2Append += " " + line + "\n";
+	} catch (FileNotFoundException e1) {
+	}
+
+	/**
+	 * This substring concationation is done only because, results are calculated
+	 * only after traversing
+	 */
+	searchResults.replace(0, searchResults.length(), str2Append + searchResults.toString());
+
+	/** Temporarily changing modes for displaying different parameters */
+	int temp = mode;
+
+	/* Mode = 0, is for displaying time */
+	mode = 0;
+	double time = first.distTo(hash.get(via));
+	if (to != null)
+	    time += second.distTo(hash.get(to));
+	str2Append = "Lead Time: " + formatResult(time) + "\n";
+	searchResults.replace(0, searchResults.length(), str2Append + searchResults.toString());
+	searchResultsExtended.append(str2Append);
+
+	/* Mode = 0, is for displaying distance */
+	mode = 1;
+	double distance = first.distTo(hash.get(via));
+	if (to != null)
+	    distance += second.distTo(hash.get(to));
+	str2Append = "Distance: " + formatResult(distance) + "\n";
 	searchResults.replace(0, searchResults.length(), str2Append + searchResults.toString());
 	searchResultsExtended.append(str2Append);
 
@@ -728,10 +1082,10 @@ public class MainMenu {
     private List<String> sugg = new ArrayList<String>();
 
     private KeyAdapter addAutoCompletion(JTextField text_field, List<String> list) {
+	popup_show(false);
 	return new KeyAdapter() {
 	    @Override
 	    public void keyTyped(KeyEvent key) {
-
 		sugg = Autocompletion.query(text_field.getText(), list);
 
 		if (text_field.getText().length() == 0 || sugg.size() == 0 || !text_field.hasFocus()) {
@@ -771,8 +1125,10 @@ public class MainMenu {
 	    return;
 	if (yes)
 	    popup.show();
-	else
+	else {
 	    popup.hide();
+	    popup = null;
+	}
     }
 
     /***************************************************************************
@@ -800,6 +1156,7 @@ public class MainMenu {
 	((JRadioButtonMenuItem) a[4]).setSelected(false);
 	drag = false;
 	searchResultsExtended = new StringBuilder();
+	textPane.setText("");
     }
 
     private static int toInt(double a) {

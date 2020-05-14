@@ -42,7 +42,7 @@ public class Edge implements Comparable<Edge> {
     }
 
     public String stringify(String a, String b) {
-	return a + " - " + b + ":";
+	return a + " - " + b;
     }
 
     public double weight(int in) {
@@ -98,16 +98,6 @@ public class Edge implements Comparable<Edge> {
 	    System.err.println("Please set Edge-Line name");
 	}
 	sb.append(stringify(v_name, w_name));
-	String format = "%-" + Math.abs((MAX_NAME_LENGTH - sb.length())) + "s";
-	sb.append(String.format(format, ""));
-	sb.append("[");
-	for (Double weight : weights) {
-	    sb.append(String.format("%.1f", weight));
-	    sb.append(", ");
-	}
-
-	sb.delete(sb.length() - 2, sb.length());
-	sb.append("]");
 	return sb.toString();
     }
 

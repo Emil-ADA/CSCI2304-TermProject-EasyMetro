@@ -18,7 +18,7 @@ import Dependencies.Kernel32;
 
 public class JHardware {
     public static void main(String[] args) {
-	System.out.println(getBatteryStatus());
+	System.out.println(getProcessorInfo());
     }
     public static Dimension getScreenSize() {
 	return Toolkit.getDefaultToolkit().getScreenSize();
