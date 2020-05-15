@@ -1,6 +1,7 @@
 package DS;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 
 import Dependencies.StdOut;
 
@@ -26,31 +27,87 @@ public class DepthFirstSearch {
 
     // use DFS
     private void dfs(Graph G, String a, String b) {
-	int v = hash.get(a);
+	int s = hash.get(a);
 	int t = hash.get(b);
+	onPath = new boolean[G.V()];
 
-	// add v to current path
-	path.push(a);
-	onPath[v] = true;
+	validateVertex(s);
 
-	// found path from s to t
-	if (v == t) {
-	    processCurrentPath();
-	    numberOfPaths++;
-	}
+	// to be able to iterate over each adjacency list, keeping track of which
+	// vertex in each adjacency list needs to be explored next
+	Iterator<Edge>[] adj = (Iterator<Edge>[]) new Iterator[G.V()];
+	for (int v = 0; v < G.V(); v++)
+	    adj[v] = G.adj(v).iterator();
 
-	// consider all neighbors that would continue path with repeating a node
-	else {
-	    for (Edge edge : G.adj(v)) {
-		int w = edge.w;
-		if (!onPath[w])
-		    dfs(G, edge.w_name, b);
+	// depth-first search using an explicit stack
+	Stack<Integer> stack = new Stack<Integer>();
+
+	onPath[s] = true;
+	stack.push(s);
+	while (!stack.isEmpty()) {
+	    int v = stack.peek();
+	    if (adj[v].hasNext()) {
+		int w = adj[v].next().w;
+		// StdOut.printf("check %d\n", w);
+		if (!onPath[w]) {
+		    // discovered vertex w for the first time
+		    onPath[w] = true;
+		    // edgeTo[w] = v;
+		    stack.push(w);
+		    // StdOut.printf("dfs(%d)\n", w);
+		}
+	    } else {
+		// StdOut.printf("%d done\n", v);
+		stack.pop();
 	    }
 	}
 
-	// done exploring from v, so remove from path
-	path.pop();
-	onPath[v] = false;
+	///////////////////////////////////////////////////////
+
+	// add v to current path
+	// path.push(a);
+	// onPath[v] = true;
+	//
+	// // found path from s to t
+	// if (v == t) {
+	// processCurrentPath();
+	// numberOfPaths++;
+	// }
+	//
+	// // consider all neighbors that would continue path with repeating a node
+	// else {
+	// for (Edge edge : G.adj(v)) {
+	// int w = edge.w;
+	// if (!onPath[w])
+	// dfs(G, edge.w_name, b);
+	// }
+	// }
+	//
+	// // done exploring from v, so remove from path
+	// path.pop();
+	// onPath[v] = false;
+    }
+
+    /**
+     * Is vertex {@code v} connected to the source vertex {@code s}?
+     * 
+     * @param v
+     *              the vertex
+     * @return {@code true} if vertex {@code v} is connected to the source vertex
+     *         {@code s}, and {@code false} otherwise
+     * @throws IllegalArgumentException
+     *                                      unless {@code 0 <= v < V}
+     */
+    public boolean marked(int v) {
+	validateVertex(v);
+	return onPath[v];
+    }
+
+    // throw an IllegalArgumentException unless {@code 0 <= v < V}
+    private void validateVertex(int v) {
+	int V = onPath.length;
+	if (v < 0 || v >= V)
+	    throw new IllegalArgumentException("vertex " + v + " is not between 0 and " + (V - 1));
     }
 
     // this implementation just prints the path to standard output
@@ -81,23 +138,30 @@ public class DepthFirstSearch {
 	G.addEdge(new Edge(3, 6, 1).setVertexNames("A3", "A6").setLine("AA"));
 	G.addEdge(new Edge(4, 6, 1).setVertexNames("A4", "A6").setLine("AA"));
 	// StdOut.println(G);
+	Prim prim = new Prim(G, 0);
+	KruskalMST kruskal = new KruskalMST(G);
+//	Iterator<Edge> iter = prim.edges().iterator();
+
+//	Iterator<Edge> iter = kruskal.edges().iterator();
+	while(iter.hasNext())
+	System.out.println(iter.next());
 
 	LinearProbingHashST<String, Integer> hash = new LinearProbingHashST<>();
 	for (int i = 0; i < 7; i++)
 	    hash.put("A" + i, i);
-	StdOut.println();
-	StdOut.println("all simple paths between 0 and 6:");
+	// StdOut.println();
+	// StdOut.println("all simple paths between 0 and 6:");
 	DepthFirstSearch allpaths1 = new DepthFirstSearch(G, hash, "A0", "A6");
-	StdOut.println(allpaths1.paths.toString());
-	StdOut.println("# paths = " + allpaths1.numberOfPaths());
-	StdOut.println(allpaths1.getAllPaths().get(0).peek());
-	StdOut.println();
-	StdOut.println("all simple paths between 1 and 5:");
+	// StdOut.println(allpaths1.paths.toString());
+	// StdOut.println("# paths = " + allpaths1.numberOfPaths());
+	allpaths1.dfs(G, "A0", "A6");
+	// StdOut.println();
+	// StdOut.println("all simple paths between 1 and 5:");
 	DepthFirstSearch allpaths2 = new DepthFirstSearch(G, hash, "A0", "A5");
-	StdOut.println("# paths = " + allpaths2.numberOfPaths());
-
-	StdOut.println(allpaths2.paths.toString());
-
-	StdOut.println(G);
+	// StdOut.println("# paths = " + allpaths2.numberOfPaths());
+	//
+	// StdOut.println(allpaths2.paths.toString());
+	//
+	// StdOut.println(G);
     }
 }
