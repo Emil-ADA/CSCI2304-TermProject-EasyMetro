@@ -8,11 +8,18 @@ import javax.swing.JFrame;
 import javax.swing.JTextPane;
 import javax.swing.event.HyperlinkEvent;
 import javax.swing.event.HyperlinkListener;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.Style;
+import javax.swing.text.StyleConstants;
+import javax.swing.text.StyledDocument;
 import javax.swing.text.html.FormSubmitEvent;
 import javax.swing.text.html.HTMLEditorKit;
 import javax.swing.JTextField;
 import java.io.File;
 import java.util.Scanner;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Font;
 
 public class Reportform {
 
@@ -47,29 +54,27 @@ public class Reportform {
      */
     private void initialize() {
 
-	frame = new JFrame();
-	frame.setBounds(100, 100, 701, 425);
-	frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+	JTextPane textPane = new JTextPane();
+	StyledDocument doc = textPane.getStyledDocument();
 
-	JEditorPane textPane = new JEditorPane();
-	textPane.setContentType("text/html");
-	textPane.setEditable(false);
+	Style style = textPane.addStyle("I'm a Style", null);
+	StyleConstants.setForeground(style, Color.red);
 
-	StringBuilder sb = new StringBuilder();
-	try (Scanner sc = new Scanner(new File("./data/form/index.html"))) {
-	    while (sc.hasNext()) {
-		sb.append(sc.nextLine() + "\n");
-	    }
-	} catch (Exception e) {
-	    e.printStackTrace();
+	try {
+	    doc.insertString(doc.getLength(), "BLAH ", style);
+	} catch (BadLocationException e) {
 	}
-	System.out.print(sb.toString());
-	textPane.setText(sb.toString());
 
-//	frame.getContentPane().add(textPane);
+	StyleConstants.setForeground(style, Color.blue);
 
-	
+	try {
+	    doc.insertString(doc.getLength(), "BLEH", style);
+	} catch (BadLocationException e) {
+	}
 
+	frame = new JFrame("Test");
+	frame.getContentPane().add(textPane);
+	frame.pack();
 
     }
 

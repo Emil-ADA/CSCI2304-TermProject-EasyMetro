@@ -1,4 +1,10 @@
-package DS;
+package DS.Extra;
+
+import DS.Graph;
+import DS.UnionFind;
+import DS.Basic.Edge;
+import DS.Basic.MinPQ;
+import DS.Basic.Queue;
 
 /******************************************************************************
  *  Compilation:  javac KruskalMST.java
@@ -79,7 +85,7 @@ public class KruskalMST {
 	}
 
 	// run greedy algorithm
-	UF uf = new UF(G.V());
+	UnionFind uf = new UnionFind(G.V());
 	while (!pq.isEmpty() && mst.size() < G.V() - 1) {
 	    Edge e = pq.delMin();
 	    int v = e.either();
@@ -128,7 +134,7 @@ public class KruskalMST {
 	}
 
 	// check that it is acyclic
-	UF uf = new UF(G.V());
+	UnionFind uf = new UnionFind(G.V());
 	for (Edge e : edges()) {
 	    int v = e.either(), w = e.other(v);
 	    if (uf.find(v) == uf.find(w)) {
@@ -151,7 +157,7 @@ public class KruskalMST {
 	for (Edge e : edges()) {
 
 	    // all edges in MST except e
-	    uf = new UF(G.V());
+	    uf = new UnionFind(G.V());
 	    for (Edge f : mst) {
 		int x = f.either(), y = f.other(x);
 		if (f != e)

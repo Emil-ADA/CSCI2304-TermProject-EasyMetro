@@ -1,9 +1,12 @@
 package DS;
 
+import DS.Basic.Edge;
+import DS.Basic.Stack;
+import DS.Extra.Prim;
 import Dependencies.Bag;
 import Dependencies.StdOut;
 
-public class Graph {
+public class Graph implements Cloneable {
     private static final String NEWLINE = System.getProperty("line.separator");
 
     private final int V;
@@ -167,22 +170,30 @@ public class Graph {
 	return s.toString();
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws CloneNotSupportedException {
 	Graph G = new Graph(7);
-	G.addEdge(new Edge(0, 1, 0.2, 1));
-	G.addEdge(new Edge(1, 2, 0.5, 1));
-	G.addEdge(new Edge(1, 3, 0.2, 1));
-	G.addEdge(new Edge(1, 5, 0.9, 1));
-	G.addEdge(new Edge(2, 4, 0.3, 1));
-	G.addEdge(new Edge(4, 5, 0.2, 1));
-	G.addEdge(new Edge(4, 6, 0.1, 1));
-	StdOut.println(G);
+	G.addEdge(new Edge(0, 1, 0.2, 1).setVertexNames("A", "B").setLine("C"));
+	G.addEdge(new Edge(1, 2, 0.5, 1).setVertexNames("A", "B").setLine("C"));
+	G.addEdge(new Edge(1, 3, 0.2, 1).setVertexNames("A", "B").setLine("C"));
+	G.addEdge(new Edge(1, 5, 0.9, 1).setVertexNames("A", "B").setLine("C"));
+	G.addEdge(new Edge(2, 4, 0.3, 1).setVertexNames("A", "B").setLine("C"));
+	G.addEdge(new Edge(4, 5, 0.2, 1).setVertexNames("A", "B").setLine("C"));
+	G.addEdge(new Edge(4, 6, 0.1, 1).setVertexNames("A", "B").setLine("C"));
+	Graph G2 = (Graph) G.clone();
+	G.addEdge(new Edge(4, 6, 0.1, 1).setVertexNames("A", "B").setLine("C"));
+	G.addEdge(new Edge(4, 6, 0.1, 1).setVertexNames("A", "B").setLine("C"));
+	G.addEdge(new Edge(4, 6, 0.1, 1).setVertexNames("A", "B").setLine("C"));
+	System.out.println(G);
+	// Prim mst = new Prim(G, 1);
+	// for (Edge e : mst.edges()) {
+	// StdOut.println(e);
+	// }
+	// StdOut.printf("%.5f\n", mst.weight());
+    }
 
-	Prim mst = new Prim(G, 1);
-	for (Edge e : mst.edges()) {
-	    StdOut.println(e);
-	}
-	StdOut.printf("%.5f\n", mst.weight());
+    @Override
+    protected Graph clone() {
+	return new Graph(this);
     }
 
 }

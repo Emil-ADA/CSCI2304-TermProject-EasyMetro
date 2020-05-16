@@ -1,4 +1,4 @@
-package DS;
+package DS.Extra;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -6,6 +6,10 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Scanner;
 
+import DS.DijkstraUndirectedSP;
+import DS.Graph;
+import DS.Basic.Edge;
+import DS.Basic.LinearProbingHashST;
 import Dependencies.StdOut;
 
 public class Test {

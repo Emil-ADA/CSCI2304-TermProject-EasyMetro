@@ -1,4 +1,7 @@
-package DS;
+package DS.Extra;
+
+import DS.Graph;
+import DS.Basic.Stack;
 
 public class Detect_Cycle {
     private boolean[] marked;

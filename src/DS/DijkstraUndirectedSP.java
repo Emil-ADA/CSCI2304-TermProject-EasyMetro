@@ -2,6 +2,9 @@ package DS;
 
 import java.io.File;
 
+import DS.Basic.Edge;
+import DS.Basic.IndexMinPQ;
+import DS.Basic.Stack;
 import Dependencies.In;
 import Dependencies.StdOut;
 

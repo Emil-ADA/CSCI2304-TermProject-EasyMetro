@@ -1,4 +1,4 @@
-package DS;
+package DS.Basic;
 
 import Dependencies.StdIn;
 import Dependencies.StdOut;

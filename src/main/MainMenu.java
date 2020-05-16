@@ -42,6 +42,7 @@ import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Random;
 import java.util.Scanner;
 import java.awt.event.MouseEvent;
 import java.awt.event.ActionListener;
@@ -52,11 +53,11 @@ import java.awt.event.ItemEvent;
 
 import DS.DepthFirstSearch;
 import DS.DijkstraUndirectedSP;
-import DS.Edge;
 import DS.Graph;
-import DS.LinearProbingHashST;
-import DS.Queue;
-import DS.Stack;
+import DS.Basic.Edge;
+import DS.Basic.LinearProbingHashST;
+import DS.Basic.Queue;
+import DS.Basic.Stack;
 import Dependencies.FilenameUtils;
 import Dependencies.StdOut;
 
@@ -77,6 +78,7 @@ public class MainMenu {
     // FIXME: DONT FORGET TO CHANGE MAGIC NUMBERS
     // FIXME: Try from 'A' to 'A'
 
+
     /** Main frame */
     private JFrame frame;
     /** The Width of the screen */
@@ -90,7 +92,7 @@ public class MainMenu {
     /** The unit increment of the Horizontal scroll bar of Scroll pane */
     public static final short HSCROLL_RATE = 16;
 
-    public static final short DISPLAY_PANE_LINE_LENGTH = 56;
+    public static final short DISPLAY_PANE_LINE_LENGTH = 54;
     /** Variable ratio for zooming in and out, default value 10% */
     public static final double ZOOM_SCALE = 0.1;
     /** Variable for scaling the map, defines which method will be used */
@@ -100,7 +102,7 @@ public class MainMenu {
     /** The dimension of the menu bar */
     public static final Rectangle MENU_SIZE = new Rectangle(60, 22);
     /** The dimension of the navigation bar on the left */
-    public static final Rectangle L_NAVBAR_SIZE = new Rectangle(355, 603);
+    public static final Rectangle L_NAVBAR_SIZE = new Rectangle(369, toInt(FRAME_SIZE.getHeight() - MENU_SIZE.height));
     /** The data repository */
     private static final String DATA_REPO = ".//data//Cities//";
 
@@ -243,6 +245,7 @@ public class MainMenu {
     private void initialize() {
 
 	frame = new JFrame();
+	frame.setIconImage(new ImageIcon(".//data//icon.png").getImage());
 	frame.setResizable(false);
 	frame.setBounds(SCREEN_WIDTH / 2 - FRAME_SIZE.width / 2, SCREEN_HEIGHT / 2 - FRAME_SIZE.height / 2 - 10,
 		FRAME_SIZE.width, FRAME_SIZE.height);
@@ -250,7 +253,6 @@ public class MainMenu {
 	frame.getContentPane().setLayout(null);
 
 	JMenuBar menuBar = new JMenuBar();
-
 	menuBar.setBounds(0, 0, FRAME_SIZE.width, 30);
 	frame.getContentPane().add(menuBar);
 
@@ -345,14 +347,16 @@ public class MainMenu {
 
 	JPanel main_panel = new JPanel();
 	main_panel.setBackground(Color.LIGHT_GRAY);
-	main_panel.setBounds(0, 28, 1168, 603);
+	main_panel.setBounds(toInt(FRAME_SIZE.getX()), toInt(FRAME_SIZE.getY() + 28), toInt(FRAME_SIZE.getWidth() - 6),
+		toInt(FRAME_SIZE.getHeight() - 57));
 	frame.getContentPane().add(main_panel);
 	main_panel.setLayout(null);
 
 	JPanel left_navbar = new JPanel();
 	left_navbar.setBackground(new Color(60, 60, 84));
 	left_navbar.setBorder(new SoftBevelBorder(BevelBorder.RAISED, SystemColor.windowBorder, null, null, null));
-	left_navbar.setBounds(0, 0, 369, 605);
+	left_navbar.setBounds(L_NAVBAR_SIZE);
+
 	main_panel.add(left_navbar);
 	left_navbar.setLayout(null);
 
@@ -360,7 +364,7 @@ public class MainMenu {
 	label_metromap.setBackground(SystemColor.controlShadow);
 	label_metromap.setBorder(new EtchedBorder(EtchedBorder.LOWERED, null, null));
 	label_metromap.setForeground(SystemColor.textHighlight);
-	label_metromap.setFont(new Font("HP Simplified", Font.BOLD, 20));
+	label_metromap.setFont(new Font("HP Simplified", Font.BOLD, 22));
 	label_metromap.setHorizontalAlignment(SwingConstants.CENTER);
 	label_metromap.setBounds(10, 11, 349, 58);
 	left_navbar.add(label_metromap);
@@ -494,19 +498,14 @@ public class MainMenu {
 	    public void mouseDragged(MouseEvent e) {
 		if (!drag)
 		    return;
+
 		popup_show(false);
-
 		onscreen_p = e.getLocationOnScreen();
-
 		if (prev_p == null)
 		    prev_p = onscreen_p;
 
 		left_navbar.setLocation(left_navbar.getX() + (onscreen_p.x - prev_p.x), left_navbar.getY());
-
 		prev_p = onscreen_p;
-
-		// FIXME: MAKE SO THAT DRAGING DOES NOT GO TO FAR
-
 	    }
 	});
 	optbutton_fastest.addActionListener(new ActionListener() {
@@ -571,23 +570,25 @@ public class MainMenu {
 
 	/*----------------------ADDING AUTOCOMPLETION-----------------------*/
 	ArrayList<String> list = new ArrayList<>();
-
 	hash.keys().iterator().forEachRemaining(list::add);
 	textfield_dpt.addKeyListener(addAutoCompletion(textfield_dpt, list));
 	textfield_via.addKeyListener(addAutoCompletion(textfield_via, list));
 	textfield_arv.addKeyListener(addAutoCompletion(textfield_arv, list));
+
 	textfield_dpt.addMouseListener(new MouseAdapter() {
 	    @Override
 	    public void mouseClicked(MouseEvent e) {
 		popup_show(false);
 	    }
 	});
+
 	textfield_via.addMouseListener(new MouseAdapter() {
 	    @Override
 	    public void mouseClicked(MouseEvent e) {
 		popup_show(false);
 	    }
 	});
+
 	textfield_arv.addMouseListener(new MouseAdapter() {
 	    @Override
 	    public void mouseClicked(MouseEvent e) {
@@ -601,8 +602,6 @@ public class MainMenu {
 
 	display_pane = new JTextPane();
 	display_pane.setFont(new Font("Consolas", Font.PLAIN, 11));
-	// FIXME: VAXT QALANDA html output-a convert et
-	// textPane.setContentType("text/html");
 
 	display_pane.setEditable(false);
 	scrollpane_display.setViewportView(display_pane);
@@ -686,8 +685,8 @@ public class MainMenu {
 		    /** If the mode is on MINIMUM */
 		    if (mode == 2) {
 
-			 StringBuilder searchResults = displayMin(from, via, to);
-			 display_pane.setText(searchResults.toString());
+			StringBuilder searchResults = displayMin(from, via, to);
+			display_pane.setText(searchResults.toString());
 			return;
 		    }
 
@@ -701,7 +700,6 @@ public class MainMenu {
     }
 
     private boolean hasTranfer(String path, String transfer) {
-	System.out.println("HEEEY: " + path + "<====|====>" + transfer);
 	boolean retval = false;
 
 	retval = (retval || (path.contains(transfer)));
@@ -715,13 +713,19 @@ public class MainMenu {
 	 */
 	transfer = arr[2] + "/" + arr[1] + "/" + arr[0];
 	retval = (retval || (path.contains(transfer)));
-	System.out.println("HI: " + retval);
 	return retval;
     }
+
+    private static int PREVIOUS_INDEX = 0;
 
     private Queue<Edge> searchMin(String from, String to) {
 	DepthFirstSearch dfs = new DepthFirstSearch(map, hash, from, to);
 	ArrayList<Stack<String>> ALL_PATHS = dfs.getAllPaths();
+
+	if (ALL_PATHS.size() == 0) {
+	    return null;
+	}
+
 	int size = ALL_PATHS.size();
 	int W[] = new int[size];
 
@@ -738,31 +742,43 @@ public class MainMenu {
 	    } catch (FileNotFoundException e) {
 		System.err.print("NOT FOUND" + e);
 	    }
-
 	}
 
+	ArrayList<Integer> rand_indecies = new ArrayList<Integer>();
 	int min = Integer.MAX_VALUE;
 	int ind = 0;
+	rand_indecies.add(ind);
 	for (int i = 0; i < size; i++) {
+
 	    if (W[i] < min) {
 		min = W[i];
 		ind = i;
+		rand_indecies.clear();
 	    }
+
+	    if (W[i] == min) {
+		rand_indecies.add(i);
+	    }
+
 	}
+	PREVIOUS_INDEX++;
+	if (PREVIOUS_INDEX >= rand_indecies.size())
+	    PREVIOUS_INDEX = 0;
 
-	System.out.println(map);
-	String min_path_vertices[] = ALL_PATHS.get(ind).toString().split("/");
+	String min_path_vertices[] = ALL_PATHS.get(rand_indecies.get(PREVIOUS_INDEX)).toString().split("/");
+
 	Queue<Edge> path = new Queue<>();
-	for (Edge e : map.edges()) {
-	    String name = e.w_name + e.v_name;
-	    for (int i = 0; i < min_path_vertices.length - 1; i++) {
 
+	for (int i = 0; i < min_path_vertices.length - 1; i++) {
+	    for (Edge e : map.edges()) {
+		String name = e.w_name + e.v_name;
 		if (name.equals(min_path_vertices[i] + min_path_vertices[i + 1])
 			|| name.equals(min_path_vertices[i + 1] + min_path_vertices[i])) {
+		    System.err.println(name + " = " + min_path_vertices[i] + min_path_vertices[i + 1]);
+		    System.err.println(name + " = " + min_path_vertices[i + 1] + min_path_vertices[i] + "\n");
 		    path.enqueue(e);
 		}
 	    }
-
 	}
 
 	return path;
@@ -796,7 +812,7 @@ public class MainMenu {
 	searchResults.append(str2Append);
 	searchResultsExtended.append(str2Append);
 
-	/** Shortest path between 'from' adn 'via */
+	/** Shortest path between 'from' and 'via */
 	Edge e = null;
 	int transfer = 0;
 	int stations = 1; // Stations start at one, because oz mindiyin esseyi de saymaq lazimdir
@@ -1174,9 +1190,9 @@ public class MainMenu {
 	a[0].setBounds(0, 0, 369, 605);
 	prev_p = null;
 	onscreen_p = null;
-	a[1].setForeground(SystemColor.textHighlight);
-	a[2].setForeground(SystemColor.BLACK);
-	a[3].setForeground(SystemColor.BLACK);
+	a[1].setForeground(textBright);
+	a[2].setForeground(textDark);
+	a[3].setForeground(textDark);
 	mode = 0;
 	textfield_dpt.setText("");
 	textfield_via.setText("");

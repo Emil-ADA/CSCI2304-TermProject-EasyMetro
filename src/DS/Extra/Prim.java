@@ -1,29 +1,14 @@
-package DS;
+package DS.Extra;
 
 import java.io.File;
 
+import DS.Graph;
+import DS.UnionFind;
+import DS.Basic.Edge;
+import DS.Basic.IndexMinPQ;
+import DS.Basic.Queue;
 import Dependencies.In;
 import Dependencies.StdOut;
-
-/******************************************************************************
- * Compilation: javac PrimMST.java Execution: java PrimMST filename.txt
- * Dependencies: EdgeWeightedGraph.java Edge.java Queue.java IndexMinPQ.java
- * UF.java In.java StdOut.java Data files:
- * https://algs4.cs.princeton.edu/43mst/tinyEWG.txt
- * https://algs4.cs.princeton.edu/43mst/mediumEWG.txt
- * https://algs4.cs.princeton.edu/43mst/largeEWG.txt
- *
- * Compute a minimum spanning forest using Prim's algorithm.
- *
- * % java PrimMST tinyEWG.txt 1-7 0.19000 0-2 0.26000 2-3 0.17000 4-5 0.35000
- * 5-7 0.28000 6-2 0.40000 0-7 0.16000 1.81000
- *
- * % java PrimMST mediumEWG.txt 1-72 0.06506 2-86 0.05980 3-67 0.09725 4-55
- * 0.06425 5-102 0.03834 6-129 0.05363 7-157 0.00516 ... 10.46351
- *
- * % java PrimMST largeEWG.txt ... 647.66307
- *
- ******************************************************************************/
 
 public class Prim {
     private static final double FLOATING_POINT_EPSILON = 1E-12;
@@ -128,7 +113,7 @@ public class Prim {
 	}
 
 	// check that it is acyclic
-	UF uf = new UF(G.V());
+	UnionFind uf = new UnionFind(G.V());
 	for (Edge e : edges()) {
 	    int v = e.either(), w = e.other(v);
 	    if (uf.find(v) == uf.find(w)) {
@@ -151,7 +136,7 @@ public class Prim {
 	for (Edge e : edges()) {
 
 	    // all edges in MST except e
-	    uf = new UF(G.V());
+	    uf = new UnionFind(G.V());
 	    for (Edge f : edges()) {
 		int x = f.either(), y = f.other(x);
 		if (f != e)
@@ -181,13 +166,21 @@ public class Prim {
      *                 the command-line arguments
      */
     public static void main(String[] args) {
-	// In in = new In(new File(".//data//ex-data-8.txt"));
-	// Graph G = new Graph(in);
-	// Prim mst = new Prim(G);
-	// for (Edge e : mst.edges()) {
-	// StdOut.println(e);
-	// }
-	// StdOut.printf("%.5f\n", mst.weight());
+	Graph G = new Graph(7);
+	G.addEdge(new Edge(0, 1, 1).setVertexNames("A0", "A1").setLine("AA"));
+	G.addEdge(new Edge(0, 2, 1).setVertexNames("A0", "A2").setLine("AA"));
+	G.addEdge(new Edge(2, 3, 1).setVertexNames("A2", "A3").setLine("AA"));
+	G.addEdge(new Edge(3, 4, 1).setVertexNames("A3", "A4").setLine("AA"));
+	G.addEdge(new Edge(2, 5, 1).setVertexNames("A2", "A5").setLine("AA"));
+	G.addEdge(new Edge(1, 5, 1).setVertexNames("A1", "A5").setLine("AA"));
+	G.addEdge(new Edge(5, 4, 1).setVertexNames("A5", "A4").setLine("AA"));
+	G.addEdge(new Edge(3, 6, 1).setVertexNames("A3", "A6").setLine("AA"));
+	G.addEdge(new Edge(4, 6, 1).setVertexNames("A4", "A6").setLine("AA"));
+	Prim mst = new Prim(G, 0);
+	for (Edge e : mst.edges()) {
+	    StdOut.println(e);
+	}
+	StdOut.printf("%.5f\n", mst.weight());
     }
 
 }

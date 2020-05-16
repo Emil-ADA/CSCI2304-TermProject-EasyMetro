@@ -1,4 +1,4 @@
-package DS;
+package DS.Basic;
 
 // MULTI-WEIGHTED EDGE
 public class Edge implements Comparable<Edge> {
