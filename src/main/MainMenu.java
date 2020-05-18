@@ -236,6 +236,7 @@ public class MainMenu {
 	int ID = 0;
 	for (File line : roadlines) {
 	    try (Scanner sc = new Scanner(line);) {
+		System.out.println(line.toString());
 		sc.nextLine();
 		while (sc.hasNext()) {
 		    String key = sc.nextLine();
