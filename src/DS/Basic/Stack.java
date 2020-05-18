@@ -1,55 +1,18 @@
 package DS.Basic;
 
-/******************************************************************************
- *  Compilation:  javac Stack.java
- *  Execution:    java Stack < input.txt
- *  Data files:   https://introcs.cs.princeton.edu/java/43stack/tobe.txt
- *
- *  A generic stack, implemented using a linked list. Each stack
- *  element is of type Item.
- *  
- *  % more tobe.txt 
- *  to be or not to - be - - that - - - is
- *
- *  % java Stack < tobe.txt
- *  to be not that or be (2 left on stack)
- *
- ******************************************************************************/
-
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
 import Dependencies.StdIn;
 import Dependencies.StdOut;
 
-/**
- * The {@code Stack} class represents a last-in-first-out (LIFO) stack of
- * generic items. It supports the usual <em>push</em> and <em>pop</em>
- * operations, along with methods for peeking at the top item, testing if the
- * stack is empty, getting the number of items in the stack, and iterating over
- * the items in LIFO order.
- * <p>
- * This implementation uses a singly-linked list with a nested class for
- * linked-list nodes. The <em>push</em>, <em>pop</em>, <em>peek</em>,
- * <em>size</em>, and <em>is-empty</em> operations all take constant time in the
- * worst case.
- * <p>
- * For additional documentation, see
- * <a href="https://introcs.cs.princeton.edu/43stack">Section 4.3</a> of
- * <i>Computer Science: An Interdisciplinary Approach</i> by Robert Sedgewick
- * and Kevin Wayne.
- *
- * @author Robert Sedgewick
- * @author Kevin Wayne
- *
- * @param <Item>
- *            the generic type of an item in this stack
- */
 public class Stack<Item> implements Iterable<Item> {
-    private int n; // size of the stack
-    private Node first; // top of stack
+    /** size of the stack */
+    private int n;
+    /** top of stack */
+    private Node first;
 
-    // helper linked list class
+    /** helper linked list class */
     private class Node {
 	private Item item;
 	private Node next;

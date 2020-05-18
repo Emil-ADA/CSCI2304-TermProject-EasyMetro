@@ -10,7 +10,12 @@ public class JUtil {
 	JUtil.print(min(A));
     }
 
-
+    public static String n_times_char(int n, char ch) {
+	String retval = "";
+	for (int i = 0; i < n; i++)
+	    retval += ch;
+	return retval;
+    }
 
     public static int[] range(int from, int to) {
 	int[] retval = new int[to - from];

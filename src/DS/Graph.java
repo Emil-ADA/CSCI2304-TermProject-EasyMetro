@@ -1,17 +1,17 @@
 package DS;
 
-import DS.Basic.Edge;
 import DS.Basic.Stack;
-import DS.Extra.Prim;
-import Dependencies.Bag;
-import Dependencies.StdOut;
 
 public class Graph implements Cloneable {
-    private static final String NEWLINE = System.getProperty("line.separator");
 
+    /** New line symbol */
+    private static final String NEWLINE = System.getProperty("line.separator");
+    /** the number of vertices */
     private final int V;
+    /** the number of edges */
     private int E;
-    private Bag<Edge>[] adj;
+    /** Adjacency Matrix */
+    private Bag<MWEdge>[] adj;
 
     /**
      * Initializes an empty edge-weighted graph with {@code V} vertices and 0 edges.
@@ -21,14 +21,15 @@ public class Graph implements Cloneable {
      * @throws IllegalArgumentException
      *                                      if {@code V < 0}
      */
+    @SuppressWarnings("unchecked")
     public Graph(int V) {
 	if (V < 0)
 	    throw new IllegalArgumentException("Number of vertices must be nonnegative");
 	this.V = V;
 	this.E = 0;
-	adj = (Bag<Edge>[]) new Bag[V];
+	adj = (Bag<MWEdge>[]) new Bag[V];
 	for (int v = 0; v < V; v++) {
-	    adj[v] = new Bag<Edge>();
+	    adj[v] = new Bag<MWEdge>();
 	}
     }
 
@@ -43,11 +44,11 @@ public class Graph implements Cloneable {
 	this.E = G.E();
 	for (int v = 0; v < G.V(); v++) {
 	    // reverse so that adjacency list is in same order as original
-	    Stack<Edge> reverse = new Stack<Edge>();
-	    for (Edge e : G.adj[v]) {
+	    Stack<MWEdge> reverse = new Stack<MWEdge>();
+	    for (MWEdge e : G.adj[v]) {
 		reverse.push(e);
 	    }
-	    for (Edge e : reverse) {
+	    for (MWEdge e : reverse) {
 		adj[v].add(e);
 	    }
 	}
@@ -86,7 +87,7 @@ public class Graph implements Cloneable {
      *                                      unless both endpoints are between
      *                                      {@code 0} and {@code V-1}
      */
-    public void addEdge(Edge e) {
+    public void addEdge(MWEdge e) {
 	int v = e.either();
 	int w = e.other(v);
 	validateVertex(v);
@@ -105,7 +106,7 @@ public class Graph implements Cloneable {
      * @throws IllegalArgumentException
      *                                      unless {@code 0 <= v < V}
      */
-    public Iterable<Edge> adj(int v) {
+    public Iterable<MWEdge> adj(int v) {
 	validateVertex(v);
 	return adj[v];
     }
@@ -131,11 +132,11 @@ public class Graph implements Cloneable {
      *
      * @return all edges in this edge-weighted graph, as an iterable
      */
-    public Iterable<Edge> edges() {
-	Bag<Edge> list = new Bag<Edge>();
+    public Iterable<MWEdge> edges() {
+	Bag<MWEdge> list = new Bag<MWEdge>();
 	for (int v = 0; v < V; v++) {
 	    int selfLoops = 0;
-	    for (Edge e : adj(v)) {
+	    for (MWEdge e : adj(v)) {
 		if (e.other(v) > v) {
 		    list.add(e);
 		}
@@ -162,7 +163,7 @@ public class Graph implements Cloneable {
 	s.append("Stations: " + V + ", Routes: " + E + NEWLINE);
 	for (int v = 0; v < V; v++) {
 	    s.append(v + ": ");
-	    for (Edge e : adj[v]) {
+	    for (MWEdge e : adj[v]) {
 		s.append(e + "  ");
 	    }
 	    s.append(NEWLINE);
@@ -170,19 +171,22 @@ public class Graph implements Cloneable {
 	return s.toString();
     }
 
+    /** Test */
+    @SuppressWarnings("unused")
     public static void main(String[] args) throws CloneNotSupportedException {
 	Graph G = new Graph(7);
-	G.addEdge(new Edge(0, 1, 0.2, 1).setVertexNames("A", "B").setLine("C"));
-	G.addEdge(new Edge(1, 2, 0.5, 1).setVertexNames("A", "B").setLine("C"));
-	G.addEdge(new Edge(1, 3, 0.2, 1).setVertexNames("A", "B").setLine("C"));
-	G.addEdge(new Edge(1, 5, 0.9, 1).setVertexNames("A", "B").setLine("C"));
-	G.addEdge(new Edge(2, 4, 0.3, 1).setVertexNames("A", "B").setLine("C"));
-	G.addEdge(new Edge(4, 5, 0.2, 1).setVertexNames("A", "B").setLine("C"));
-	G.addEdge(new Edge(4, 6, 0.1, 1).setVertexNames("A", "B").setLine("C"));
+	G.addEdge(new MWEdge(0, 1, 0.2, 1).setVertexNames("A", "B").setLine("C"));
+	G.addEdge(new MWEdge(1, 2, 0.5, 1).setVertexNames("A", "B").setLine("C"));
+	G.addEdge(new MWEdge(1, 3, 0.2, 1).setVertexNames("A", "B").setLine("C"));
+	G.addEdge(new MWEdge(1, 5, 0.9, 1).setVertexNames("A", "B").setLine("C"));
+	G.addEdge(new MWEdge(2, 4, 0.3, 1).setVertexNames("A", "B").setLine("C"));
+	G.addEdge(new MWEdge(4, 5, 0.2, 1).setVertexNames("A", "B").setLine("C"));
+	G.addEdge(new MWEdge(4, 6, 0.1, 1).setVertexNames("A", "B").setLine("C"));
+
 	Graph G2 = (Graph) G.clone();
-	G.addEdge(new Edge(4, 6, 0.1, 1).setVertexNames("A", "B").setLine("C"));
-	G.addEdge(new Edge(4, 6, 0.1, 1).setVertexNames("A", "B").setLine("C"));
-	G.addEdge(new Edge(4, 6, 0.1, 1).setVertexNames("A", "B").setLine("C"));
+	G.addEdge(new MWEdge(4, 6, 0.1, 1).setVertexNames("A", "B").setLine("C"));
+	G.addEdge(new MWEdge(4, 6, 0.1, 1).setVertexNames("A", "B").setLine("C"));
+	G.addEdge(new MWEdge(4, 6, 0.1, 1).setVertexNames("A", "B").setLine("C"));
 	System.out.println(G);
 	// Prim mst = new Prim(G, 1);
 	// for (Edge e : mst.edges()) {

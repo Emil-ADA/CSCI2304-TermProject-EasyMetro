@@ -15,35 +15,15 @@ package DS.Basic;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
-/**
- * The {@code Queue} class represents a first-in-first-out (FIFO) queue of
- * generic items. It supports the usual <em>enqueue</em> and <em>dequeue</em>
- * operations, along with methods for peeking at the first item, testing if the
- * queue is empty, and iterating through the items in FIFO order.
- * <p>
- * This implementation uses a singly linked list with a static nested class for
- * linked-list nodes. See {@link LinkedQueue} for the version from the textbook
- * that uses a non-static nested class. See {@link ResizingArrayQueue} for a
- * version that uses a resizing array. The <em>enqueue</em>, <em>dequeue</em>,
- * <em>peek</em>, <em>size</em>, and <em>is-empty</em> operations all take
- * constant time in the worst case.
- * <p>
- * For additional documentation, see
- * <a href="https://algs4.cs.princeton.edu/13stacks">Section 1.3</a> of
- * <i>Algorithms, 4th Edition</i> by Robert Sedgewick and Kevin Wayne.
- *
- * @author Robert Sedgewick
- * @author Kevin Wayne
- *
- * @param <Item>
- *            the generic type of an item in this queue
- */
 public class Queue<Item> implements Iterable<Item> {
-    private Node<Item> first; // beginning of queue
-    private Node<Item> last; // end of queue
-    private int n; // number of elements on queue
+    /** beginning of queue */
+    private Node<Item> first;
+    /** end of queue */
+    private Node<Item> last;
+    /** number of elements on queue */
+    private int n;
 
-    // helper linked list class
+    /** helper linked list class */
     private static class Node<Item> {
 	private Item item;
 	private Node<Item> next;
@@ -173,21 +153,16 @@ public class Queue<Item> implements Iterable<Item> {
 	}
     }
 
-    /**
-     * Unit tests the {@code Queue} data type.
-     *
-     * @param args
-     *                 the command-line arguments
-     */
+ 
     public static void main(String[] args) {
-//	Queue<String> queue = new Queue<String>();
-//	while (!StdIn.isEmpty()) {
-//	    String item = StdIn.readString();
-//	    if (!item.equals("-"))
-//		queue.enqueue(item);
-//	    else if (!queue.isEmpty())
-//		StdOut.print(queue.dequeue() + " ");
-//	}
-//	StdOut.println("(" + queue.size() + " left on queue)");
+	// Queue<String> queue = new Queue<String>();
+	// while (!StdIn.isEmpty()) {
+	// String item = StdIn.readString();
+	// if (!item.equals("-"))
+	// queue.enqueue(item);
+	// else if (!queue.isEmpty())
+	// StdOut.print(queue.dequeue() + " ");
+	// }
+	// StdOut.println("(" + queue.size() + " left on queue)");
     }
 }

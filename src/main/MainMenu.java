@@ -4,14 +4,13 @@ import java.awt.Dimension;
 import java.awt.EventQueue;
 import javax.swing.JFrame;
 
-import Utils.Autocompletion;
 import Utils.JHardware;
+import Utils.JUtil;
 import edu.emory.mathcs.backport.java.util.Arrays;
 
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JMenu;
-import java.awt.Point;
 import java.awt.Rectangle;
 
 import javax.swing.JPanel;
@@ -22,8 +21,6 @@ import java.awt.Component;
 import javax.swing.border.BevelBorder;
 import javax.swing.border.SoftBevelBorder;
 
-import org.bouncycastle.jcajce.provider.keystore.bc.BcKeyStoreSpi.Std;
-
 import javax.swing.JLabel;
 import javax.swing.SwingConstants;
 import java.awt.Font;
@@ -32,19 +29,11 @@ import java.awt.SystemColor;
 import javax.swing.border.EtchedBorder;
 import javax.swing.JButton;
 import javax.swing.JTextField;
-import javax.swing.JToolTip;
-import javax.swing.Popup;
-import javax.swing.PopupFactory;
-
-import java.awt.event.MouseMotionAdapter;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.List;
-import java.util.Random;
 import java.util.Scanner;
-import java.awt.event.MouseEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 import javax.swing.JRadioButtonMenuItem;
@@ -54,7 +43,7 @@ import java.awt.event.ItemEvent;
 import DS.DepthFirstSearch;
 import DS.DijkstraUndirectedSP;
 import DS.Graph;
-import DS.Basic.Edge;
+import DS.MWEdge;
 import DS.Basic.LinearProbingHashST;
 import DS.Basic.Queue;
 import DS.Basic.Stack;
@@ -63,21 +52,40 @@ import Dependencies.StdOut;
 
 import java.awt.ScrollPane;
 import javax.swing.ImageIcon;
-import java.awt.event.KeyAdapter;
-import java.awt.event.KeyEvent;
-import java.awt.event.MouseAdapter;
-
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JTextPane;
 import javax.swing.JScrollPane;
 import java.awt.Cursor;
 
 public class MainMenu {
-    // FIXME: try to make input case insensitive when sober - UNRESOLVABLE
-    // FIXME: TRY TO ADD VARIABLES TO .cfg file
-    // FIXME: DONT FORGET TO CHANGE MAGIC NUMBERS
-    // FIXME: Try from 'A' to 'A'
+    // TODO: TRY TO ADD VARIABLES TO .cfg file
+    /*
+     * .**************************************************************************
+     * GETTING CONFIGURATIONS
+     ***************************************************************************/
+    /** Command-Line Argument from fare.txt */
+    static String[] args;
 
+    static {
+	try (Scanner sc = new Scanner(new File(".//data//settings.cfg"))) {
+
+	    int n = Integer.parseInt(sc.nextLine());
+	    args = new String[n];
+
+	    for (int i = 0; i < n; i++) {
+		args[i] = sc.nextLine();
+	    }
+	    System.out.println(Arrays.toString(args));
+
+	} catch (FileNotFoundException e) {
+	    e.printStackTrace();
+	}
+    }
+
+    /*
+     * .**************************************************************************
+     * GETTING CONFIGURATIONS
+     ***************************************************************************/
 
     /** Main frame */
     private JFrame frame;
@@ -86,27 +94,44 @@ public class MainMenu {
     /** The Height of the screen */
     public static final int SCREEN_HEIGHT = (int) JHardware.getScreenSize().getHeight();
     /** The size of the frame determined by the ratio of screen size */
-    public static final double RATIO = 0.86;
+    public static final double RATIO = Double.parseDouble(IOL.getValue("RATIO"));
     /** The unit increment of the Vertical scroll bar of Scroll pane */
-    public static final short VSCROLL_RATE = 16;
+    public static final short VSCROLL_RATE = (short) Integer.parseInt(IOL.getValue("VSCROLL_RATE"));
     /** The unit increment of the Horizontal scroll bar of Scroll pane */
-    public static final short HSCROLL_RATE = 16;
+    public static final short HSCROLL_RATE = (short) Integer.parseInt(IOL.getValue("HSCROLL_RATE"));
+    /**
+     * The max length of a <code>String</code> that can be printed in one line
+     * without reduction
+     */
+    /* 54~56,I don't know why it varies, but yes magic */
+    public static final short DISPLAY_PANE_LINE_LENGTH = (short) Integer
+	    .parseInt(IOL.getValue("DISPLAY_PANE_LINE_LENGTH"));
 
-    public static final short DISPLAY_PANE_LINE_LENGTH = 54;
     /** Variable ratio for zooming in and out, default value 10% */
-    public static final double ZOOM_SCALE = 0.1;
+    public static final double ZOOM_SCALE = Double.parseDouble(IOL.getValue("ZOOM_SCALE"));
+
+    /**
+     * By default it is 0; 0 means Fastest route, 1 means Shortest route, 2 means to
+     * find minimum of these
+     */
+    public static int MODE = 0;
+
     /** Variable for scaling the map, defines which method will be used */
     public static int MAP_SCALE_HINTS = Image.SCALE_DEFAULT;
     /** The dimension of the frame */
-    public static final Rectangle FRAME_SIZE = new Rectangle(toInt(SCREEN_WIDTH * RATIO), toInt(SCREEN_HEIGHT * RATIO));
+    public static final Rectangle FRAME_SIZE = new Rectangle(IOL.toInt(SCREEN_WIDTH * RATIO),
+	    IOL.toInt(SCREEN_HEIGHT * RATIO));
     /** The dimension of the menu bar */
     public static final Rectangle MENU_SIZE = new Rectangle(60, 22);
     /** The dimension of the navigation bar on the left */
-    public static final Rectangle L_NAVBAR_SIZE = new Rectangle(369, toInt(FRAME_SIZE.getHeight() - MENU_SIZE.height));
+    public static final Rectangle L_NAVBAR_SIZE = new Rectangle(369,
+	    IOL.toInt(FRAME_SIZE.getHeight() - MENU_SIZE.height));
     /** The data repository */
     private static final String DATA_REPO = ".//data//Cities//";
 
+    /** Bright color for the text highlight */
     private Color textBright = new Color(255, 255, 255);
+    /** Dark color for the text highlight */
     private Color textDark = new Color(77, 159, 206);
 
     /** Current city of which map is displayed */
@@ -117,32 +142,46 @@ public class MainMenu {
 
     /** Label component containing the image of the map */
     public static JLabel MAP_IMG_LBL;
-    /* Points used for dragging left navigation bar */
-    Point prev_p;
-    Point onscreen_p;
-    /**
-     * By default it is 0; 0 means Fastest route, 1 means Shortest route, 2 means to
-     * find minimum of these
-     */
-    public int mode = 0;
 
     /**
-     * Flag variable, shows whether left navbar can be dragged or not, Dragging
-     * disabled by default
+     * Flag variable, shows whether left navigation bar can be dragged or not,
+     * Dragging disabled by default
      */
-    public boolean drag = false;
-
+    public static boolean DRAG_FLAG = false;
+    /**
+     * An instance of <code>JTextField</code> that will get an input dedicated to
+     * departure station.
+     */
     public JTextField textfield_dpt;
+    /**
+     * An instance of <code>JTextField</code> that will get an input dedicated to
+     * via station.
+     */
     public JTextField textfield_via;
+    /**
+     * An instance of <code>JTextField</code> that will get an input dedicated to
+     * destination station.
+     */
     public JTextField textfield_arv;
-
+    /**
+     * An output pane
+     */
     private JTextPane display_pane;
 
     /***************************************************************************
      * VARIABLES FOR ALGO
      ***************************************************************************/
+    /**
+     * The linear probing hash of String keys and Integer values, which maps names
+     * of the stations to theirs indices
+     */
     private LinearProbingHashST<String, Integer> hash;
-    private Graph map;
+    /** Metro */
+    private Graph METROMAP;
+    /**
+     * An instance of <code>StringBuilder</code> that will contain the full details
+     * of the route (each station one-by-one).
+     */
     private StringBuilder searchResultsExtended;
 
     /**
@@ -172,22 +211,20 @@ public class MainMenu {
      * Create the application.
      */
     public MainMenu() {
-	initVars();
 	initMAP();
 	initialize();
     }
 
-    private void initVars() {
+    private void initMAP() {
+	/* Initialize Data Structures */
 	hash = new LinearProbingHashST<>();
 	MAP_IMAGE = new ImageIcon(DATA_REPO + city + "//map.png").getImage();
 	MAP_IMG_LBL = new JLabel("");
 
-    }
-
-    private void initMAP() {
-
+	/* The Lines in metro */
 	File[] roadlines = new File(DATA_REPO + city + "//lines").listFiles();
 
+	/* Adding each station and assigning it an ID */
 	int ID = 0;
 	for (File line : roadlines) {
 	    try (Scanner sc = new Scanner(line);) {
@@ -205,12 +242,15 @@ public class MainMenu {
 	    }
 	}
 
+	/* Display on the console, for Developers only */
 	for (String s : hash.keys()) {
 	    StdOut.println(hash.get(s) + ":\t" + s);
 	}
 
-	map = new Graph(hash.size());
+	/* Initialize initial space for Map */
+	METROMAP = new Graph(hash.size());
 
+	/* Adding stations and creating Edges */
 	for (File line : roadlines) {
 	    try (Scanner sc = new Scanner(line)) {
 		String[] first_line = sc.nextLine().split(" ");
@@ -226,10 +266,10 @@ public class MainMenu {
 			prev = sc.nextLine();
 			key = sc.nextLine();
 		    }
-		    Edge newEdge = new Edge(hash.get(prev), hash.get(key), time, distance);
+		    MWEdge newEdge = new MWEdge(hash.get(prev), hash.get(key), time, distance);
 		    newEdge.setVertexNames(prev, key);
 		    newEdge.setLine(FilenameUtils.getBaseName(line.getAbsolutePath()));
-		    map.addEdge(newEdge);
+		    METROMAP.addEdge(newEdge);
 		    prev = key;
 		}
 
@@ -282,6 +322,35 @@ public class MainMenu {
 	menu_edit.setPreferredSize(new Dimension(MENU_SIZE.width, MENU_SIZE.height));
 	menuBar.add(menu_edit);
 
+	JMenu menu_City = new JMenu("City");
+	menu_edit.add(menu_City);
+
+	JRadioButtonMenuItem radio_button_Istanbul = new JRadioButtonMenuItem("Istanbul");
+	radio_button_Istanbul.setSelected(true);
+	menu_City.add(radio_button_Istanbul);
+
+	JRadioButtonMenuItem radio_button_Seoul = new JRadioButtonMenuItem("Seoul");
+	menu_City.add(radio_button_Seoul);
+
+	radio_button_Seoul.addActionListener(new ActionListener() {
+	    public void actionPerformed(ActionEvent e) {
+		city = "Seoul";
+		radio_button_Seoul.setSelected(true);
+		radio_button_Istanbul.setSelected(false);
+		initMAP();
+		initialize();
+	    }
+	});
+	radio_button_Istanbul.addActionListener(new ActionListener() {
+	    public void actionPerformed(ActionEvent arg0) {
+		city = "Istanbul";
+		radio_button_Istanbul.setSelected(true);
+		radio_button_Seoul.setSelected(false);
+		initMAP();
+		initialize();
+	    }
+	});
+
 	JMenuItem menu_item_refresh = new JMenuItem("Refresh");
 	menu_item_refresh.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 	menu_edit.add(menu_item_refresh);
@@ -310,7 +379,7 @@ public class MainMenu {
 	menu_item_showDetails.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 	menu_item_showDetails.addActionListener(new ActionListener() {
 	    public void actionPerformed(ActionEvent arg0) {
-		display_pane.setText(map.toString());
+		display_pane.setText(METROMAP.toString());
 		display_pane.setCaretPosition(0);
 	    }
 	});
@@ -347,8 +416,8 @@ public class MainMenu {
 
 	JPanel main_panel = new JPanel();
 	main_panel.setBackground(Color.LIGHT_GRAY);
-	main_panel.setBounds(toInt(FRAME_SIZE.getX()), toInt(FRAME_SIZE.getY() + 28), toInt(FRAME_SIZE.getWidth() - 6),
-		toInt(FRAME_SIZE.getHeight() - 57));
+	main_panel.setBounds(IOL.toInt(FRAME_SIZE.getX()), IOL.toInt(FRAME_SIZE.getY() + 28),
+		IOL.toInt(FRAME_SIZE.getWidth() - 6), IOL.toInt(FRAME_SIZE.getHeight() - 57));
 	frame.getContentPane().add(main_panel);
 	main_panel.setLayout(null);
 
@@ -488,123 +557,30 @@ public class MainMenu {
 	MAP_IMG_LBL.setBounds(519, 102, 46, 14);
 	scrollpane_map.add(MAP_IMG_LBL);
 
+	JScrollPane scrollpane_display = new JScrollPane();
+	scrollpane_display.setBounds(10, 334, 349, 260);
+	left_navbar.add(scrollpane_display);
+	display_pane = new JTextPane();
+	display_pane.setFont(new Font("Consolas", Font.PLAIN, 11));
+	display_pane.setEditable(false);
+	scrollpane_display.setViewportView(display_pane);
 	/*
 	 * .**************************************************************************
 	 * LISTENERS
 	 ***************************************************************************/
-	left_navbar.addMouseMotionListener(new MouseMotionAdapter() {
-
-	    @Override
-	    public void mouseDragged(MouseEvent e) {
-		if (!drag)
-		    return;
-
-		popup_show(false);
-		onscreen_p = e.getLocationOnScreen();
-		if (prev_p == null)
-		    prev_p = onscreen_p;
-
-		left_navbar.setLocation(left_navbar.getX() + (onscreen_p.x - prev_p.x), left_navbar.getY());
-		prev_p = onscreen_p;
-	    }
-	});
-	optbutton_fastest.addActionListener(new ActionListener() {
-	    public void actionPerformed(ActionEvent e) {
-		optbutton_fastest.setForeground(textBright);
-		optbutton_min.setForeground(textDark);
-		optbutton_shortest.setForeground(textDark);
-		mode = 0;
-	    }
-	});
-	optbutton_shortest.addActionListener(new ActionListener() {
-	    public void actionPerformed(ActionEvent e) {
-		optbutton_shortest.setForeground(textBright);
-		optbutton_min.setForeground(textDark);
-		optbutton_fastest.setForeground(textDark);
-		mode = 1;
-	    }
-	});
-	optbutton_min.addActionListener(new ActionListener() {
-	    public void actionPerformed(ActionEvent e) {
-		optbutton_min.setForeground(textBright);
-		optbutton_fastest.setForeground(textDark);
-		optbutton_shortest.setForeground(textDark);
-		mode = 2;
-	    }
-	});
-	button_refresh.addActionListener(new ActionListener() {
-	    public void actionPerformed(ActionEvent arg0) {
-		refresh(new Component[] { left_navbar, optbutton_fastest, optbutton_min, optbutton_shortest,
-			radio_button_drag });
-		scrollpane_map.setScrollPosition(0, 0);
-	    }
-	});
-
-	/* Refresh option, menu item, Refreshes the screen */
-	menu_item_refresh.addActionListener(new ActionListener() {
-	    public void actionPerformed(ActionEvent e) {
-		refresh(new Component[] { left_navbar, optbutton_fastest, optbutton_min, optbutton_shortest,
-			radio_button_drag });
-		scrollpane_map.setScrollPosition(0, 0);
-
-	    }
-	});
-
-	/* Radio button, menu item, flag for dragging */
-	radio_button_drag.addItemListener(new ItemListener() {
-	    public void itemStateChanged(ItemEvent arg0) {
-		drag = radio_button_drag.isSelected();
-	    }
-	});
-
-	button_zoom_in.addActionListener(new ActionListener() {
-	    public void actionPerformed(ActionEvent arg0) {
-		scaleMAP(MAP_IMG_LBL, ZOOM_SCALE);
-	    }
-	});
-	button_zoom_out.addActionListener(new ActionListener() {
-	    public void actionPerformed(ActionEvent e) {
-		scaleMAP(MAP_IMG_LBL, -ZOOM_SCALE);
-	    }
-	});
 
 	/*----------------------ADDING AUTOCOMPLETION-----------------------*/
 	ArrayList<String> list = new ArrayList<>();
 	hash.keys().iterator().forEachRemaining(list::add);
-	textfield_dpt.addKeyListener(addAutoCompletion(textfield_dpt, list));
-	textfield_via.addKeyListener(addAutoCompletion(textfield_via, list));
-	textfield_arv.addKeyListener(addAutoCompletion(textfield_arv, list));
+	textfield_dpt.addKeyListener(IOL.addAutoCompletion(textfield_dpt, list));
+	textfield_via.addKeyListener(IOL.addAutoCompletion(textfield_via, list));
+	textfield_arv.addKeyListener(IOL.addAutoCompletion(textfield_arv, list));
 
-	textfield_dpt.addMouseListener(new MouseAdapter() {
-	    @Override
-	    public void mouseClicked(MouseEvent e) {
-		popup_show(false);
-	    }
-	});
+	textfield_dpt.addMouseListener(IOL.closePopup());
 
-	textfield_via.addMouseListener(new MouseAdapter() {
-	    @Override
-	    public void mouseClicked(MouseEvent e) {
-		popup_show(false);
-	    }
-	});
+	textfield_via.addMouseListener(IOL.closePopup());
 
-	textfield_arv.addMouseListener(new MouseAdapter() {
-	    @Override
-	    public void mouseClicked(MouseEvent e) {
-		popup_show(false);
-	    }
-	});
-
-	JScrollPane scrollpane_display = new JScrollPane();
-	scrollpane_display.setBounds(10, 334, 349, 260);
-	left_navbar.add(scrollpane_display);
-
-	display_pane = new JTextPane();
-	display_pane.setFont(new Font("Consolas", Font.PLAIN, 11));
-
-	display_pane.setEditable(false);
-	scrollpane_display.setViewportView(display_pane);
+	textfield_arv.addMouseListener(IOL.closePopup());
 
 	button_expand.addActionListener(new ActionListener() {
 	    public void actionPerformed(ActionEvent arg0) {
@@ -674,27 +650,68 @@ public class MainMenu {
 		}
 	    }
 	});
-	/*------------------------------------------------------------------*/
-	button_search.addActionListener(new ActionListener() {
+	/** ----------------------SEARCH BUTTON---------------------- */
+	button_search.addActionListener(pressSearch());
+
+	/** ----------------------DRAG FEATURE---------------------- */
+	left_navbar.addMouseMotionListener(IOL.dragLeftNavBar(left_navbar));
+
+	optbutton_fastest.addActionListener(new ActionListener() {
+	    public void actionPerformed(ActionEvent e) {
+		optbutton_fastest.setForeground(textBright);
+		optbutton_min.setForeground(textDark);
+		optbutton_shortest.setForeground(textDark);
+		MODE = 0;
+	    }
+	});
+	optbutton_shortest.addActionListener(new ActionListener() {
+	    public void actionPerformed(ActionEvent e) {
+		optbutton_shortest.setForeground(textBright);
+		optbutton_min.setForeground(textDark);
+		optbutton_fastest.setForeground(textDark);
+		MODE = 1;
+	    }
+	});
+	optbutton_min.addActionListener(new ActionListener() {
+	    public void actionPerformed(ActionEvent e) {
+		optbutton_min.setForeground(textBright);
+		optbutton_fastest.setForeground(textDark);
+		optbutton_shortest.setForeground(textDark);
+		MODE = 2;
+	    }
+	});
+	button_refresh.addActionListener(new ActionListener() {
 	    public void actionPerformed(ActionEvent arg0) {
-		String from = textfield_dpt.getText();
-		String via = (hash.contains(textfield_via.getText())) ? textfield_via.getText() : null;
-		String to = textfield_arv.getText();
+		refresh(new Component[] { left_navbar, optbutton_fastest, optbutton_min, optbutton_shortest,
+			radio_button_drag });
 
-		if (hash.contains(from) && hash.contains(to)) {
-		    /** If the mode is on MINIMUM */
-		    if (mode == 2) {
+	    }
+	});
 
-			StringBuilder searchResults = displayMin(from, via, to);
-			display_pane.setText(searchResults.toString());
-			return;
-		    }
+	/* Refresh option, menu item, Refreshes the screen */
+	menu_item_refresh.addActionListener(new ActionListener() {
+	    public void actionPerformed(ActionEvent e) {
+		refresh(new Component[] { left_navbar, optbutton_fastest, optbutton_min, optbutton_shortest,
+			radio_button_drag });
 
-		    /** For the modes SHORTEST and FASTEST */
-		    StringBuilder searchResults = search(from, via, to);
-		    display_pane.setText(searchResults.toString());
-		}
-		display_pane.setCaretPosition(0);
+	    }
+	});
+
+	/* Radio button, menu item, flag for dragging */
+	radio_button_drag.addItemListener(new ItemListener() {
+	    public void itemStateChanged(ItemEvent arg0) {
+		DRAG_FLAG = radio_button_drag.isSelected();
+	    }
+	});
+
+	button_zoom_in.addActionListener(new ActionListener() {
+	    public void actionPerformed(ActionEvent arg0) {
+		scaleMAP(MAP_IMG_LBL, ZOOM_SCALE);
+	    }
+	});
+	button_zoom_out.addActionListener(new ActionListener() {
+	    public void actionPerformed(ActionEvent e) {
+		scaleMAP(MAP_IMG_LBL, -ZOOM_SCALE);
 	    }
 	});
     }
@@ -718,8 +735,8 @@ public class MainMenu {
 
     private static int PREVIOUS_INDEX = 0;
 
-    private Queue<Edge> searchMin(String from, String to) {
-	DepthFirstSearch dfs = new DepthFirstSearch(map, hash, from, to);
+    private Queue<MWEdge> searchMin(String from, String to) {
+	DepthFirstSearch dfs = new DepthFirstSearch(METROMAP, hash, from, to);
 	ArrayList<Stack<String>> ALL_PATHS = dfs.getAllPaths();
 
 	if (ALL_PATHS.size() == 0) {
@@ -767,15 +784,13 @@ public class MainMenu {
 
 	String min_path_vertices[] = ALL_PATHS.get(rand_indecies.get(PREVIOUS_INDEX)).toString().split("/");
 
-	Queue<Edge> path = new Queue<>();
+	Queue<MWEdge> path = new Queue<>();
 
 	for (int i = 0; i < min_path_vertices.length - 1; i++) {
-	    for (Edge e : map.edges()) {
+	    for (MWEdge e : METROMAP.edges()) {
 		String name = e.w_name + e.v_name;
 		if (name.equals(min_path_vertices[i] + min_path_vertices[i + 1])
 			|| name.equals(min_path_vertices[i + 1] + min_path_vertices[i])) {
-		    System.err.println(name + " = " + min_path_vertices[i] + min_path_vertices[i + 1]);
-		    System.err.println(name + " = " + min_path_vertices[i + 1] + min_path_vertices[i] + "\n");
 		    path.enqueue(e);
 		}
 	    }
@@ -784,12 +799,23 @@ public class MainMenu {
 	return path;
     }
 
+    /**
+     * Method for displaying the path found by <code>searchMin(from, to)</code>
+     * method. <br>
+     * 
+     * @param from
+     *                 departure station
+     * @param via
+     *                 station to stop
+     * @param to
+     *                 destination station
+     * @return Results in String form
+     */
     private StringBuilder displayMin(String from, String via, String to) {
 	/*-------------------------------------------------------------------*/
-	// I understand that this part is being repeated 3 times, but each case has
+	// I understand that this part is being repeated, but each case has a
 	// minor difference that made it hard for me to short it out
 	/*-------------------------------------------------------------------*/
-
 	StringBuilder searchResults = new StringBuilder();
 	searchResultsExtended = new StringBuilder();
 	String str2Append = "";
@@ -804,16 +830,16 @@ public class MainMenu {
 	    via = to;
 	    to = null;
 	}
+
 	/** ALL SHORTEST PATHS FROM 'from' */
-	System.out.println(from + "---->" + via);
-	Queue<Edge> pathTo = searchMin(from, via);
+	Queue<MWEdge> pathTo = searchMin(from, via);
 	String line_changed = null;
 	str2Append = "\nDEPARTURE\n";
 	searchResults.append(str2Append);
 	searchResultsExtended.append(str2Append);
 
 	/** Shortest path between 'from' and 'via */
-	Edge e = null;
+	MWEdge e = null;
 	int transfer = 0;
 	int stations = 1; // Stations start at one, because oz mindiyin esseyi de saymaq lazimdir
 
@@ -824,11 +850,12 @@ public class MainMenu {
 	searchResultsExtended.append(str2Append);
 	line_changed = e.getLine();
 	stations++;
-
+	time += e.getWeightAt(0);
+	distance += e.getWeightAt(1);
 	while (!pathTo.isEmpty()) {
 	    e = pathTo.dequeue();
-	    time += e.weight(0);
-	    distance += e.weight(1);
+	    time += e.getWeightAt(0);
+	    distance += e.getWeightAt(1);
 	    stations++;
 	    str2Append = e + "\n";
 	    searchResultsExtended.append(str2Append); // extended results saves all, while normal not
@@ -861,14 +888,16 @@ public class MainMenu {
 	    /* DEPARTURE STATION */
 	    e = pathTo.dequeue();
 	    stations++;
+	    time += e.getWeightAt(0);
+	    distance += e.getWeightAt(1);
 	    str2Append = e + "\n";
 	    line_changed = e.getLine();
 	    searchResults.append(str2Append);
 
 	    while (!pathTo.isEmpty()) {
 		e = pathTo.dequeue();
-		time += e.weight(0);
-		distance += e.weight(1);
+		time += e.getWeightAt(0);
+		distance += e.getWeightAt(1);
 		stations++;
 		str2Append = e + "\n";
 
@@ -895,10 +924,10 @@ public class MainMenu {
 	/*
 	 * Adding travel info.
 	 */
-	str2Append = n_times_char(DISPLAY_PANE_LINE_LENGTH, '-');
+	str2Append = JUtil.n_times_char(DISPLAY_PANE_LINE_LENGTH, '-');
 	searchResults.replace(0, searchResults.length(), str2Append + searchResults.toString());
 
-	try (Scanner sc = new Scanner(new File(DATA_REPO + city + "//settings.cfg"))) {
+	try (Scanner sc = new Scanner(new File(DATA_REPO + city + "//fare.txt"))) {
 	    String line = sc.nextLine();
 	    /* Add total cost */
 	    line = line.substring(line.indexOf('=') + 1, line.length());
@@ -913,7 +942,7 @@ public class MainMenu {
 	    line = sc.nextLine();
 	    line = line.substring(line.indexOf('=') + 1, line.length());
 	    str2Append += " " + line;
-	    str2Append = n_times_char(54 / 2 - str2Append.length() / 2, ' ') + str2Append + "\n";
+	    str2Append = JUtil.n_times_char(54 / 2 - str2Append.length() / 2, ' ') + str2Append + "\n";
 	} catch (FileNotFoundException e1) {
 	}
 
@@ -924,28 +953,28 @@ public class MainMenu {
 	searchResults.replace(0, searchResults.length(), str2Append + searchResults.toString());
 
 	/** Temporarily changing modes for displaying different parameters */
-	int temp = mode;
+	int temp = MODE;
 
 	/* Mode = 0, is for displaying time */
-	mode = 0;
+	MODE = 0;
 
-	str2Append = "Lead Time: " + formatResult(time);
-	str2Append = n_times_char(54 / 2 - str2Append.length() / 2, ' ') + str2Append + "\n";
+	str2Append = "Lead Time: " + IOL.formatResult(time, MODE);
+	str2Append = JUtil.n_times_char(54 / 2 - str2Append.length() / 2, ' ') + str2Append + "\n";
 	searchResults.replace(0, searchResults.length(), str2Append + searchResults.toString());
 	searchResultsExtended.append(str2Append);
 
 	/* Mode = 0, is for displaying distance */
-	mode = 1;
+	MODE = 1;
 
-	str2Append = "Distance: " + formatResult(distance);
-	str2Append = n_times_char(54 / 2 - str2Append.length() / 2, ' ') + str2Append + "\n";
+	str2Append = "Distance: " + IOL.formatResult(distance, MODE);
+	str2Append = JUtil.n_times_char(54 / 2 - str2Append.length() / 2, ' ') + str2Append + "\n";
 	searchResults.replace(0, searchResults.length(), str2Append + searchResults.toString());
 	searchResultsExtended.append(str2Append);
 
-	mode = temp;
+	MODE = temp;
 
 	str2Append = stations + " Station(s). | " + transfer + " Transfer(s).";
-	str2Append = n_times_char(54 / 2 - str2Append.length() / 2, ' ') + str2Append + "\n";
+	str2Append = JUtil.n_times_char(54 / 2 - str2Append.length() / 2, ' ') + str2Append + "\n";
 	searchResults.replace(0, searchResults.length(), str2Append + searchResults.toString());
 	searchResultsExtended.append(str2Append);
 
@@ -969,15 +998,15 @@ public class MainMenu {
 	    to = null;
 	}
 	/** ALL SHORTEST PATHS FROM 'from' */
-	DijkstraUndirectedSP first = new DijkstraUndirectedSP(map, hash.get(from), mode);
+	DijkstraUndirectedSP first = new DijkstraUndirectedSP(METROMAP, hash.get(from), MODE);
 	String line_changed = null;
 	str2Append = "\nDEPARTURE\n";
 	searchResults.append(str2Append);
 	searchResultsExtended.append(str2Append);
 
 	/** Shortest path between 'from' adn 'via */
-	Iterator<Edge> pathTo = first.pathTo(hash.get(via)).iterator();
-	Edge e = null;
+	Iterator<MWEdge> pathTo = first.pathTo(hash.get(via)).iterator();
+	MWEdge e = null;
 	int transfer = 0;
 	int stations = 1; // Stations start at one, because oz mindiyin esseyi de saymaq lazimdir
 
@@ -988,11 +1017,13 @@ public class MainMenu {
 	searchResultsExtended.append(str2Append);
 	line_changed = e.getLine();
 	stations++;
+	time += e.getWeightAt(0);
+	distance += e.getWeightAt(1);
 
 	while (pathTo.hasNext()) {
 	    e = pathTo.next();
-	    time += e.weight(0);
-	    distance += e.weight(1);
+	    time += e.getWeightAt(0);
+	    distance += e.getWeightAt(1);
 	    stations++;
 	    str2Append = e + "\n";
 	    searchResultsExtended.append(str2Append); // extended results saves all, while normal not
@@ -1016,7 +1047,7 @@ public class MainMenu {
 
 	/** if via station has been given */
 	if (to != null) {
-	    second = new DijkstraUndirectedSP(map, hash.get(via), mode);
+	    second = new DijkstraUndirectedSP(METROMAP, hash.get(via), MODE);
 	    str2Append = "STOP\n";
 	    searchResults.append(str2Append);
 	    searchResultsExtended.append(str2Append);
@@ -1030,11 +1061,12 @@ public class MainMenu {
 	    str2Append = e + "\n";
 	    line_changed = e.getLine();
 	    searchResults.append(str2Append);
-
+	    time += e.getWeightAt(0);
+	    distance += e.getWeightAt(1);
 	    while (pathTo.hasNext()) {
 		e = pathTo.next();
-		time += e.weight(0);
-		distance += e.weight(1);
+		time += e.getWeightAt(0);
+		distance += e.getWeightAt(1);
 		stations++;
 		str2Append = e + "\n";
 
@@ -1061,9 +1093,9 @@ public class MainMenu {
 	/*
 	 * Adding travel info.
 	 */
-	str2Append = n_times_char(DISPLAY_PANE_LINE_LENGTH, '-');
+	str2Append = JUtil.n_times_char(DISPLAY_PANE_LINE_LENGTH, '-');
 	searchResults.replace(0, searchResults.length(), str2Append + searchResults.toString());
-	try (Scanner sc = new Scanner(new File(DATA_REPO + city + "//settings.cfg"))) {
+	try (Scanner sc = new Scanner(new File(DATA_REPO + city + "//fare.txt"))) {
 	    String line = sc.nextLine();
 	    /* Add total cost */
 	    line = line.substring(line.indexOf('=') + 1, line.length());
@@ -1078,7 +1110,7 @@ public class MainMenu {
 	    line = sc.nextLine();
 	    line = line.substring(line.indexOf('=') + 1, line.length());
 	    str2Append += " " + line;
-	    str2Append = n_times_char(54 / 2 - str2Append.length() / 2, ' ') + str2Append + "\n";
+	    str2Append = JUtil.n_times_char(54 / 2 - str2Append.length() / 2, ' ') + str2Append + "\n";
 	} catch (FileNotFoundException e1) {
 	}
 
@@ -1089,90 +1121,30 @@ public class MainMenu {
 	searchResults.replace(0, searchResults.length(), str2Append + searchResults.toString());
 
 	/** Temporarily changing modes for displaying different parameters */
-	int temp = mode;
+	int temp = MODE;
 
 	/* Mode = 0, is for displaying time */
-	mode = 0;
-	str2Append = "Lead Time: " + formatResult(time);
-	str2Append = n_times_char(54 / 2 - str2Append.length() / 2, ' ') + str2Append + "\n";
+	MODE = 0;
+	str2Append = "Lead Time: " + IOL.formatResult(time, MODE);
+	str2Append = JUtil.n_times_char(54 / 2 - str2Append.length() / 2, ' ') + str2Append + "\n";
 	searchResults.replace(0, searchResults.length(), str2Append + searchResults.toString());
 	searchResultsExtended.append(str2Append);
 
 	/* Mode = 0, is for displaying distance */
-	mode = 1;
-	str2Append = "Distance: " + formatResult(distance);
-	str2Append = n_times_char(54 / 2 - str2Append.length() / 2, ' ') + str2Append + "\n";
+	MODE = 1;
+	str2Append = "Distance: " + IOL.formatResult(distance, MODE);
+	str2Append = JUtil.n_times_char(54 / 2 - str2Append.length() / 2, ' ') + str2Append + "\n";
 	searchResults.replace(0, searchResults.length(), str2Append + searchResults.toString());
 	searchResultsExtended.append(str2Append);
 
-	mode = temp;
+	MODE = temp;
 
 	str2Append = stations + " Station(s). | " + transfer + " Transfer(s).";
-	str2Append = n_times_char(54 / 2 - str2Append.length() / 2, ' ') + str2Append + "\n";
+	str2Append = JUtil.n_times_char(54 / 2 - str2Append.length() / 2, ' ') + str2Append + "\n";
 	searchResults.replace(0, searchResults.length(), str2Append + searchResults.toString());
 	searchResultsExtended.append(str2Append);
 
 	return searchResults;
-    }
-
-    /* VARIABLES FOR AUTO-SUGGESTION */
-    /*
-     * These Variables are shared between 3 text fields in order to reduce memory
-     * usage plus only one instance of suggestion needed at a time
-     */
-    private JToolTip toolTip = new JToolTip();
-    private PopupFactory pf = new PopupFactory();
-    private Popup popup;
-    private List<String> sugg = new ArrayList<String>();
-
-    private KeyAdapter addAutoCompletion(JTextField text_field, List<String> list) {
-	popup_show(false);
-	return new KeyAdapter() {
-	    @Override
-	    public void keyTyped(KeyEvent key) {
-		sugg = Autocompletion.query(text_field.getText(), list);
-
-		if (text_field.getText().length() == 0 || sugg.size() == 0 || !text_field.hasFocus()) {
-		    popup_show(false);
-		    return;
-		}
-
-		toolTip.setTipText(sugg.get(0));
-
-		int x = toInt(text_field.getLocationOnScreen().getX());
-		int y = toInt(text_field.getLocationOnScreen().getY()) + text_field.getHeight();
-		popup = pf.getPopup(text_field, toolTip, x, y);
-		popup_show(true);
-
-		toolTip.addMouseListener(new MouseAdapter() {
-
-		    @Override
-		    public void mouseClicked(MouseEvent e) {
-			if (textfield_dpt.hasFocus()) {
-			    textfield_dpt.setText(toolTip.getTipText());
-			}
-			if (textfield_via.hasFocus()) {
-			    textfield_via.setText(toolTip.getTipText());
-			}
-			if (textfield_arv.hasFocus()) {
-			    textfield_arv.setText(toolTip.getTipText());
-			}
-			popup_show(false);
-		    }
-		});
-	    }
-	};
-    }
-
-    private void popup_show(boolean yes) {
-	if (popup == null)
-	    return;
-	if (yes)
-	    popup.show();
-	else {
-	    popup.hide();
-	    popup = null;
-	}
     }
 
     /***************************************************************************
@@ -1182,50 +1154,64 @@ public class MainMenu {
     public static void scaleMAP(JLabel label, double scale) {
 	int w = label.getWidth();
 	int h = label.getHeight();
-	Image newImg = MAP_IMAGE.getScaledInstance(toInt(w + w * scale), toInt(h + h * scale), MAP_SCALE_HINTS);
+	Image newImg = MAP_IMAGE.getScaledInstance(IOL.toInt(w + w * scale), IOL.toInt(h + h * scale), MAP_SCALE_HINTS);
 	label.setIcon(new ImageIcon(newImg));
     }
 
     private void refresh(Component[] a) {
 	a[0].setBounds(0, 0, 369, 605);
-	prev_p = null;
-	onscreen_p = null;
+	IOL.prev_p = null;
+	IOL.curr_p = null;
 	a[1].setForeground(textBright);
 	a[2].setForeground(textDark);
 	a[3].setForeground(textDark);
-	mode = 0;
+	MODE = 0;
 	textfield_dpt.setText("");
 	textfield_via.setText("");
 	textfield_arv.setText("");
 	((JRadioButtonMenuItem) a[4]).setSelected(false);
-	drag = false;
+	DRAG_FLAG = false;
 	searchResultsExtended = new StringBuilder();
 	display_pane.setText("");
     }
 
-    private static int toInt(double a) {
-	return (int) a;
-    }
+    private ActionListener pressSearch() {
+	return new ActionListener() {
 
-    private String formatResult(double res) {
-	String retval = "";
-	if (mode == 0) {
-	    if (res > 60)
-		retval += toInt(res / 60) + " hours, ";
-	    retval += toInt(res % 60) + " minutes";
+	    @Override
+	    public void actionPerformed(ActionEvent e) {
+		String from = textfield_dpt.getText();
+		String via = (hash.contains(textfield_via.getText())) ? textfield_via.getText() : null;
+		String to = textfield_arv.getText();
 
-	} else if (mode == 1) {
-	    if (res > 1)
-		retval += toInt(res) + " kilometers, ";
-	    retval += toInt(1000 * (res - toInt(res))) + " meters";
-	}
-	return retval;
-    }
+		/** Adding case insensitivity */
+		for (String station : hash.keys()) {
+		    from = IOL.equalsCaseInsensitive(station, from);
+		    via = IOL.equalsCaseInsensitive(station, via);
+		    to = IOL.equalsCaseInsensitive(station, to);
 
-    private String n_times_char(int n, char ch) {
-	String retval = "";
-	for (int i = 0; i < n; i++)
-	    retval += ch;
-	return retval;
+		}
+
+		/** If user accidentally inputs the same station */
+		if (!IOL.validate(frame, hash, from, textfield_via.getText(), to)) {
+		    return;
+		}
+
+		// FIXME:
+		/** If the mode is on MINIMUM */
+		if (MODE == 2) {
+
+		    StringBuilder searchResults = displayMin(from, via, to);
+		    display_pane.setText(searchResults.toString());
+		    return;
+		}
+
+		/** For the modes SHORTEST and FASTEST */
+		StringBuilder searchResults = search(from, via, to);
+		display_pane.setText(searchResults.toString());
+
+		display_pane.setCaretPosition(0);
+	    }
+	};
     }
 }

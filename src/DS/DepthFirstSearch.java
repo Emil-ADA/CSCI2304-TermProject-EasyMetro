@@ -3,14 +3,13 @@ package DS;
 import java.util.ArrayList;
 import java.util.Iterator;
 
-import DS.Basic.Edge;
 import DS.Basic.LinearProbingHashST;
 import DS.Basic.Stack;
 import Dependencies.StdOut;
 
 /**
- * @deprecate : Can not be applied to undirected graph
- * @author sadig
+ * Depth First Search Algorithm
+ * @author Sadig Akhund
  *
  */
 public class DepthFirstSearch {
@@ -24,11 +23,23 @@ public class DepthFirstSearch {
 	return paths;
     }
 
-    // show all simple paths from s to t - use DFS
+    /**
+     * Shows all simple paths from s to t - use DFS
+     * 
+     * @deprecate : Can not be applied to undirected graph
+     * @param G
+     *                 Graph
+     * @param hash
+     *                 Linear Probing Hash
+     * @param s
+     *                 Start
+     * @param t
+     *                 End
+     */
     public DepthFirstSearch(Graph G, LinearProbingHashST<String, Integer> hash, String s, String t) {
 	this.hash = hash;
 	Graph copy = G.clone();
-	Iterator<Edge> iter = copy.edges().iterator();
+	Iterator<MWEdge> iter = copy.edges().iterator();
 
 	/**
 	 * This while loop is kind of a lazy programming, thats why deprecated. It gets
@@ -36,8 +47,8 @@ public class DepthFirstSearch {
 	 * that directed graph becomes undirected.
 	 */
 	while (iter.hasNext()) {
-	    Edge e = iter.next();
-	    copy.addEdge(new Edge(hash.get(e.w_name), hash.get(e.v_name), e.weights).setVertexNames(e.w_name, e.v_name)
+	    MWEdge e = iter.next();
+	    copy.addEdge(new MWEdge(hash.get(e.w_name), hash.get(e.v_name), e.weights).setVertexNames(e.w_name, e.v_name)
 		    .setLine(e.getLine()));
 	}
 
@@ -64,7 +75,7 @@ public class DepthFirstSearch {
 
 	// consider all neighbors that would continue path with repeating a node
 	else {
-	    for (Edge edge : G.adj(v)) {
+	    for (MWEdge edge : G.adj(v)) {
 		int w = hash.get(edge.w_name);
 		if (!onPath[w])
 		    dfs(G, edge.w_name, b);
@@ -91,7 +102,7 @@ public class DepthFirstSearch {
 	return numberOfPaths;
     }
 
-    // test client
+    // test
     public static void main(String[] args) {
 	Graph G = new Graph(7);
 	// G.addEdge(new Edge(0, 1, 1).setVertexNames("A0", "A1").setLine("AA"));
@@ -104,11 +115,11 @@ public class DepthFirstSearch {
 	// G.addEdge(new Edge(3, 6, 1).setVertexNames("A3", "A6").setLine("AA"));
 	// G.addEdge(new Edge(4, 6, 1).setVertexNames("A4", "A6").setLine("AA"));
 
-	G.addEdge(new Edge(0, 1, 1).setVertexNames("A0", "A1").setLine("AA"));
-	G.addEdge(new Edge(1, 2, 1).setVertexNames("A0", "A1").setLine("AA"));
-	G.addEdge(new Edge(2, 3, 1).setVertexNames("A0", "A1").setLine("AA"));
-	G.addEdge(new Edge(3, 4, 1).setVertexNames("A0", "A1").setLine("AA"));
-	G.addEdge(new Edge(4, 5, 1).setVertexNames("A0", "A1").setLine("AA"));
+	G.addEdge(new MWEdge(0, 1, 1).setVertexNames("A0", "A1").setLine("AA"));
+	G.addEdge(new MWEdge(1, 2, 1).setVertexNames("A0", "A1").setLine("AA"));
+	G.addEdge(new MWEdge(2, 3, 1).setVertexNames("A0", "A1").setLine("AA"));
+	G.addEdge(new MWEdge(3, 4, 1).setVertexNames("A0", "A1").setLine("AA"));
+	G.addEdge(new MWEdge(4, 5, 1).setVertexNames("A0", "A1").setLine("AA"));
 
 	// StdOut.println(G);
 

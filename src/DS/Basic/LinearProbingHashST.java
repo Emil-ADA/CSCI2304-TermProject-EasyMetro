@@ -3,14 +3,17 @@ package DS.Basic;
 import Dependencies.StdIn;
 import Dependencies.StdOut;
 
-
 public class LinearProbingHashST<Key, Value> {
+    /** Initial Capacity */
     private static final int INIT_CAPACITY = 4;
-
-    private int n; // number of key-value pairs in the symbol table
-    private int m; // size of linear probing table
-    private Key[] keys; // the keys
-    private Value[] vals; // the values
+    /** number of key-value pairs in the symbol table */
+    private int n;
+    /** size of linear probing table */
+    private int m;
+    /** the keys */
+    private Key[] keys;
+    /** the values */
+    private Value[] vals;
 
     /**
      * Initializes an empty symbol table.
@@ -25,6 +28,7 @@ public class LinearProbingHashST<Key, Value> {
      * @param capacity
      *                     the initial capacity
      */
+    @SuppressWarnings("unchecked")
     public LinearProbingHashST(int capacity) {
 	m = capacity;
 	n = 0;
@@ -62,7 +66,7 @@ public class LinearProbingHashST<Key, Value> {
      */
     public boolean contains(Key key) {
 	if (key == null)
-	    throw new IllegalArgumentException("argument to contains() is null");
+	    return false;
 	return get(key) != null;
     }
 

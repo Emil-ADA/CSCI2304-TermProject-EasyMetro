@@ -1,40 +1,45 @@
 package DS;
 
-import java.io.File;
-
-import DS.Basic.Edge;
 import DS.Basic.IndexMinPQ;
 import DS.Basic.Stack;
-import Dependencies.In;
 import Dependencies.StdOut;
 
 public class DijkstraUndirectedSP {
-    private double[] distTo; // distTo[v] = distance of shortest s->v path
-    private Edge[] edgeTo; // edgeTo[v] = last edge on shortest s->v path
-    private IndexMinPQ<Double> pq; // priority queue of vertices
+    /** distTo[v] = distance of shortest s->v path */
+    private double[] distTo;
+    /** edgeTo[v] = last edge on shortest s->v path */
+    private MWEdge[] edgeTo;
+    /** priority queue of vertices */
+    private IndexMinPQ<Double> pq;
+
+    /** The index showing which weight must be checked */
     private int weight_index;
+
     /**
      * Computes a shortest-paths tree from the source vertex {@code s} to every
      * other vertex in the edge-weighted graph {@code G}.
      *
      * @param G
-     *              the edge-weighted digraph
+     *                   the edge-weighted digraph
      * @param s
-     *              the source vertex
+     *                   the source vertex
+     * @param weight
+     *                   index showing which weight must be checked
+     * 
      * @throws IllegalArgumentException
      *                                      if an edge weight is negative
      * @throws IllegalArgumentException
      *                                      unless {@code 0 <= s < V}
      */
     public DijkstraUndirectedSP(Graph G, int s, int weight) {
-	for (Edge e : G.edges()) {
-	    if (e.weight(weight) < 0)
+	for (MWEdge e : G.edges()) {
+	    if (e.getWeightAt(weight) < 0)
 		throw new IllegalArgumentException("edge " + e + " has negative weight");
 	}
 
 	weight_index = weight;
 	distTo = new double[G.V()];
-	edgeTo = new Edge[G.V()];
+	edgeTo = new MWEdge[G.V()];
 
 	validateVertex(s);
 
@@ -47,7 +52,7 @@ public class DijkstraUndirectedSP {
 	pq.insert(s, distTo[s]);
 	while (!pq.isEmpty()) {
 	    int v = pq.delMin();
-	    for (Edge e : G.adj(v))
+	    for (MWEdge e : G.adj(v))
 		relax(e, v);
 	}
 
@@ -56,10 +61,10 @@ public class DijkstraUndirectedSP {
     }
 
     // relax edge e and update pq if changed
-    private void relax(Edge e, int v) {
+    private void relax(MWEdge e, int v) {
 	int w = e.other(v);
-	if (distTo[w] > distTo[v] + e.weight(weight_index)) {
-	    distTo[w] = distTo[v] + e.weight(weight_index);
+	if (distTo[w] > distTo[v] + e.getWeightAt(weight_index)) {
+	    distTo[w] = distTo[v] + e.getWeightAt(weight_index);
 	    edgeTo[w] = e;
 	    if (pq.contains(w))
 		pq.decreaseKey(w, distTo[w]);
@@ -112,27 +117,31 @@ public class DijkstraUndirectedSP {
      * @throws IllegalArgumentException
      *                                      unless {@code 0 <= v < V}
      */
-    public Iterable<Edge> pathTo(int v) {
+    public Iterable<MWEdge> pathTo(int v) {
 	validateVertex(v);
 	if (!hasPathTo(v))
 	    return null;
-	Stack<Edge> path = new Stack<Edge>();
+	Stack<MWEdge> path = new Stack<MWEdge>();
 	int x = v;
-	for (Edge e = edgeTo[v]; e != null; e = edgeTo[x]) {
+	for (MWEdge e = edgeTo[v]; e != null; e = edgeTo[x]) {
 	    path.push(e);
 	    x = e.other(x);
 	}
 	return path;
     }
 
+    /*-------------------------------------------------------------------*/
+    /*----------------credit to: Princeton University-------------------*/
+    /*-----------------------------------------------------------------*/
+    
     // check optimality conditions:
     // (i) for all edges e = v-w: distTo[w] <= distTo[v] + e.weight()
     // (ii) for all edge e = v-w on the SPT: distTo[w] == distTo[v] + e.weight()
     private boolean check(Graph G, int s) {
 
 	// check that edge weights are nonnegative
-	for (Edge e : G.edges()) {
-	    if (e.weight(weight_index) < 0) {
+	for (MWEdge e : G.edges()) {
+	    if (e.getWeightAt(weight_index) < 0) {
 		System.err.println("negative edge weight detected");
 		return false;
 	    }
@@ -154,9 +163,9 @@ public class DijkstraUndirectedSP {
 
 	// check that all edges e = v-w satisfy distTo[w] <= distTo[v] + e.weight()
 	for (int v = 0; v < G.V(); v++) {
-	    for (Edge e : G.adj(v)) {
+	    for (MWEdge e : G.adj(v)) {
 		int w = e.other(v);
-		if (distTo[v] + e.weight(weight_index) < distTo[w]) {
+		if (distTo[v] + e.getWeightAt(weight_index) < distTo[w]) {
 		    System.err.println("edge " + e + " not relaxed");
 		    return false;
 		}
@@ -168,11 +177,11 @@ public class DijkstraUndirectedSP {
 	for (int w = 0; w < G.V(); w++) {
 	    if (edgeTo[w] == null)
 		continue;
-	    Edge e = edgeTo[w];
+	    MWEdge e = edgeTo[w];
 	    if (w != e.either() && w != e.other(e.either()))
 		return false;
 	    int v = e.other(w);
-	    if (distTo[v] + e.weight(weight_index) != distTo[w]) {
+	    if (distTo[v] + e.getWeightAt(weight_index) != distTo[w]) {
 		System.err.println("edge " + e + " on shortest path not tight");
 		return false;
 	    }
@@ -187,6 +196,10 @@ public class DijkstraUndirectedSP {
 	    throw new IllegalArgumentException("vertex " + v + " is not between 0 and " + (V - 1));
     }
 
+    /*-------------------------------------------------------------------*/
+    /*------------------------------------------------------------------*/
+    /*-----------------------------------------------------------------*/
+    
     /**
      * Unit tests the {@code DijkstraUndirectedSP} data type.
      *
@@ -196,14 +209,14 @@ public class DijkstraUndirectedSP {
     public static void main(String[] args) {
 	Graph G = new Graph(7);
 	String V[] = { "Bagcilar", "Gunestepe", "Yavuz Selim", "Gungoren", "Sirkeci", "Tophane", "Kabatas" };
-	G.addEdge(new Edge(0, 1, 0.2, 1));
-	G.addEdge(new Edge(1, 2, 0.5, 1));
-	G.addEdge(new Edge(1, 3, 0.2, 1));
-	G.addEdge(new Edge(1, 5, 0.9, 1));
-	G.addEdge(new Edge(3, 5, 0.4, 1));
-	G.addEdge(new Edge(2, 4, 0.3, 1));
-	G.addEdge(new Edge(4, 5, 0.2, 1));
-	G.addEdge(new Edge(4, 6, 0.1, 1));
+	G.addEdge(new MWEdge(0, 1, 0.2, 1));
+	G.addEdge(new MWEdge(1, 2, 0.5, 1));
+	G.addEdge(new MWEdge(1, 3, 0.2, 1));
+	G.addEdge(new MWEdge(1, 5, 0.9, 1));
+	G.addEdge(new MWEdge(3, 5, 0.4, 1));
+	G.addEdge(new MWEdge(2, 4, 0.3, 1));
+	G.addEdge(new MWEdge(4, 5, 0.2, 1));
+	G.addEdge(new MWEdge(4, 6, 0.1, 1));
 
 	int s = 5;
 	System.out.println("Searching for " + V[s] + "...");
