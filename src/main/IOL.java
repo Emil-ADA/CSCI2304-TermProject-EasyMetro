@@ -226,6 +226,7 @@ public class IOL {
 	else {
 	    popup.hide();
 	    popup = null;
+
 	}
     }
 

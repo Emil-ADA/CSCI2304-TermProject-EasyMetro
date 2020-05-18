@@ -23,7 +23,13 @@ import javax.swing.border.SoftBevelBorder;
 
 import javax.swing.JLabel;
 import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
+import javax.swing.UIManager.LookAndFeelInfo;
+import javax.swing.UnsupportedLookAndFeelException;
+
 import java.awt.Font;
+import java.awt.Frame;
 import java.awt.Image;
 import java.awt.SystemColor;
 import javax.swing.border.EtchedBorder;
@@ -88,7 +94,7 @@ public class MainMenu {
      ***************************************************************************/
 
     /** Main frame */
-    private JFrame frame;
+    public JFrame frame;
     /** The Width of the screen */
     public static final int SCREEN_WIDTH = (int) JHardware.getScreenSize().getWidth();
     /** The Height of the screen */
@@ -122,7 +128,7 @@ public class MainMenu {
     public static final Rectangle FRAME_SIZE = new Rectangle(IOL.toInt(SCREEN_WIDTH * RATIO),
 	    IOL.toInt(SCREEN_HEIGHT * RATIO));
     /** The dimension of the menu bar */
-    public static final Rectangle MENU_SIZE = new Rectangle(60, 22);
+    public static final Rectangle MENU_SIZE = new Rectangle(100, 22);
     /** The dimension of the navigation bar on the left */
     public static final Rectangle L_NAVBAR_SIZE = new Rectangle(369,
 	    IOL.toInt(FRAME_SIZE.getHeight() - MENU_SIZE.height));
@@ -132,7 +138,7 @@ public class MainMenu {
     /** Bright color for the text highlight */
     private Color textBright = new Color(255, 255, 255);
     /** Dark color for the text highlight */
-    private Color textDark = new Color(77, 159, 206);
+    private Color textDark = new Color(110, 159, 255);
 
     /** Current city of which map is displayed */
     private static String city = "Istanbul";
@@ -188,6 +194,7 @@ public class MainMenu {
      * Launch the application.
      */
     public static void main(String[] args) {
+
 	EventQueue.invokeLater(new Runnable() {
 	    public void run() {
 		try {
@@ -198,7 +205,6 @@ public class MainMenu {
 		    // scaleMAP(MAP_IMG, -ZOOM_SCALE * 8.9);
 		    scaleMAP(MAP_IMG_LBL, -ZOOM_SCALE * 7);
 		    MAP_SCALE_HINTS = Image.SCALE_DEFAULT;
-
 		} catch (Exception e) {
 		    e.printStackTrace();
 		}
@@ -215,12 +221,14 @@ public class MainMenu {
 	initialize();
     }
 
+    private void reinitilize() {
+	initMAP();
+    }
+
     private void initMAP() {
 	/* Initialize Data Structures */
 	hash = new LinearProbingHashST<>();
-	MAP_IMAGE = new ImageIcon(DATA_REPO + city + "//map.png").getImage();
-	MAP_IMG_LBL = new JLabel("");
-
+	
 	/* The Lines in metro */
 	File[] roadlines = new File(DATA_REPO + city + "//lines").listFiles();
 
@@ -286,6 +294,7 @@ public class MainMenu {
 
 	frame = new JFrame();
 	frame.setIconImage(new ImageIcon(".//data//icon.png").getImage());
+	frame.setTitle("Metro Map");
 	frame.setResizable(false);
 	frame.setBounds(SCREEN_WIDTH / 2 - FRAME_SIZE.width / 2, SCREEN_HEIGHT / 2 - FRAME_SIZE.height / 2 - 10,
 		FRAME_SIZE.width, FRAME_SIZE.height);
@@ -334,11 +343,13 @@ public class MainMenu {
 
 	radio_button_Seoul.addActionListener(new ActionListener() {
 	    public void actionPerformed(ActionEvent e) {
+
 		city = "Seoul";
 		radio_button_Seoul.setSelected(true);
 		radio_button_Istanbul.setSelected(false);
 		initMAP();
-		initialize();
+		MAP_IMAGE = new ImageIcon(DATA_REPO + city + "//map.png").getImage();
+		MAP_IMG_LBL.setIcon(new ImageIcon(MAP_IMAGE));
 	    }
 	});
 	radio_button_Istanbul.addActionListener(new ActionListener() {
@@ -347,7 +358,8 @@ public class MainMenu {
 		radio_button_Istanbul.setSelected(true);
 		radio_button_Seoul.setSelected(false);
 		initMAP();
-		initialize();
+		MAP_IMAGE = new ImageIcon(DATA_REPO + city + "//map.png").getImage();
+		MAP_IMG_LBL.setIcon(new ImageIcon(MAP_IMAGE));
 	    }
 	});
 
@@ -373,21 +385,27 @@ public class MainMenu {
 
 	JMenu menu_settings = new JMenu("Settings");
 	menu_settings.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+	menu_settings.setPreferredSize(new Dimension(MENU_SIZE.width, MENU_SIZE.height));
 	menuBar.add(menu_settings);
 
 	JMenuItem menu_item_showDetails = new JMenuItem("Show Map Details");
 	menu_item_showDetails.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+	menu_settings.add(menu_item_showDetails);
 	menu_item_showDetails.addActionListener(new ActionListener() {
 	    public void actionPerformed(ActionEvent arg0) {
 		display_pane.setText(METROMAP.toString());
 		display_pane.setCaretPosition(0);
 	    }
 	});
-	menu_settings.add(menu_item_showDetails);
+
+	JRadioButtonMenuItem radio_button_drag = new JRadioButtonMenuItem("Drag");
+	radio_button_drag.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+	menu_settings.add(radio_button_drag);
 
 	JMenu menu_mapScale = new JMenu("Map Scale");
+	menu_mapScale.setPreferredSize(new Dimension(MENU_SIZE.width, MENU_SIZE.height));
+	menuBar.add(menu_mapScale);
 	menu_mapScale.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
-	menu_settings.add(menu_mapScale);
 
 	JCheckBoxMenuItem chcDEF = new JCheckBoxMenuItem("Default");
 	chcDEF.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
@@ -410,191 +428,50 @@ public class MainMenu {
 	chcREP.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 	menu_mapScale.add(chcREP);
 
-	JRadioButtonMenuItem radio_button_drag = new JRadioButtonMenuItem("Drag");
-	radio_button_drag.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-	menu_settings.add(radio_button_drag);
+	/////////////////////////////////////////////////////////////////////////////////
+	JMenu menu_LookFeel = new JMenu("Look & Feel");
+	menu_LookFeel.setPreferredSize(new Dimension(MENU_SIZE.width, MENU_SIZE.height));
+	menuBar.add(menu_LookFeel);
+	ArrayList<JCheckBoxMenuItem> looknfeels = new ArrayList<>();
+	ArrayList<JButton> buttons = new ArrayList<>();
+	for (LookAndFeelInfo info : UIManager.getInstalledLookAndFeels()) {
 
-	JPanel main_panel = new JPanel();
-	main_panel.setBackground(Color.LIGHT_GRAY);
-	main_panel.setBounds(IOL.toInt(FRAME_SIZE.getX()), IOL.toInt(FRAME_SIZE.getY() + 28),
-		IOL.toInt(FRAME_SIZE.getWidth() - 6), IOL.toInt(FRAME_SIZE.getHeight() - 57));
-	frame.getContentPane().add(main_panel);
-	main_panel.setLayout(null);
+	    String name = info.getName();
+	    JCheckBoxMenuItem chc = new JCheckBoxMenuItem(name);
+	    chc.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+	    menu_LookFeel.add(chc);
+	    looknfeels.add(chc);
 
-	JPanel left_navbar = new JPanel();
-	left_navbar.setBackground(new Color(60, 60, 84));
-	left_navbar.setBorder(new SoftBevelBorder(BevelBorder.RAISED, SystemColor.windowBorder, null, null, null));
-	left_navbar.setBounds(L_NAVBAR_SIZE);
-
-	main_panel.add(left_navbar);
-	left_navbar.setLayout(null);
-
-	JLabel label_metromap = new JLabel("Metro Map");
-	label_metromap.setBackground(SystemColor.controlShadow);
-	label_metromap.setBorder(new EtchedBorder(EtchedBorder.LOWERED, null, null));
-	label_metromap.setForeground(SystemColor.textHighlight);
-	label_metromap.setFont(new Font("HP Simplified", Font.BOLD, 22));
-	label_metromap.setHorizontalAlignment(SwingConstants.CENTER);
-	label_metromap.setBounds(10, 11, 349, 58);
-	left_navbar.add(label_metromap);
-
-	JButton optbutton_fastest = new JButton("Fastest");
-	optbutton_fastest.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-	optbutton_fastest.setFont(new Font("Consolas", Font.BOLD, 13));
-	optbutton_fastest.setForeground(textBright);
-	optbutton_fastest.setBounds(10, 80, 110, 39);
-	optbutton_fastest.setUI(new MyButton());
-	left_navbar.add(optbutton_fastest);
-
-	JButton optbutton_shortest = new JButton("Shortest");
-	optbutton_shortest.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-	optbutton_shortest.setFont(new Font("Consolas", Font.BOLD, 13));
-	optbutton_shortest.setForeground(textDark);
-	optbutton_shortest.setBounds(130, 80, 110, 39);
-	optbutton_shortest.setUI(new MyButton());
-	left_navbar.add(optbutton_shortest);
-
-	JButton optbutton_min = new JButton("Minimum");
-	optbutton_min.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-	optbutton_min.setFont(new Font("Consolas", Font.BOLD, 13));
-	optbutton_min.setForeground(textDark);
-	optbutton_min.setBounds(249, 80, 110, 39);
-	optbutton_min.setUI(new MyButton());
-	left_navbar.add(optbutton_min);
-
-	JPanel input_panel = new JPanel();
-	input_panel.setBackground(new Color(100, 100, 116));
-	input_panel.setBounds(10, 130, 349, 150);
-	left_navbar.add(input_panel);
-	input_panel.setLayout(null);
-
-	textfield_dpt = new JTextField();
-	textfield_dpt.setFont(new Font("Courier New", Font.PLAIN, 13));
-	textfield_dpt.setBounds(113, 10, 226, 30);
-	input_panel.add(textfield_dpt);
-	textfield_dpt.setColumns(10);
-
-	textfield_via = new JTextField();
-	textfield_via.setFont(new Font("Courier New", Font.PLAIN, 13));
-
-	textfield_via.setColumns(10);
-	textfield_via.setBounds(113, 60, 226, 30);
-	input_panel.add(textfield_via);
-
-	textfield_arv = new JTextField();
-	textfield_arv.setFont(new Font("Courier New", Font.PLAIN, 13));
-
-	textfield_arv.setColumns(10);
-	textfield_arv.setBounds(113, 110, 226, 30);
-	input_panel.add(textfield_arv);
-
-	JLabel label_dpt = new JLabel("DPT.");
-	label_dpt.setForeground(Color.WHITE);
-	label_dpt.setFont(new Font("Consolas", Font.BOLD, 13));
-	label_dpt.setHorizontalAlignment(SwingConstants.CENTER);
-	label_dpt.setBounds(10, 10, 93, 26);
-	input_panel.add(label_dpt);
-
-	JLabel label_via = new JLabel("Via");
-	label_via.setForeground(Color.WHITE);
-	label_via.setFont(new Font("Consolas", Font.BOLD, 13));
-	label_via.setHorizontalAlignment(SwingConstants.CENTER);
-	label_via.setBounds(10, 62, 93, 26);
-	input_panel.add(label_via);
-
-	JLabel label_arv = new JLabel("ARV.");
-	label_arv.setForeground(Color.WHITE);
-	label_arv.setFont(new Font("Consolas", Font.BOLD, 13));
-	label_arv.setHorizontalAlignment(SwingConstants.CENTER);
-	label_arv.setBounds(10, 110, 93, 26);
-	input_panel.add(label_arv);
-
-	JButton button_refresh = new JButton("Refresh");
-	button_refresh.setForeground(Color.WHITE);
-	button_refresh.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-	button_refresh.setFont(new Font("Consolas", Font.BOLD, 13));
-	button_refresh.setBounds(249, 291, 110, 32);
-	button_refresh.setUI(new MyButton());
-	left_navbar.add(button_refresh);
-
-	JButton button_search = new JButton("Search");
-	button_search.setForeground(Color.WHITE);
-	button_search.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-	button_search.setFont(new Font("Consolas", Font.BOLD, 13));
-	button_search.setBounds(130, 291, 110, 32);
-	button_search.setUI(new MyButton());
-	left_navbar.add(button_search);
-
-	JButton button_expand = new JButton("Expand");
-	button_expand.setForeground(Color.WHITE);
-	button_expand.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-	button_expand.setFont(new Font("Consolas", Font.BOLD, 13));
-	button_expand.setUI(new MyButton());
-	button_expand.setBounds(10, 291, 110, 32);
-	left_navbar.add(button_expand);
-
-	JButton button_zoom_in = new JButton("+");
-	button_zoom_in.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
-	button_zoom_in.setFont(new Font("MS Reference Sans Serif", Font.BOLD, 14));
-	button_zoom_in.setBorder(null);
-	button_zoom_in.setBounds(1115, 15, 30, 30);
-	main_panel.add(button_zoom_in);
-
-	JButton button_zoom_out = new JButton("-");
-	button_zoom_out.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
-	button_zoom_out.setFont(new Font("MS Reference Sans Serif", Font.BOLD, 14));
-	button_zoom_out.setBorder(null);
-	button_zoom_out.setBounds(1085, 15, 30, 30);
-	main_panel.add(button_zoom_out);
-
-	ScrollPane scrollpane_map = new ScrollPane();
-	scrollpane_map.setBounds(375, 0, 793, 605);
-	main_panel.add(scrollpane_map);
-	scrollpane_map.getVAdjustable().setUnitIncrement(VSCROLL_RATE);
-	scrollpane_map.getHAdjustable().setUnitIncrement(HSCROLL_RATE);
-
-	MAP_IMG_LBL.setIcon(new ImageIcon(MAP_IMAGE));
-	MAP_IMG_LBL.setBounds(519, 102, 46, 14);
-	scrollpane_map.add(MAP_IMG_LBL);
-
-	JScrollPane scrollpane_display = new JScrollPane();
-	scrollpane_display.setBounds(10, 334, 349, 260);
-	left_navbar.add(scrollpane_display);
-	display_pane = new JTextPane();
-	display_pane.setFont(new Font("Consolas", Font.PLAIN, 11));
-	display_pane.setEditable(false);
-	scrollpane_display.setViewportView(display_pane);
-	/*
-	 * .**************************************************************************
-	 * LISTENERS
-	 ***************************************************************************/
-
-	/*----------------------ADDING AUTOCOMPLETION-----------------------*/
-	ArrayList<String> list = new ArrayList<>();
-	hash.keys().iterator().forEachRemaining(list::add);
-	textfield_dpt.addKeyListener(IOL.addAutoCompletion(textfield_dpt, list));
-	textfield_via.addKeyListener(IOL.addAutoCompletion(textfield_via, list));
-	textfield_arv.addKeyListener(IOL.addAutoCompletion(textfield_arv, list));
-
-	textfield_dpt.addMouseListener(IOL.closePopup());
-
-	textfield_via.addMouseListener(IOL.closePopup());
-
-	textfield_arv.addMouseListener(IOL.closePopup());
-
-	button_expand.addActionListener(new ActionListener() {
-	    public void actionPerformed(ActionEvent arg0) {
-		// FIXME: Might add: !sRE.toString().isEmpty()
-		if (searchResultsExtended != null) {
-		    display_pane.setText(searchResultsExtended.toString());
-		    display_pane.setCaretPosition(0);
-		}
+	    if (UIManager.getLookAndFeel().toString().contains(info.getName())) {
+		chc.setState(true);
 	    }
-	});
 
-	/*-------------------------------------------------------------------*/
-	/*-----------------MENUBAR -> SETTINGS -> MAP SCALE-----------------*/
-	/*-----------------------------------------------------------------*/
+	    chc.addActionListener(new ActionListener() {
+		public void actionPerformed(ActionEvent e) {
+		    if (chc.isEnabled()) {
+
+			for (JCheckBoxMenuItem item : looknfeels) {
+			    if (!item.equals(chc))
+				item.setState(false);
+			}
+			try {
+			    UIManager.setLookAndFeel(info.getClassName());
+			    SwingUtilities.updateComponentTreeUI(frame);
+			    for (JButton button : buttons) {
+				button.setUI(new MyButton());
+			    }
+			} catch (ClassNotFoundException | InstantiationException | IllegalAccessException
+				| UnsupportedLookAndFeelException e1) {
+			    // TODO Auto-generated catch block
+			    e1.printStackTrace();
+			}
+
+		    }
+		}
+	    });
+	}
+	///////////////////////////////////////////////////////////////////////////////////////
+
 	chcDEF.addActionListener(new ActionListener() {
 	    public void actionPerformed(ActionEvent e) {
 		if (chcDEF.isEnabled()) {
@@ -650,6 +527,202 @@ public class MainMenu {
 		}
 	    }
 	});
+
+	JPanel main_panel = new JPanel();
+	main_panel.setBackground(Color.LIGHT_GRAY);
+	main_panel.setBounds(IOL.toInt(FRAME_SIZE.getX()), IOL.toInt(FRAME_SIZE.getY() + 28),
+		IOL.toInt(FRAME_SIZE.getWidth() - 6), IOL.toInt(FRAME_SIZE.getHeight() - 57));
+	frame.getContentPane().add(main_panel);
+	main_panel.setLayout(null);
+
+	JPanel left_navbar = new JPanel();
+	left_navbar.setBackground(new Color(60, 60, 84));
+	left_navbar.setBorder(new SoftBevelBorder(BevelBorder.RAISED, SystemColor.windowBorder, null, null, null));
+	left_navbar.setBounds(L_NAVBAR_SIZE);
+
+	main_panel.add(left_navbar);
+	left_navbar.setLayout(null);
+
+	JLabel lblMetroMap = new JLabel("METRO MAP");
+	lblMetroMap.setBackground(SystemColor.controlShadow);
+	lblMetroMap.setBorder(new EtchedBorder(EtchedBorder.LOWERED, null, null));
+	lblMetroMap.setForeground(new Color(220, 220, 220));
+	lblMetroMap.setFont(new Font("HP Simplified", Font.BOLD, 22));
+	lblMetroMap.setHorizontalAlignment(SwingConstants.CENTER);
+	lblMetroMap.setBounds(10, 11, 349, 58);
+	left_navbar.add(lblMetroMap);
+
+	JButton optbutton_fastest = new JButton("Fastest");
+	optbutton_fastest.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+	optbutton_fastest.setFont(new Font("Consolas", Font.BOLD, 13));
+	optbutton_fastest.setForeground(textBright);
+	optbutton_fastest.setBounds(10, 80, 110, 39);
+	optbutton_fastest.setUI(new MyButton());
+	left_navbar.add(optbutton_fastest);
+	buttons.add(optbutton_fastest);
+
+	JButton optbutton_shortest = new JButton("Shortest");
+	optbutton_shortest.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+	optbutton_shortest.setFont(new Font("Consolas", Font.BOLD, 13));
+	optbutton_shortest.setForeground(textDark);
+	optbutton_shortest.setBounds(130, 80, 110, 39);
+	optbutton_shortest.setUI(new MyButton());
+	left_navbar.add(optbutton_shortest);
+	buttons.add(optbutton_shortest);
+
+	JButton optbutton_min = new JButton("Minimum");
+	optbutton_min.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+	optbutton_min.setFont(new Font("Consolas", Font.BOLD, 13));
+	optbutton_min.setForeground(textDark);
+	optbutton_min.setBounds(249, 80, 110, 39);
+	optbutton_min.setUI(new MyButton());
+	left_navbar.add(optbutton_min);
+	buttons.add(optbutton_min);
+
+	JPanel input_panel = new JPanel();
+	input_panel.setBackground(new Color(100, 100, 116));
+	input_panel.setBounds(10, 130, 349, 150);
+	left_navbar.add(input_panel);
+	input_panel.setLayout(null);
+
+	textfield_dpt = new JTextField();
+	textfield_dpt.setFont(new Font("Courier New", Font.PLAIN, 13));
+	textfield_dpt.setBounds(113, 10, 226, 30);
+	input_panel.add(textfield_dpt);
+	textfield_dpt.setColumns(10);
+
+	textfield_via = new JTextField();
+	textfield_via.setFont(new Font("Courier New", Font.PLAIN, 13));
+
+	textfield_via.setColumns(10);
+	textfield_via.setBounds(113, 60, 226, 30);
+	input_panel.add(textfield_via);
+
+	textfield_arv = new JTextField();
+	textfield_arv.setFont(new Font("Courier New", Font.PLAIN, 13));
+
+	textfield_arv.setColumns(10);
+	textfield_arv.setBounds(113, 110, 226, 30);
+	input_panel.add(textfield_arv);
+
+	JLabel label_dpt = new JLabel("DPT.");
+	label_dpt.setForeground(Color.WHITE);
+	label_dpt.setFont(new Font("Consolas", Font.BOLD, 13));
+	label_dpt.setHorizontalAlignment(SwingConstants.CENTER);
+	label_dpt.setBounds(10, 10, 93, 26);
+	input_panel.add(label_dpt);
+
+	JLabel label_via = new JLabel("Via");
+	label_via.setForeground(Color.WHITE);
+	label_via.setFont(new Font("Consolas", Font.BOLD, 13));
+	label_via.setHorizontalAlignment(SwingConstants.CENTER);
+	label_via.setBounds(10, 62, 93, 26);
+	input_panel.add(label_via);
+
+	JLabel label_arv = new JLabel("ARV.");
+	label_arv.setForeground(Color.WHITE);
+	label_arv.setFont(new Font("Consolas", Font.BOLD, 13));
+	label_arv.setHorizontalAlignment(SwingConstants.CENTER);
+	label_arv.setBounds(10, 110, 93, 26);
+	input_panel.add(label_arv);
+
+	JButton button_refresh = new JButton("Refresh");
+	button_refresh.setForeground(textDark);
+	button_refresh.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+	button_refresh.setFont(new Font("Consolas", Font.BOLD, 13));
+	button_refresh.setBounds(249, 291, 110, 32);
+	button_refresh.setUI(new MyButton());
+	left_navbar.add(button_refresh);
+	buttons.add(button_refresh);
+
+	JButton button_search = new JButton("Search");
+	button_search.setForeground(textDark);
+	button_search.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+	button_search.setFont(new Font("Consolas", Font.BOLD, 13));
+	button_search.setBounds(130, 291, 110, 32);
+	button_search.setUI(new MyButton());
+	left_navbar.add(button_search);
+	buttons.add(button_search);
+
+	JButton button_expand = new JButton("Expand");
+	button_expand.setForeground(textDark);
+	button_expand.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+	button_expand.setFont(new Font("Consolas", Font.BOLD, 13));
+	button_expand.setUI(new MyButton());
+	button_expand.setBounds(10, 291, 110, 32);
+	left_navbar.add(button_expand);
+	buttons.add(button_expand);
+
+	JButton button_zoom_in = new JButton("");
+	button_zoom_in.setIcon(new ImageIcon(".//data//zin.png"));
+	button_zoom_in.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+	button_zoom_in.setFont(new Font("MS Reference Sans Serif", Font.BOLD, 10));
+	button_zoom_in.setBorder(null);
+	button_zoom_in.setBounds(1100, 15, 35, 35);
+	button_zoom_in.setUI(new MyButton());
+	main_panel.add(button_zoom_in);
+	buttons.add(button_zoom_in);
+
+	JButton button_zoom_out = new JButton("");
+	button_zoom_out.setIcon(new ImageIcon(".//data//zout.png"));
+	button_zoom_out.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+	button_zoom_out.setFont(new Font("MS Reference Sans Serif", Font.BOLD, 10));
+	button_zoom_out.setBorder(null);
+	button_zoom_out.setBounds(1100 - 36, 15, 35, 35);
+	button_zoom_out.setUI(new MyButton());
+	main_panel.add(button_zoom_out);
+	buttons.add(button_zoom_out);
+
+	ScrollPane scrollpane_map = new ScrollPane();
+	scrollpane_map.setBounds(375, 0, 793, 605);
+	main_panel.add(scrollpane_map);
+	scrollpane_map.getVAdjustable().setUnitIncrement(VSCROLL_RATE);
+	scrollpane_map.getHAdjustable().setUnitIncrement(HSCROLL_RATE);
+
+	MAP_IMAGE = new ImageIcon(DATA_REPO + city + "//map.png").getImage();
+	MAP_IMG_LBL = new JLabel("");
+	MAP_IMG_LBL.setIcon(new ImageIcon(MAP_IMAGE));
+	MAP_IMG_LBL.setBounds(519, 102, 46, 14);
+	scrollpane_map.add(MAP_IMG_LBL);
+
+	JScrollPane scrollpane_display = new JScrollPane();
+	scrollpane_display.setBounds(10, 334, 349, 260);
+	left_navbar.add(scrollpane_display);
+	display_pane = new JTextPane();
+	display_pane.setFont(new Font("Consolas", Font.PLAIN, 11));
+	display_pane.setEditable(false);
+	scrollpane_display.setViewportView(display_pane);
+	/*
+	 * .**************************************************************************
+	 * LISTENERS
+	 ***************************************************************************/
+
+	/*----------------------ADDING AUTOCOMPLETION-----------------------*/
+	ArrayList<String> list = new ArrayList<>();
+	hash.keys().iterator().forEachRemaining(list::add);
+	textfield_dpt.addKeyListener(IOL.addAutoCompletion(textfield_dpt, list));
+	textfield_via.addKeyListener(IOL.addAutoCompletion(textfield_via, list));
+	textfield_arv.addKeyListener(IOL.addAutoCompletion(textfield_arv, list));
+
+	textfield_dpt.addMouseListener(IOL.closePopup());
+
+	textfield_via.addMouseListener(IOL.closePopup());
+
+	textfield_arv.addMouseListener(IOL.closePopup());
+
+	button_expand.addActionListener(new ActionListener() {
+	    public void actionPerformed(ActionEvent arg0) {
+		// FIXME: Might add: !sRE.toString().isEmpty()
+		if (searchResultsExtended != null) {
+		    display_pane.setText(searchResultsExtended.toString());
+		    display_pane.setCaretPosition(0);
+		}
+	    }
+	});
+
+	/*-------------------------------------------------------------------*/
+	/*-----------------MENUBAR -> SETTINGS -> MAP SCALE-----------------*/
+	/*-----------------------------------------------------------------*/
 	/** ----------------------SEARCH BUTTON---------------------- */
 	button_search.addActionListener(pressSearch());
 
