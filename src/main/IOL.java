@@ -133,13 +133,22 @@ public class IOL {
      * usage plus only one instance of suggestion needed at a time
      */
     private static JToolTip toolTip = new JToolTip();
-    private static PopupFactory pf = new PopupFactory();
     private static Popup popup;
+    private static PopupFactory pf = new PopupFactory();
     private static List<String> sugg = new ArrayList<String>();
     private static ArrayList<JTextField> textFields = new ArrayList<>();
 
     /**
-     * Method that initializes an autocompletion <code>KeyAdapter</code> for text
+     * There is a need to test for a concurrency since each keyboard key press is
+     * one thread, and trying to show pop-up at the same time creates leftover
+     * pieces of components which are not stored in variables but at the same time
+     * stored inside of some component. This is unwanted because such 'leftovers'
+     * obscure GUI.
+     */
+    public static boolean CONCURRENCY = false;
+
+    /**
+     * Method that initializes an auto-completion <code>KeyAdapter</code> for text
      * fields.
      * 
      * @param textFldCurrent
@@ -151,11 +160,12 @@ public class IOL {
      */
     public static KeyAdapter addAutoCompletion(JTextField textFldCurrent, List<String> list) {
 
-	popup_show(false);
-
 	return new KeyAdapter() {
 	    @Override
 	    public void keyTyped(KeyEvent key) {
+		if (CONCURRENCY)
+		    return;
+		CONCURRENCY = true;
 		/* Save the Text Field in a list */
 		textFields.add(textFldCurrent);
 		/* Get the list of suggested options */
@@ -167,6 +177,7 @@ public class IOL {
 		 */
 		if (textFldCurrent.getText().length() == 0 || sugg.size() == 0 || !textFldCurrent.hasFocus()) {
 		    popup_show(false);
+		    CONCURRENCY = false;
 		    return;
 		}
 
@@ -178,8 +189,8 @@ public class IOL {
 		int x = IOL.toInt(textFldCurrent.getLocationOnScreen().getX());
 		int y = IOL.toInt(textFldCurrent.getLocationOnScreen().getY()) + textFldCurrent.getHeight();
 
-		popup = null;
 		/* Initialize popup */
+		popup_show(false);
 		popup = pf.getPopup(textFldCurrent, toolTip, x, y);
 		popup_show(true);
 
@@ -193,8 +204,10 @@ public class IOL {
 			popup_show(false);
 		    }
 		});
+		CONCURRENCY = false;
 	    }
 	};
+
     }
 
     /**
@@ -225,8 +238,6 @@ public class IOL {
 	    popup.show();
 	else {
 	    popup.hide();
-	    popup = null;
-
 	}
     }
 

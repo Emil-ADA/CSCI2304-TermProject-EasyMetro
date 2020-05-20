@@ -6,8 +6,6 @@ import javax.swing.JFrame;
 
 import Utils.JHardware;
 import Utils.JUtil;
-import edu.emory.mathcs.backport.java.util.Arrays;
-
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JMenu;
@@ -20,7 +18,6 @@ import java.awt.Component;
 
 import javax.swing.border.BevelBorder;
 import javax.swing.border.SoftBevelBorder;
-
 import javax.swing.JLabel;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
@@ -29,7 +26,6 @@ import javax.swing.UIManager.LookAndFeelInfo;
 import javax.swing.UnsupportedLookAndFeelException;
 
 import java.awt.Font;
-import java.awt.Frame;
 import java.awt.Image;
 import java.awt.SystemColor;
 import javax.swing.border.EtchedBorder;
@@ -56,7 +52,6 @@ import DS.Basic.Stack;
 import Dependencies.FilenameUtils;
 import Dependencies.StdOut;
 
-import java.awt.ScrollPane;
 import javax.swing.ImageIcon;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JTextPane;
@@ -64,7 +59,8 @@ import javax.swing.JScrollPane;
 import java.awt.Cursor;
 
 public class MainMenu {
-    // TODO: TRY TO ADD VARIABLES TO .cfg file
+    // TODO: ADD SOME COLOUR TO CONSOLE
+    // TODO : TRY TO APPROXIMATE: DISPLAY_PANE_LINE_LENGTH
     /*
      * .**************************************************************************
      * GETTING CONFIGURATIONS
@@ -81,7 +77,6 @@ public class MainMenu {
 	    for (int i = 0; i < n; i++) {
 		args[i] = sc.nextLine();
 	    }
-	    System.out.println(Arrays.toString(args));
 
 	} catch (FileNotFoundException e) {
 	    e.printStackTrace();
@@ -105,13 +100,14 @@ public class MainMenu {
     public static final short VSCROLL_RATE = (short) Integer.parseInt(IOL.getValue("VSCROLL_RATE"));
     /** The unit increment of the Horizontal scroll bar of Scroll pane */
     public static final short HSCROLL_RATE = (short) Integer.parseInt(IOL.getValue("HSCROLL_RATE"));
+
+    public static final short COMPONENT_MARGIN = 10;
     /**
      * The max length of a <code>String</code> that can be printed in one line
      * without reduction
      */
     /* 54~56,I don't know why it varies, but yes magic */
-    public static final short DISPLAY_PANE_LINE_LENGTH = (short) Integer
-	    .parseInt(IOL.getValue("DISPLAY_PANE_LINE_LENGTH"));
+    public static int DISPLAY_PANE_LINE_LENGTH;
 
     /** Variable ratio for zooming in and out, default value 10% */
     public static final double ZOOM_SCALE = Double.parseDouble(IOL.getValue("ZOOM_SCALE"));
@@ -130,10 +126,15 @@ public class MainMenu {
     /** The dimension of the menu bar */
     public static final Rectangle MENU_SIZE = new Rectangle(100, 22);
     /** The dimension of the navigation bar on the left */
-    public static final Rectangle L_NAVBAR_SIZE = new Rectangle(369,
+    public static final Rectangle L_NAVBAR_SIZE = new Rectangle(IOL.toInt(FRAME_SIZE.getWidth() * 0.314),
 	    IOL.toInt(FRAME_SIZE.getHeight() - MENU_SIZE.height));
+    /** The dimension of the buttons */
+    public static final Rectangle BUTTON_SIZE = new Rectangle(
+	    (int) ((L_NAVBAR_SIZE.getWidth() - COMPONENT_MARGIN * 4) / 3), (int) (L_NAVBAR_SIZE.getHeight() * 0.0611));
     /** The data repository */
     private static final String DATA_REPO = ".//data//Cities//";
+
+    private static final Font DEFAULT_FONT = new Font(IOL.getValue("DEFAULT_FONT"), Font.BOLD, SCREEN_WIDTH / 100);
 
     /** Bright color for the text highlight */
     private Color textBright = new Color(255, 255, 255);
@@ -194,17 +195,12 @@ public class MainMenu {
      * Launch the application.
      */
     public static void main(String[] args) {
-
 	EventQueue.invokeLater(new Runnable() {
 	    public void run() {
 		try {
 		    MainMenu window = new MainMenu();
 		    window.frame.setVisible(true);
-		    Thread.sleep(200);
-		    MAP_SCALE_HINTS = Image.SCALE_SMOOTH;
-		    // scaleMAP(MAP_IMG, -ZOOM_SCALE * 8.9);
-		    scaleMAP(MAP_IMG_LBL, -ZOOM_SCALE * 7);
-		    MAP_SCALE_HINTS = Image.SCALE_DEFAULT;
+		    // Thread.sleep(100);
 		} catch (Exception e) {
 		    e.printStackTrace();
 		}
@@ -219,16 +215,13 @@ public class MainMenu {
     public MainMenu() {
 	initMAP();
 	initialize();
-    }
 
-    private void reinitilize() {
-	initMAP();
     }
 
     private void initMAP() {
 	/* Initialize Data Structures */
 	hash = new LinearProbingHashST<>();
-	
+
 	/* The Lines in metro */
 	File[] roadlines = new File(DATA_REPO + city + "//lines").listFiles();
 
@@ -236,7 +229,7 @@ public class MainMenu {
 	int ID = 0;
 	for (File line : roadlines) {
 	    try (Scanner sc = new Scanner(line);) {
-		System.out.println(line.toString());
+
 		sc.nextLine();
 		while (sc.hasNext()) {
 		    String key = sc.nextLine();
@@ -297,8 +290,8 @@ public class MainMenu {
 	frame.setIconImage(new ImageIcon(".//data//icon.png").getImage());
 	frame.setTitle("Metro Map");
 	frame.setResizable(false);
-	frame.setBounds(SCREEN_WIDTH / 2 - FRAME_SIZE.width / 2, SCREEN_HEIGHT / 2 - FRAME_SIZE.height / 2 - 10,
-		FRAME_SIZE.width, FRAME_SIZE.height);
+	frame.setBounds(SCREEN_WIDTH / 2 - FRAME_SIZE.width / 2,
+		SCREEN_HEIGHT / 2 - FRAME_SIZE.height / 2 - COMPONENT_MARGIN, FRAME_SIZE.width, FRAME_SIZE.height);
 	frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 	frame.getContentPane().setLayout(null);
 
@@ -311,7 +304,15 @@ public class MainMenu {
 	menu_file.setPreferredSize(new Dimension(MENU_SIZE.width, MENU_SIZE.height));
 	menuBar.add(menu_file);
 
-	JMenuItem menu_item_test = new JMenuItem("Test");
+	JMenuItem menu_item_test = new JMenuItem("Test (Experimental)");
+	menu_item_test.addActionListener(new ActionListener() {
+	    public void actionPerformed(ActionEvent arg0) {
+		// TODO: ADD YOUR CODE HERE TO TEST
+		DISPLAY_PANE_LINE_LENGTH = (int) (display_pane.getWidth()
+			/ frame.getFontMetrics(DEFAULT_FONT).charWidth('-')) - COMPONENT_MARGIN;
+		StdOut.println(DISPLAY_PANE_LINE_LENGTH);
+	    }
+	});
 	menu_item_test.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 	menu_file.add(menu_item_test);
 
@@ -324,6 +325,12 @@ public class MainMenu {
 	menu_file.add(menu_item_Open);
 
 	JMenuItem menu_item_exit = new JMenuItem("Exit");
+	menu_item_exit.addActionListener(new ActionListener() {
+	    @Override
+	    public void actionPerformed(ActionEvent e) {
+		System.exit(0);
+	    }
+	});
 	menu_item_exit.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 	menu_file.add(menu_item_exit);
 
@@ -336,33 +343,13 @@ public class MainMenu {
 	menu_edit.add(menu_City);
 
 	JRadioButtonMenuItem radio_button_Istanbul = new JRadioButtonMenuItem("Istanbul");
+	radio_button_Istanbul.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 	radio_button_Istanbul.setSelected(true);
 	menu_City.add(radio_button_Istanbul);
 
 	JRadioButtonMenuItem radio_button_Seoul = new JRadioButtonMenuItem("Seoul");
+	radio_button_Seoul.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 	menu_City.add(radio_button_Seoul);
-
-	radio_button_Seoul.addActionListener(new ActionListener() {
-	    public void actionPerformed(ActionEvent e) {
-
-		city = "Seoul";
-		radio_button_Seoul.setSelected(true);
-		radio_button_Istanbul.setSelected(false);
-		initMAP();
-		MAP_IMAGE = new ImageIcon(DATA_REPO + city + "//map.png").getImage();
-		MAP_IMG_LBL.setIcon(new ImageIcon(MAP_IMAGE));
-	    }
-	});
-	radio_button_Istanbul.addActionListener(new ActionListener() {
-	    public void actionPerformed(ActionEvent arg0) {
-		city = "Istanbul";
-		radio_button_Istanbul.setSelected(true);
-		radio_button_Seoul.setSelected(false);
-		initMAP();
-		MAP_IMAGE = new ImageIcon(DATA_REPO + city + "//map.png").getImage();
-		MAP_IMG_LBL.setIcon(new ImageIcon(MAP_IMAGE));
-	    }
-	});
 
 	JMenuItem menu_item_refresh = new JMenuItem("Refresh");
 	menu_item_refresh.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
@@ -403,7 +390,7 @@ public class MainMenu {
 	radio_button_drag.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 	menu_settings.add(radio_button_drag);
 
-	JMenu menu_mapScale = new JMenu("Map Scale");
+	JMenu menu_mapScale = new JMenu("Scale Options");
 	menu_mapScale.setPreferredSize(new Dimension(MENU_SIZE.width, MENU_SIZE.height));
 	menuBar.add(menu_mapScale);
 	menu_mapScale.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
@@ -463,8 +450,7 @@ public class MainMenu {
 			    }
 			} catch (ClassNotFoundException | InstantiationException | IllegalAccessException
 				| UnsupportedLookAndFeelException e1) {
-			    // TODO Auto-generated catch block
-			    e1.printStackTrace();
+
 			}
 
 		    }
@@ -530,7 +516,7 @@ public class MainMenu {
 	});
 
 	JPanel main_panel = new JPanel();
-	main_panel.setBackground(Color.LIGHT_GRAY);
+	// main_panel.setBackground(Color.LIGHT_GRAY);
 	main_panel.setBounds(IOL.toInt(FRAME_SIZE.getX()), IOL.toInt(FRAME_SIZE.getY() + 28),
 		IOL.toInt(FRAME_SIZE.getWidth() - 6), IOL.toInt(FRAME_SIZE.getHeight() - 57));
 	frame.getContentPane().add(main_panel);
@@ -540,9 +526,8 @@ public class MainMenu {
 	left_navbar.setBackground(new Color(60, 60, 84));
 	left_navbar.setBorder(new SoftBevelBorder(BevelBorder.RAISED, SystemColor.windowBorder, null, null, null));
 	left_navbar.setBounds(L_NAVBAR_SIZE);
-
-	main_panel.add(left_navbar);
 	left_navbar.setLayout(null);
+	main_panel.add(left_navbar);
 
 	JLabel lblMetroMap = new JLabel("METRO MAP");
 	lblMetroMap.setBackground(SystemColor.controlShadow);
@@ -550,154 +535,210 @@ public class MainMenu {
 	lblMetroMap.setForeground(new Color(220, 220, 220));
 	lblMetroMap.setFont(new Font("HP Simplified", Font.BOLD, 22));
 	lblMetroMap.setHorizontalAlignment(SwingConstants.CENTER);
-	lblMetroMap.setBounds(10, 11, 349, 58);
+	lblMetroMap.setBounds(COMPONENT_MARGIN, COMPONENT_MARGIN,
+		IOL.toInt(L_NAVBAR_SIZE.getWidth() - COMPONENT_MARGIN * 2),
+		IOL.toInt(L_NAVBAR_SIZE.getHeight() * 0.095));
 	left_navbar.add(lblMetroMap);
 
 	JButton optbutton_fastest = new JButton("Fastest");
 	optbutton_fastest.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-	optbutton_fastest.setFont(new Font("Consolas", Font.BOLD, 13));
+	optbutton_fastest.setFont(DEFAULT_FONT);
 	optbutton_fastest.setForeground(textBright);
-	optbutton_fastest.setBounds(10, 80, 110, 39);
+	optbutton_fastest.setBounds(COMPONENT_MARGIN, lblMetroMap.getY() + lblMetroMap.getHeight() + COMPONENT_MARGIN,
+		IOL.toInt(BUTTON_SIZE.getWidth()), IOL.toInt(BUTTON_SIZE.getHeight()));
 	optbutton_fastest.setUI(new MyButton());
 	left_navbar.add(optbutton_fastest);
 	buttons.add(optbutton_fastest);
 
 	JButton optbutton_shortest = new JButton("Shortest");
 	optbutton_shortest.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-	optbutton_shortest.setFont(new Font("Consolas", Font.BOLD, 13));
+	optbutton_shortest.setFont(DEFAULT_FONT);
 	optbutton_shortest.setForeground(textDark);
-	optbutton_shortest.setBounds(130, 80, 110, 39);
+	optbutton_shortest.setBounds(optbutton_fastest.getX() + optbutton_fastest.getWidth() + COMPONENT_MARGIN,
+		lblMetroMap.getY() + lblMetroMap.getHeight() + COMPONENT_MARGIN, IOL.toInt(BUTTON_SIZE.getWidth()),
+		IOL.toInt(BUTTON_SIZE.getHeight()));
 	optbutton_shortest.setUI(new MyButton());
 	left_navbar.add(optbutton_shortest);
 	buttons.add(optbutton_shortest);
 
 	JButton optbutton_min = new JButton("Minimum");
 	optbutton_min.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-	optbutton_min.setFont(new Font("Consolas", Font.BOLD, 13));
+	optbutton_min.setFont(DEFAULT_FONT);
 	optbutton_min.setForeground(textDark);
-	optbutton_min.setBounds(249, 80, 110, 39);
+	optbutton_min.setBounds(optbutton_shortest.getX() + optbutton_shortest.getWidth() + COMPONENT_MARGIN,
+		lblMetroMap.getY() + lblMetroMap.getHeight() + COMPONENT_MARGIN, IOL.toInt(BUTTON_SIZE.getWidth()),
+		IOL.toInt(BUTTON_SIZE.getHeight()));
 	optbutton_min.setUI(new MyButton());
 	left_navbar.add(optbutton_min);
 	buttons.add(optbutton_min);
 
 	JPanel input_panel = new JPanel();
 	input_panel.setBackground(new Color(100, 100, 116));
-	input_panel.setBounds(10, 130, 349, 150);
+	input_panel.setBounds(COMPONENT_MARGIN, optbutton_min.getY() + optbutton_min.getHeight() + COMPONENT_MARGIN,
+		(int) (L_NAVBAR_SIZE.getWidth() - COMPONENT_MARGIN * 2), (int) (L_NAVBAR_SIZE.getHeight() * 0.235 + 1));
 	left_navbar.add(input_panel);
 	input_panel.setLayout(null);
 
 	textfield_dpt = new JTextField();
-	textfield_dpt.setFont(new Font("Courier New", Font.PLAIN, 13));
-	textfield_dpt.setBounds(113, 10, 226, 30);
-	input_panel.add(textfield_dpt);
+	textfield_dpt.setFont(DEFAULT_FONT);
 	textfield_dpt.setColumns(10);
+	textfield_dpt.setBounds(input_panel.getWidth() * 1 / 3, COMPONENT_MARGIN,
+		input_panel.getWidth() * 2 / 3 - COMPONENT_MARGIN,
+		(input_panel.getHeight() - COMPONENT_MARGIN * 4) / 3);// y:10~40
+	input_panel.add(textfield_dpt);
 
 	textfield_via = new JTextField();
-	textfield_via.setFont(new Font("Courier New", Font.PLAIN, 13));
-
+	textfield_via.setFont(DEFAULT_FONT);
 	textfield_via.setColumns(10);
-	textfield_via.setBounds(113, 60, 226, 30);
+	textfield_via.setBounds(input_panel.getWidth() * 1 / 3,
+		textfield_dpt.getY() + textfield_dpt.getHeight() + COMPONENT_MARGIN,
+		input_panel.getWidth() * 2 / 3 - COMPONENT_MARGIN,
+		(input_panel.getHeight() - COMPONENT_MARGIN * 4) / 3);// y:60~90
 	input_panel.add(textfield_via);
 
 	textfield_arv = new JTextField();
-	textfield_arv.setFont(new Font("Courier New", Font.PLAIN, 13));
+	textfield_arv.setFont(DEFAULT_FONT);
 
 	textfield_arv.setColumns(10);
-	textfield_arv.setBounds(113, 110, 226, 30);
+	textfield_arv.setBounds(input_panel.getWidth() * 1 / 3,
+		textfield_via.getY() + textfield_via.getHeight() + COMPONENT_MARGIN,
+		input_panel.getWidth() * 2 / 3 - COMPONENT_MARGIN,
+		(input_panel.getHeight() - COMPONENT_MARGIN * 4) / 3);// y:110~140
 	input_panel.add(textfield_arv);
 
 	JLabel label_dpt = new JLabel("DPT.");
 	label_dpt.setForeground(Color.WHITE);
-	label_dpt.setFont(new Font("Consolas", Font.BOLD, 13));
+	label_dpt.setFont(DEFAULT_FONT);
 	label_dpt.setHorizontalAlignment(SwingConstants.CENTER);
-	label_dpt.setBounds(10, 10, 93, 26);
+	label_dpt.setBounds(COMPONENT_MARGIN, COMPONENT_MARGIN, input_panel.getWidth() * 1 / 3,
+		(input_panel.getHeight() - COMPONENT_MARGIN * 4) / 3);
 	input_panel.add(label_dpt);
 
 	JLabel label_via = new JLabel("Via");
 	label_via.setForeground(Color.WHITE);
-	label_via.setFont(new Font("Consolas", Font.BOLD, 13));
+	label_via.setFont(DEFAULT_FONT);
 	label_via.setHorizontalAlignment(SwingConstants.CENTER);
-	label_via.setBounds(10, 62, 93, 26);
+	label_via.setBounds(COMPONENT_MARGIN, label_dpt.getY() + label_dpt.getHeight() + COMPONENT_MARGIN,
+		input_panel.getWidth() * 1 / 3, (input_panel.getHeight() - COMPONENT_MARGIN * 4) / 3);
 	input_panel.add(label_via);
 
 	JLabel label_arv = new JLabel("ARV.");
 	label_arv.setForeground(Color.WHITE);
-	label_arv.setFont(new Font("Consolas", Font.BOLD, 13));
+	label_arv.setFont(DEFAULT_FONT);
 	label_arv.setHorizontalAlignment(SwingConstants.CENTER);
-	label_arv.setBounds(10, 110, 93, 26);
+	label_arv.setBounds(COMPONENT_MARGIN, label_via.getY() + label_via.getHeight() + COMPONENT_MARGIN,
+		input_panel.getWidth() * 1 / 3, (input_panel.getHeight() - COMPONENT_MARGIN * 4) / 3);
 	input_panel.add(label_arv);
-
-	JButton button_refresh = new JButton("Refresh");
-	button_refresh.setForeground(textDark);
-	button_refresh.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-	button_refresh.setFont(new Font("Consolas", Font.BOLD, 13));
-	button_refresh.setBounds(249, 291, 110, 32);
-	button_refresh.setUI(new MyButton());
-	left_navbar.add(button_refresh);
-	buttons.add(button_refresh);
-
-	JButton button_search = new JButton("Search");
-	button_search.setForeground(textDark);
-	button_search.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-	button_search.setFont(new Font("Consolas", Font.BOLD, 13));
-	button_search.setBounds(130, 291, 110, 32);
-	button_search.setUI(new MyButton());
-	left_navbar.add(button_search);
-	buttons.add(button_search);
 
 	JButton button_expand = new JButton("Expand");
 	button_expand.setForeground(textDark);
 	button_expand.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-	button_expand.setFont(new Font("Consolas", Font.BOLD, 13));
+	button_expand.setFont(DEFAULT_FONT);
 	button_expand.setUI(new MyButton());
-	button_expand.setBounds(10, 291, 110, 32);
+	button_expand.setBounds(COMPONENT_MARGIN, input_panel.getY() + input_panel.getHeight() + COMPONENT_MARGIN,
+		IOL.toInt(BUTTON_SIZE.getWidth()), IOL.toInt(BUTTON_SIZE.getHeight()));
 	left_navbar.add(button_expand);
 	buttons.add(button_expand);
 
+	JButton button_search = new JButton("Search");
+	button_search.setForeground(textDark);
+	button_search.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+	button_search.setFont(DEFAULT_FONT);
+	button_search.setBounds(button_expand.getX() + button_expand.getWidth() + COMPONENT_MARGIN,
+		input_panel.getY() + input_panel.getHeight() + COMPONENT_MARGIN, IOL.toInt(BUTTON_SIZE.getWidth()),
+		IOL.toInt(BUTTON_SIZE.getHeight()));
+	button_search.setUI(new MyButton());
+	left_navbar.add(button_search);
+	buttons.add(button_search);
+
+	JButton button_refresh = new JButton("Refresh");
+	button_refresh.setForeground(textDark);
+	button_refresh.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+	button_refresh.setFont(DEFAULT_FONT);
+	button_refresh.setBounds(button_search.getX() + button_search.getWidth() + COMPONENT_MARGIN,
+		input_panel.getY() + input_panel.getHeight() + COMPONENT_MARGIN, IOL.toInt(BUTTON_SIZE.getWidth()),
+		IOL.toInt(BUTTON_SIZE.getHeight()));
+	button_refresh.setUI(new MyButton());
+	left_navbar.add(button_refresh);
+	buttons.add(button_refresh);
+
+	JScrollPane scrollpane_display = new JScrollPane();
+	scrollpane_display.setBounds(10, button_search.getHeight() + button_search.getY() + 10,
+		left_navbar.getWidth() - 19,
+		left_navbar.getHeight() - (button_search.getHeight() + button_search.getY() + 55));
+	left_navbar.add(scrollpane_display);
+	scrollpane_display.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+	display_pane = new JTextPane();
+
+	display_pane.setFont(new Font(DEFAULT_FONT.getFamily(), Font.PLAIN, DEFAULT_FONT.getSize()));
+	display_pane.setEditable(false);
+	scrollpane_display.setViewportView(display_pane);
+
 	JButton button_zoom_in = new JButton("");
 	button_zoom_in.setIcon(new ImageIcon(".//data//zin.png"));
-	button_zoom_in.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
-	button_zoom_in.setFont(new Font("MS Reference Sans Serif", Font.BOLD, 10));
+	button_zoom_in.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 	button_zoom_in.setBorder(null);
-	button_zoom_in.setBounds(1100, 15, 35, 35);
+	button_zoom_in.setBounds((int) (FRAME_SIZE.getWidth() - COMPONENT_MARGIN * 3 - 35), COMPONENT_MARGIN, 35, 35);
 	button_zoom_in.setUI(new MyButton());
 	main_panel.add(button_zoom_in);
 	buttons.add(button_zoom_in);
 
 	JButton button_zoom_out = new JButton("");
 	button_zoom_out.setIcon(new ImageIcon(".//data//zout.png"));
-	button_zoom_out.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
-	button_zoom_out.setFont(new Font("MS Reference Sans Serif", Font.BOLD, 10));
+	button_zoom_out.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 	button_zoom_out.setBorder(null);
-	button_zoom_out.setBounds(1100 - 36, 15, 35, 35);
+	button_zoom_out.setBounds(button_zoom_in.getX() - COMPONENT_MARGIN - 35, COMPONENT_MARGIN, 35, 35);
 	button_zoom_out.setUI(new MyButton());
 	main_panel.add(button_zoom_out);
 	buttons.add(button_zoom_out);
 
-	ScrollPane scrollpane_map = new ScrollPane();
-	scrollpane_map.setBounds(375, 0, 793, 605);
+	JScrollPane scrollpane_map = new JScrollPane();
+	scrollpane_map.setBounds(left_navbar.getWidth(), 0,
+		IOL.toInt(FRAME_SIZE.getWidth() - left_navbar.getWidth() - 5), IOL.toInt(FRAME_SIZE.getHeight() - 55));
+	scrollpane_map.setVisible(true);
+	scrollpane_map.getVerticalScrollBar().setUnitIncrement(VSCROLL_RATE);
+	scrollpane_map.getHorizontalScrollBar().setUnitIncrement(HSCROLL_RATE);
 	main_panel.add(scrollpane_map);
-	scrollpane_map.getVAdjustable().setUnitIncrement(VSCROLL_RATE);
-	scrollpane_map.getHAdjustable().setUnitIncrement(HSCROLL_RATE);
 
 	MAP_IMAGE = new ImageIcon(DATA_REPO + city + "//map.png").getImage();
 	MAP_IMG_LBL = new JLabel("");
 	MAP_IMG_LBL.setIcon(new ImageIcon(MAP_IMAGE));
-	MAP_IMG_LBL.setBounds(519, 102, 46, 14);
-	scrollpane_map.add(MAP_IMG_LBL);
+	MAP_IMG_LBL.setBounds(scrollpane_map.getBounds());
+	setMAP_size(scrollpane_map.getWidth() - COMPONENT_MARGIN, scrollpane_map.getHeight() - COMPONENT_MARGIN);
+	scrollpane_map.setViewportView(MAP_IMG_LBL);
 
-	JScrollPane scrollpane_display = new JScrollPane();
-	scrollpane_display.setBounds(10, 334, 349, 260);
-	left_navbar.add(scrollpane_display);
-	display_pane = new JTextPane();
-	display_pane.setFont(new Font("Consolas", Font.PLAIN, 11));
-	display_pane.setEditable(false);
-	scrollpane_display.setViewportView(display_pane);
 	/*
 	 * .**************************************************************************
 	 * LISTENERS
 	 ***************************************************************************/
+	/*---------------------- SWITCH BETWEEN CITIES ----------------------*/
+	radio_button_Seoul.addActionListener(new ActionListener() {
+	    public void actionPerformed(ActionEvent e) {
 
+		city = "Seoul";
+		radio_button_Seoul.setSelected(true);
+		radio_button_Istanbul.setSelected(false);
+		initMAP();
+		MAP_IMAGE = new ImageIcon(DATA_REPO + city + "//map.png").getImage();
+		MAP_IMG_LBL.setIcon(new ImageIcon(MAP_IMAGE));
+		setMAP_size(scrollpane_map.getWidth() - COMPONENT_MARGIN,
+			scrollpane_map.getHeight() - COMPONENT_MARGIN);
+
+	    }
+	});
+	radio_button_Istanbul.addActionListener(new ActionListener() {
+	    public void actionPerformed(ActionEvent arg0) {
+		city = "Istanbul";
+		radio_button_Istanbul.setSelected(true);
+		radio_button_Seoul.setSelected(false);
+		initMAP();
+		MAP_IMAGE = new ImageIcon(DATA_REPO + city + "//map.png").getImage();
+		MAP_IMG_LBL.setIcon(new ImageIcon(MAP_IMAGE));
+		setMAP_size(scrollpane_map.getWidth() - COMPONENT_MARGIN,
+			scrollpane_map.getHeight() - COMPONENT_MARGIN);
+
+	    }
+	});
 	/*----------------------ADDING AUTOCOMPLETION-----------------------*/
 	ArrayList<String> list = new ArrayList<>();
 	hash.keys().iterator().forEachRemaining(list::add);
@@ -706,20 +747,8 @@ public class MainMenu {
 	textfield_arv.addKeyListener(IOL.addAutoCompletion(textfield_arv, list));
 
 	textfield_dpt.addMouseListener(IOL.closePopup());
-
 	textfield_via.addMouseListener(IOL.closePopup());
-
 	textfield_arv.addMouseListener(IOL.closePopup());
-
-	button_expand.addActionListener(new ActionListener() {
-	    public void actionPerformed(ActionEvent arg0) {
-		// FIXME: Might add: !sRE.toString().isEmpty()
-		if (searchResultsExtended != null) {
-		    display_pane.setText(searchResultsExtended.toString());
-		    display_pane.setCaretPosition(0);
-		}
-	    }
-	});
 
 	/*-------------------------------------------------------------------*/
 	/*-----------------MENUBAR -> SETTINGS -> MAP SCALE-----------------*/
@@ -730,6 +759,7 @@ public class MainMenu {
 	/** ----------------------DRAG FEATURE---------------------- */
 	left_navbar.addMouseMotionListener(IOL.dragLeftNavBar(left_navbar));
 
+	/** ----------------------'FASTEST' BUTTON---------------------- */
 	optbutton_fastest.addActionListener(new ActionListener() {
 	    public void actionPerformed(ActionEvent e) {
 		optbutton_fastest.setForeground(textBright);
@@ -737,7 +767,7 @@ public class MainMenu {
 		optbutton_shortest.setForeground(textDark);
 		MODE = 0;
 	    }
-	});
+	});/** ----------------------'SHORTEST' BUTTON---------------------- */
 	optbutton_shortest.addActionListener(new ActionListener() {
 	    public void actionPerformed(ActionEvent e) {
 		optbutton_shortest.setForeground(textBright);
@@ -745,7 +775,7 @@ public class MainMenu {
 		optbutton_fastest.setForeground(textDark);
 		MODE = 1;
 	    }
-	});
+	});/** ----------------------'MINIMUM' BUTTON---------------------- */
 	optbutton_min.addActionListener(new ActionListener() {
 	    public void actionPerformed(ActionEvent e) {
 		optbutton_min.setForeground(textBright);
@@ -754,6 +784,17 @@ public class MainMenu {
 		MODE = 2;
 	    }
 	});
+
+	/** ----------------------EXPAND BUTTON---------------------- */
+	button_expand.addActionListener(new ActionListener() {
+	    public void actionPerformed(ActionEvent arg0) {
+		if (searchResultsExtended != null) {
+		    display_pane.setText(searchResultsExtended.toString());
+		    display_pane.setCaretPosition(0);
+		}
+	    }
+	});
+
 	button_refresh.addActionListener(new ActionListener() {
 	    public void actionPerformed(ActionEvent arg0) {
 		refresh(new Component[] { left_navbar, optbutton_fastest, optbutton_min, optbutton_shortest,
@@ -761,7 +802,7 @@ public class MainMenu {
 
 	    }
 	});
-
+	/** ----------------------REFRESH BUTTON---------------------- */
 	/* Refresh option, menu item, Refreshes the screen */
 	menu_item_refresh.addActionListener(new ActionListener() {
 	    public void actionPerformed(ActionEvent e) {
@@ -771,6 +812,7 @@ public class MainMenu {
 	    }
 	});
 
+	/** ----------------------DRAG BUTTON---------------------- */
 	/* Radio button, menu item, flag for dragging */
 	radio_button_drag.addItemListener(new ItemListener() {
 	    public void itemStateChanged(ItemEvent arg0) {
@@ -778,16 +820,49 @@ public class MainMenu {
 	    }
 	});
 
+	/** ----------------------'ZOOM IN' BUTTON---------------------- */
 	button_zoom_in.addActionListener(new ActionListener() {
 	    public void actionPerformed(ActionEvent arg0) {
-		scaleMAP(MAP_IMG_LBL, ZOOM_SCALE);
+		button_zoom_out.requestFocus();
+		button_zoom_in.requestFocus();
+		/* ZOOM IN THRESHOLD */
+		int w = MAP_IMG_LBL.getWidth();
+		int h = MAP_IMG_LBL.getHeight();
+		w = (int) (w + w * ZOOM_SCALE);
+		h = (int) (h + h * ZOOM_SCALE);
+		if (w >= scrollpane_map.getWidth() * 5 || h >= scrollpane_map.getHeight() * 5) {
+		    setMAP_size(scrollpane_map.getWidth() * 5, scrollpane_map.getHeight() * 5);
+		    return;
+		}
+
+		/* if zoom in is possible */
+		scaleMAP(ZOOM_SCALE);
+
 	    }
 	});
+	/** ----------------------'ZOOM OUT' BUTTON---------------------- */
 	button_zoom_out.addActionListener(new ActionListener() {
 	    public void actionPerformed(ActionEvent e) {
-		scaleMAP(MAP_IMG_LBL, -ZOOM_SCALE);
+		button_zoom_in.requestFocus();
+		button_zoom_out.requestFocus();
+		/* ZOOM OUT THRESHOLD */
+		int w = MAP_IMG_LBL.getWidth();
+		int h = MAP_IMG_LBL.getHeight();
+		w = (int) (w + w * -ZOOM_SCALE);
+		h = (int) (h + h * -ZOOM_SCALE);
+		if (w <= scrollpane_map.getWidth() - COMPONENT_MARGIN
+			|| h <= scrollpane_map.getHeight() - COMPONENT_MARGIN) {
+		    setMAP_size(scrollpane_map.getWidth() - COMPONENT_MARGIN,
+			    scrollpane_map.getHeight() - COMPONENT_MARGIN);
+		    return;
+		}
+
+		/* if zoom out is possible */
+		scaleMAP(-ZOOM_SCALE);
+
 	    }
 	});
+
     }
 
     private boolean hasTranfer(String path, String transfer) {
@@ -1225,15 +1300,20 @@ public class MainMenu {
      * AUX-METHODS
      ***************************************************************************/
 
-    public static void scaleMAP(JLabel label, double scale) {
-	int w = label.getWidth();
-	int h = label.getHeight();
-	Image newImg = MAP_IMAGE.getScaledInstance(IOL.toInt(w + w * scale), IOL.toInt(h + h * scale), MAP_SCALE_HINTS);
-	label.setIcon(new ImageIcon(newImg));
+    public static void scaleMAP(double scale) {
+	int w = MAP_IMG_LBL.getWidth();
+	int h = MAP_IMG_LBL.getHeight();
+	setMAP_size(IOL.toInt(w + w * scale), IOL.toInt(h + h * scale));
+
+    }
+
+    public static void setMAP_size(int w, int h) {
+	Image newImg = MAP_IMAGE.getScaledInstance(w, h, MAP_SCALE_HINTS);
+	MAP_IMG_LBL.setIcon(new ImageIcon(newImg));
     }
 
     private void refresh(Component[] a) {
-	a[0].setBounds(0, 0, 369, 605);
+	a[0].setLocation(0, 0);
 	IOL.prev_p = null;
 	IOL.curr_p = null;
 	a[1].setForeground(textBright);
@@ -1271,10 +1351,9 @@ public class MainMenu {
 		    return;
 		}
 
-		// FIXME:
+		
 		/** If the mode is on MINIMUM */
 		if (MODE == 2) {
-
 		    StringBuilder searchResults = displayMin(from, via, to);
 		    display_pane.setText(searchResults.toString());
 		    return;

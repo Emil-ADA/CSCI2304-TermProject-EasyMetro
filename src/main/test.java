@@ -1,11 +1,37 @@
 package main;
 
-import java.util.Random;
+import java.awt.*;
+import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 
 public class test {
 
+    test() {
+        JFrame f = new JFrame(this.getClass().getSimpleName());
+        f.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+
+        f.add(new ColoredPanel(Color.GREEN));
+        f.add(new ColoredPanel(Color.RED));
+
+        f.pack();
+        f.setVisible(true);
+    }
+
     public static void main(String[] args) {
-	while (true)
-	    System.out.println(new Random().nextInt(3));
+        Runnable r = new Runnable() {
+            @Override
+            public void run() {
+                new test();
+            }
+        };
+        SwingUtilities.invokeLater(r);
+    }
+}
+
+class ColoredPanel extends JPanel {
+
+    ColoredPanel(Color color) {
+        setBackground(color);
+        setBorder(new EmptyBorder(20, 150, 20, 150));
     }
 }
