@@ -60,7 +60,14 @@ import java.awt.Cursor;
 
 public class MainMenu {
     // TODO: ADD SOME COLOUR TO CONSOLE
-    // TODO : TRY TO APPROXIMATE: DISPLAY_PANE_LINE_LENGTH
+    // TODO: fix suggestion when switching between cities
+    // TODO: Make an algo so that it check 2 edges in that path given by dfs, and
+    // looks for lines of that edges and if any change then transfer++, basically
+    // automate
+
+    // FIXME: from: Cebeci, Via: Topkapi, To: Yenimahalle | Stop interferes with
+    // transfer
+
     /*
      * .**************************************************************************
      * GETTING CONFIGURATIONS
@@ -107,7 +114,7 @@ public class MainMenu {
      * without reduction
      */
     /* 54~56,I don't know why it varies, but yes magic */
-    public static int DISPLAY_PANE_LINE_LENGTH;
+    public static int DISPLAY_PANE_LINE_LENGTH = 85;
 
     /** Variable ratio for zooming in and out, default value 10% */
     public static final double ZOOM_SCALE = Double.parseDouble(IOL.getValue("ZOOM_SCALE"));
@@ -132,7 +139,7 @@ public class MainMenu {
     public static final Rectangle BUTTON_SIZE = new Rectangle(
 	    (int) ((L_NAVBAR_SIZE.getWidth() - COMPONENT_MARGIN * 4) / 3), (int) (L_NAVBAR_SIZE.getHeight() * 0.0611));
     /** The data repository */
-    private static final String DATA_REPO = ".//data//Cities//";
+    static final String DATA_REPO = ".//data//Cities//";
 
     private static final Font DEFAULT_FONT = new Font(IOL.getValue("DEFAULT_FONT"), Font.BOLD, SCREEN_WIDTH / 100);
 
@@ -142,7 +149,7 @@ public class MainMenu {
     private Color textDark = new Color(110, 159, 255);
 
     /** Current city of which map is displayed */
-    private static String city = "Istanbul";
+    static String city = "Istanbul";
 
     /** Image of the map to be displayed */
     private static Image MAP_IMAGE;
@@ -184,12 +191,7 @@ public class MainMenu {
      */
     private LinearProbingHashST<String, Integer> hash;
     /** Metro */
-    private Graph METROMAP;
-    /**
-     * An instance of <code>StringBuilder</code> that will contain the full details
-     * of the route (each station one-by-one).
-     */
-    private StringBuilder searchResultsExtended;
+    private Graph GRAPH;
 
     /**
      * Launch the application.
@@ -250,7 +252,7 @@ public class MainMenu {
 	}
 
 	/* Initialize initial space for Map */
-	METROMAP = new Graph(hash.size());
+	GRAPH = new Graph(hash.size());
 
 	/* Adding stations and creating Edges */
 	for (File line : roadlines) {
@@ -271,7 +273,7 @@ public class MainMenu {
 		    MWEdge newEdge = new MWEdge(hash.get(prev), hash.get(key), time, distance);
 		    newEdge.setVertexNames(prev, key);
 		    newEdge.setLine(FilenameUtils.getBaseName(line.getAbsolutePath()));
-		    METROMAP.addEdge(newEdge);
+		    GRAPH.addEdge(newEdge);
 		    prev = key;
 		}
 
@@ -308,8 +310,19 @@ public class MainMenu {
 	menu_item_test.addActionListener(new ActionListener() {
 	    public void actionPerformed(ActionEvent arg0) {
 		// TODO: ADD YOUR CODE HERE TO TEST
-		DISPLAY_PANE_LINE_LENGTH = (int) (display_pane.getWidth()
-			/ frame.getFontMetrics(DEFAULT_FONT).charWidth('-')) - COMPONENT_MARGIN;
+
+		int max = 0;
+		for (char i = 0; i < 256 / 2; i++) {
+		    if (!Character.isAlphabetic(i) && !Character.isDigit(i))
+			continue;
+		    int num = (int) (display_pane.getWidth() / frame.getFontMetrics(DEFAULT_FONT).getWidths()[i]);
+		    if (max <= num) {
+			max = num;
+			StdOut.println((char) i);
+		    }
+		}
+		DISPLAY_PANE_LINE_LENGTH = max;
+		// DISPLAY_PANE_LINE_LENGTH = 85;
 		StdOut.println(DISPLAY_PANE_LINE_LENGTH);
 	    }
 	});
@@ -381,7 +394,7 @@ public class MainMenu {
 	menu_settings.add(menu_item_showDetails);
 	menu_item_showDetails.addActionListener(new ActionListener() {
 	    public void actionPerformed(ActionEvent arg0) {
-		display_pane.setText(METROMAP.toString());
+		display_pane.setText(GRAPH.toString());
 		display_pane.setCaretPosition(0);
 	    }
 	});
@@ -721,9 +734,11 @@ public class MainMenu {
 		initMAP();
 		MAP_IMAGE = new ImageIcon(DATA_REPO + city + "//map.png").getImage();
 		MAP_IMG_LBL.setIcon(new ImageIcon(MAP_IMAGE));
+
 		setMAP_size(scrollpane_map.getWidth() - COMPONENT_MARGIN,
 			scrollpane_map.getHeight() - COMPONENT_MARGIN);
-
+		refresh(new Component[] { left_navbar, optbutton_fastest, optbutton_min, optbutton_shortest,
+			radio_button_drag });
 	    }
 	});
 	radio_button_Istanbul.addActionListener(new ActionListener() {
@@ -736,6 +751,8 @@ public class MainMenu {
 		MAP_IMG_LBL.setIcon(new ImageIcon(MAP_IMAGE));
 		setMAP_size(scrollpane_map.getWidth() - COMPONENT_MARGIN,
 			scrollpane_map.getHeight() - COMPONENT_MARGIN);
+		refresh(new Component[] { left_navbar, optbutton_fastest, optbutton_min, optbutton_shortest,
+			radio_button_drag });
 
 	    }
 	});
@@ -788,8 +805,8 @@ public class MainMenu {
 	/** ----------------------EXPAND BUTTON---------------------- */
 	button_expand.addActionListener(new ActionListener() {
 	    public void actionPerformed(ActionEvent arg0) {
-		if (searchResultsExtended != null) {
-		    display_pane.setText(searchResultsExtended.toString());
+		if (Algorithm.searchResultsExtended != null) {
+		    display_pane.setText(Algorithm.searchResultsExtended.toString());
 		    display_pane.setCaretPosition(0);
 		}
 	    }
@@ -799,7 +816,6 @@ public class MainMenu {
 	    public void actionPerformed(ActionEvent arg0) {
 		refresh(new Component[] { left_navbar, optbutton_fastest, optbutton_min, optbutton_shortest,
 			radio_button_drag });
-
 	    }
 	});
 	/** ----------------------REFRESH BUTTON---------------------- */
@@ -865,437 +881,6 @@ public class MainMenu {
 
     }
 
-    private boolean hasTranfer(String path, String transfer) {
-	boolean retval = false;
-
-	retval = (retval || (path.contains(transfer)));
-
-	String arr[] = transfer.split("/");
-	/**
-	 * We need to consider, for ex.: <br>
-	 * Bayrampasa-Maltepe/Topkapi-Ulubatli/Fetihkapi<br>
-	 * AND <br>
-	 * Fetihkapi/Topkapi-Ulubatli/Bayrampasa-Maltepe
-	 */
-	transfer = arr[2] + "/" + arr[1] + "/" + arr[0];
-	retval = (retval || (path.contains(transfer)));
-	return retval;
-    }
-
-    private static int PREVIOUS_INDEX = 0;
-
-    private Queue<MWEdge> searchMin(String from, String to) {
-	DepthFirstSearch dfs = new DepthFirstSearch(METROMAP, hash, from, to);
-	ArrayList<Stack<String>> ALL_PATHS = dfs.getAllPaths();
-
-	if (ALL_PATHS.size() == 0) {
-	    return null;
-	}
-
-	int size = ALL_PATHS.size();
-	int W[] = new int[size];
-
-	/** Calculating the amount of transfers */
-	for (int i = 0; i < size; i++) {
-	    String path = ALL_PATHS.get(i).toString();
-	    try (Scanner sc = new Scanner(new File(DATA_REPO + city + "//transfer.txt"))) {
-		while (sc.hasNext()) {
-		    String transfer = sc.nextLine();
-		    if (hasTranfer(path, transfer)) {
-			W[i]++;
-		    }
-		}
-	    } catch (FileNotFoundException e) {
-		System.err.print("NOT FOUND" + e);
-	    }
-	}
-
-	ArrayList<Integer> rand_indecies = new ArrayList<Integer>();
-	int min = Integer.MAX_VALUE;
-	int ind = 0;
-	rand_indecies.add(ind);
-	for (int i = 0; i < size; i++) {
-
-	    if (W[i] < min) {
-		min = W[i];
-		ind = i;
-		rand_indecies.clear();
-	    }
-
-	    if (W[i] == min) {
-		rand_indecies.add(i);
-	    }
-
-	}
-	PREVIOUS_INDEX++;
-	if (PREVIOUS_INDEX >= rand_indecies.size())
-	    PREVIOUS_INDEX = 0;
-
-	String min_path_vertices[] = ALL_PATHS.get(rand_indecies.get(PREVIOUS_INDEX)).toString().split("/");
-
-	Queue<MWEdge> path = new Queue<>();
-
-	for (int i = 0; i < min_path_vertices.length - 1; i++) {
-	    for (MWEdge e : METROMAP.edges()) {
-		String name = e.w_name + e.v_name;
-		if (name.equals(min_path_vertices[i] + min_path_vertices[i + 1])
-			|| name.equals(min_path_vertices[i + 1] + min_path_vertices[i])) {
-		    path.enqueue(e);
-		}
-	    }
-	}
-
-	return path;
-    }
-
-    /**
-     * Method for displaying the path found by <code>searchMin(from, to)</code>
-     * method. <br>
-     * 
-     * @param from
-     *                 departure station
-     * @param via
-     *                 station to stop
-     * @param to
-     *                 destination station
-     * @return Results in String form
-     */
-    private StringBuilder displayMin(String from, String via, String to) {
-	/*-------------------------------------------------------------------*/
-	// I understand that this part is being repeated, but each case has a
-	// minor difference that made it hard for me to short it out
-	/*-------------------------------------------------------------------*/
-	StringBuilder searchResults = new StringBuilder();
-	searchResultsExtended = new StringBuilder();
-	String str2Append = "";
-	double time = 0;
-	double distance = 0;
-	/*-------------------------------------------------------------------*/
-	/*----------------------------from->via-----------------------------*/
-	/*-----------------------------------------------------------------*/
-
-	/** if 'via' is missing, 'to' becomes 'via' */
-	if (via == null) {
-	    via = to;
-	    to = null;
-	}
-
-	/** ALL SHORTEST PATHS FROM 'from' */
-	Queue<MWEdge> pathTo = searchMin(from, via);
-	String line_changed = null;
-	str2Append = "\nDEPARTURE\n";
-	searchResults.append(str2Append);
-	searchResultsExtended.append(str2Append);
-
-	/** Shortest path between 'from' and 'via */
-	MWEdge e = null;
-	int transfer = 0;
-	int stations = 1; // Stations start at one, because oz mindiyin esseyi de saymaq lazimdir
-
-	/* DEPARTURE STATION */
-	e = pathTo.dequeue();
-	str2Append = e + "\n";
-	searchResults.append(str2Append);
-	searchResultsExtended.append(str2Append);
-	line_changed = e.getLine();
-	stations++;
-	time += e.getWeightAt(0);
-	distance += e.getWeightAt(1);
-	while (!pathTo.isEmpty()) {
-	    e = pathTo.dequeue();
-	    time += e.getWeightAt(0);
-	    distance += e.getWeightAt(1);
-	    stations++;
-	    str2Append = e + "\n";
-	    searchResultsExtended.append(str2Append); // extended results saves all, while normal not
-
-	    /** Display the only edge where the transfer has happened */
-	    if (!e.getLine().equals(line_changed)) {
-		transfer++;
-		searchResults.append("TRANSFER" + str2Append.substring(str2Append.indexOf(':'), str2Append.length()));
-	    }
-	    line_changed = e.getLine();
-	}
-
-	// append DESTINATION as well
-	if (!searchResults.toString().contains(str2Append) || !searchResults.toString()
-		.contains("TRANSFER" + str2Append.substring(str2Append.indexOf(':'), str2Append.length())))
-	    searchResults.append(str2Append);
-	/*-------------------------------------------------------------------*/
-	/*----------------------------via->to-----------------------------*/
-	/*-----------------------------------------------------------------*/
-
-	/** if via station has been given */
-	if (to != null) {
-	    str2Append = "STOP\n";
-	    searchResults.append(str2Append);
-	    searchResultsExtended.append(str2Append);
-
-	    pathTo = searchMin(via, to);
-	    e = null;
-
-	    /* DEPARTURE STATION */
-	    e = pathTo.dequeue();
-	    stations++;
-	    time += e.getWeightAt(0);
-	    distance += e.getWeightAt(1);
-	    str2Append = e + "\n";
-	    line_changed = e.getLine();
-	    searchResults.append(str2Append);
-
-	    while (!pathTo.isEmpty()) {
-		e = pathTo.dequeue();
-		time += e.getWeightAt(0);
-		distance += e.getWeightAt(1);
-		stations++;
-		str2Append = e + "\n";
-
-		searchResultsExtended.append(str2Append);
-
-		if (!e.getLine().equals(line_changed)) {
-		    transfer++;
-		    searchResults
-			    .append("TRANSFER" + str2Append.substring(str2Append.indexOf(':'), str2Append.length()));
-
-		}
-		line_changed = e.getLine();
-	    }
-
-	    // append DESTINATION as well
-	    if (!searchResults.toString().contains(str2Append) || !searchResults.toString()
-		    .contains("TRANSFER" + str2Append.substring(str2Append.indexOf(':'), str2Append.length())))
-		searchResults.append(str2Append);
-	}
-	str2Append = "DESTINATION\n\n";
-	searchResults.append(str2Append);
-	searchResultsExtended.append(str2Append);
-
-	/*
-	 * Adding travel info.
-	 */
-	str2Append = JUtil.n_times_char(DISPLAY_PANE_LINE_LENGTH, '-');
-	searchResults.replace(0, searchResults.length(), str2Append + searchResults.toString());
-
-	try (Scanner sc = new Scanner(new File(DATA_REPO + city + "//fare.txt"))) {
-	    String line = sc.nextLine();
-	    /* Add total cost */
-	    line = line.substring(line.indexOf('=') + 1, line.length());
-	    /**
-	     * Transfer + 1, because we pay when we enter the metro first time
-	     */
-	    str2Append = "Fare: ";
-	    String cost = String.format("%.2f", Double.parseDouble(line) * (transfer + 1));
-	    str2Append += cost;
-
-	    /* Add currency */
-	    line = sc.nextLine();
-	    line = line.substring(line.indexOf('=') + 1, line.length());
-	    str2Append += " " + line;
-	    str2Append = JUtil.n_times_char(54 / 2 - str2Append.length() / 2, ' ') + str2Append + "\n";
-	} catch (FileNotFoundException e1) {
-	}
-
-	/**
-	 * This substring concationation is done only because, results are calculated
-	 * only after traversing
-	 */
-	searchResults.replace(0, searchResults.length(), str2Append + searchResults.toString());
-
-	/** Temporarily changing modes for displaying different parameters */
-	int temp = MODE;
-
-	/* Mode = 0, is for displaying time */
-	MODE = 0;
-
-	str2Append = "Lead Time: " + IOL.formatResult(time, MODE);
-	str2Append = JUtil.n_times_char(54 / 2 - str2Append.length() / 2, ' ') + str2Append + "\n";
-	searchResults.replace(0, searchResults.length(), str2Append + searchResults.toString());
-	searchResultsExtended.append(str2Append);
-
-	/* Mode = 0, is for displaying distance */
-	MODE = 1;
-
-	str2Append = "Distance: " + IOL.formatResult(distance, MODE);
-	str2Append = JUtil.n_times_char(54 / 2 - str2Append.length() / 2, ' ') + str2Append + "\n";
-	searchResults.replace(0, searchResults.length(), str2Append + searchResults.toString());
-	searchResultsExtended.append(str2Append);
-
-	MODE = temp;
-
-	str2Append = stations + " Station(s). | " + transfer + " Transfer(s).";
-	str2Append = JUtil.n_times_char(54 / 2 - str2Append.length() / 2, ' ') + str2Append + "\n";
-	searchResults.replace(0, searchResults.length(), str2Append + searchResults.toString());
-	searchResultsExtended.append(str2Append);
-
-	return searchResults;
-    }
-
-    private StringBuilder search(String from, String via, String to) {
-	/** Output variables */
-	StringBuilder searchResults = new StringBuilder();
-	searchResultsExtended = new StringBuilder();
-	String str2Append = "";
-	double time = 0;
-	double distance = 0;
-	/*-------------------------------------------------------------------*/
-	/*----------------------------from->via-----------------------------*/
-	/*-----------------------------------------------------------------*/
-
-	/** if 'via' is missing, 'to' becomes 'via' */
-	if (via == null) {
-	    via = to;
-	    to = null;
-	}
-	/** ALL SHORTEST PATHS FROM 'from' */
-	DijkstraUndirectedSP first = new DijkstraUndirectedSP(METROMAP, hash.get(from), MODE);
-	String line_changed = null;
-	str2Append = "\nDEPARTURE\n";
-	searchResults.append(str2Append);
-	searchResultsExtended.append(str2Append);
-
-	/** Shortest path between 'from' adn 'via */
-	Iterator<MWEdge> pathTo = first.pathTo(hash.get(via)).iterator();
-	MWEdge e = null;
-	int transfer = 0;
-	int stations = 1; // Stations start at one, because oz mindiyin esseyi de saymaq lazimdir
-
-	/* DEPARTURE STATION */
-	e = pathTo.next();
-	str2Append = e + "\n";
-	searchResults.append(str2Append);
-	searchResultsExtended.append(str2Append);
-	line_changed = e.getLine();
-	stations++;
-	time += e.getWeightAt(0);
-	distance += e.getWeightAt(1);
-
-	while (pathTo.hasNext()) {
-	    e = pathTo.next();
-	    time += e.getWeightAt(0);
-	    distance += e.getWeightAt(1);
-	    stations++;
-	    str2Append = e + "\n";
-	    searchResultsExtended.append(str2Append); // extended results saves all, while normal not
-
-	    /** Display the only edge where the transfer has happened */
-	    if (!e.getLine().equals(line_changed)) {
-		transfer++;
-		searchResults.append("TRANSFER" + str2Append.substring(str2Append.indexOf(':'), str2Append.length()));
-	    }
-	    line_changed = e.getLine();
-	}
-
-	// append DESTINATION as well
-	if (!searchResults.toString().contains(str2Append) || !searchResults.toString()
-		.contains("TRANSFER" + str2Append.substring(str2Append.indexOf(':'), str2Append.length())))
-	    searchResults.append(str2Append);
-	/*-------------------------------------------------------------------*/
-	/*----------------------------via->to-----------------------------*/
-	/*-----------------------------------------------------------------*/
-	DijkstraUndirectedSP second = null;
-
-	/** if via station has been given */
-	if (to != null) {
-	    second = new DijkstraUndirectedSP(METROMAP, hash.get(via), MODE);
-	    str2Append = "STOP\n";
-	    searchResults.append(str2Append);
-	    searchResultsExtended.append(str2Append);
-
-	    pathTo = second.pathTo(hash.get(to)).iterator();
-	    e = null;
-
-	    /* DEPARTURE STATION */
-	    e = pathTo.next();
-	    stations++;
-	    str2Append = e + "\n";
-	    line_changed = e.getLine();
-	    searchResults.append(str2Append);
-	    time += e.getWeightAt(0);
-	    distance += e.getWeightAt(1);
-	    while (pathTo.hasNext()) {
-		e = pathTo.next();
-		time += e.getWeightAt(0);
-		distance += e.getWeightAt(1);
-		stations++;
-		str2Append = e + "\n";
-
-		searchResultsExtended.append(str2Append);
-
-		if (!e.getLine().equals(line_changed)) {
-		    transfer++;
-		    searchResults
-			    .append("TRANSFER" + str2Append.substring(str2Append.indexOf(':'), str2Append.length()));
-
-		}
-		line_changed = e.getLine();
-	    }
-
-	    // append DESTINATION as well
-	    if (!searchResults.toString().contains(str2Append) || !searchResults.toString()
-		    .contains("TRANSFER" + str2Append.substring(str2Append.indexOf(':'), str2Append.length())))
-		searchResults.append(str2Append);
-	}
-	str2Append = "DESTINATION\n\n";
-	searchResults.append(str2Append);
-	searchResultsExtended.append(str2Append);
-
-	/*
-	 * Adding travel info.
-	 */
-	str2Append = JUtil.n_times_char(DISPLAY_PANE_LINE_LENGTH, '-');
-	searchResults.replace(0, searchResults.length(), str2Append + searchResults.toString());
-	try (Scanner sc = new Scanner(new File(DATA_REPO + city + "//fare.txt"))) {
-	    String line = sc.nextLine();
-	    /* Add total cost */
-	    line = line.substring(line.indexOf('=') + 1, line.length());
-	    /**
-	     * Transfer + 1, because we pay when we enter the metro first time
-	     */
-	    str2Append = "Fare: ";
-	    String cost = String.format("%.2f", Double.parseDouble(line) * (transfer + 1));
-	    str2Append += cost;
-
-	    /* Add currency */
-	    line = sc.nextLine();
-	    line = line.substring(line.indexOf('=') + 1, line.length());
-	    str2Append += " " + line;
-	    str2Append = JUtil.n_times_char(54 / 2 - str2Append.length() / 2, ' ') + str2Append + "\n";
-	} catch (FileNotFoundException e1) {
-	}
-
-	/**
-	 * This substring concationation is done only because, results are calculated
-	 * only after traversing
-	 */
-	searchResults.replace(0, searchResults.length(), str2Append + searchResults.toString());
-
-	/** Temporarily changing modes for displaying different parameters */
-	int temp = MODE;
-
-	/* Mode = 0, is for displaying time */
-	MODE = 0;
-	str2Append = "Lead Time: " + IOL.formatResult(time, MODE);
-	str2Append = JUtil.n_times_char(54 / 2 - str2Append.length() / 2, ' ') + str2Append + "\n";
-	searchResults.replace(0, searchResults.length(), str2Append + searchResults.toString());
-	searchResultsExtended.append(str2Append);
-
-	/* Mode = 0, is for displaying distance */
-	MODE = 1;
-	str2Append = "Distance: " + IOL.formatResult(distance, MODE);
-	str2Append = JUtil.n_times_char(54 / 2 - str2Append.length() / 2, ' ') + str2Append + "\n";
-	searchResults.replace(0, searchResults.length(), str2Append + searchResults.toString());
-	searchResultsExtended.append(str2Append);
-
-	MODE = temp;
-
-	str2Append = stations + " Station(s). | " + transfer + " Transfer(s).";
-	str2Append = JUtil.n_times_char(54 / 2 - str2Append.length() / 2, ' ') + str2Append + "\n";
-	searchResults.replace(0, searchResults.length(), str2Append + searchResults.toString());
-	searchResultsExtended.append(str2Append);
-
-	return searchResults;
-    }
-
     /***************************************************************************
      * AUX-METHODS
      ***************************************************************************/
@@ -1325,7 +910,7 @@ public class MainMenu {
 	textfield_arv.setText("");
 	((JRadioButtonMenuItem) a[4]).setSelected(false);
 	DRAG_FLAG = false;
-	searchResultsExtended = new StringBuilder();
+	Algorithm.searchResultsExtended = new StringBuilder();
 	display_pane.setText("");
     }
 
@@ -1334,35 +919,33 @@ public class MainMenu {
 
 	    @Override
 	    public void actionPerformed(ActionEvent e) {
-		String from = textfield_dpt.getText();
-		String via = (hash.contains(textfield_via.getText())) ? textfield_via.getText() : null;
-		String to = textfield_arv.getText();
+		String from = textfield_dpt.getText().trim();
+		String via = (hash.contains(textfield_via.getText().trim())) ? textfield_via.getText().trim() : null;
+		String to = textfield_arv.getText().trim();
 
 		/** Adding case insensitivity */
 		for (String station : hash.keys()) {
 		    from = IOL.equalsCaseInsensitive(station, from);
 		    via = IOL.equalsCaseInsensitive(station, via);
 		    to = IOL.equalsCaseInsensitive(station, to);
-
 		}
 
-		/** If user accidentally inputs the same station */
-		if (!IOL.validate(frame, hash, from, textfield_via.getText(), to)) {
+		/** Input validation, spell check */
+		if (!IOL.validate(frame, hash, from, via, to)) {
 		    return;
 		}
 
-		
+		StringBuilder searchResults;
+
 		/** If the mode is on MINIMUM */
 		if (MODE == 2) {
-		    StringBuilder searchResults = displayMin(from, via, to);
-		    display_pane.setText(searchResults.toString());
-		    return;
+		    searchResults = Algorithm.displayMin(from, via, to, GRAPH, hash);
+		} else {
+		    /** For the modes SHORTEST and FASTEST */
+		    searchResults = Algorithm.search(from, via, to, GRAPH, hash);
 		}
 
-		/** For the modes SHORTEST and FASTEST */
-		StringBuilder searchResults = search(from, via, to);
 		display_pane.setText(searchResults.toString());
-
 		display_pane.setCaretPosition(0);
 	    }
 	};
