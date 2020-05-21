@@ -1,7 +1,6 @@
 package main;
 
 import java.awt.Component;
-import java.awt.Frame;
 import java.awt.Point;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
@@ -28,6 +27,24 @@ import DS.Basic.LinearProbingHashST;
  *
  */
 public class IOL {
+    /** Reference to the hash in main class */
+    private static LinearProbingHashST<String, Integer> hash;
+
+    /**
+     * @return the hash
+     */
+    public static LinearProbingHashST<String, Integer> getHash() {
+	return hash;
+    }
+
+    /**
+     * @param hash
+     *                 the hash to set
+     */
+    public static void setHash(LinearProbingHashST<String, Integer> hash) {
+	IOL.hash = hash;
+    }
+
     public static int toInt(double a) {
 	return (int) a;
     }
@@ -50,11 +67,12 @@ public class IOL {
     /**
      * Method used to check input by user. Malformed input cases: <br>
      * 1) Departure station was not specified.<br>
-     * 2) Departure was given but not correctly<br>
+     * 2) Incorrect Departure station was given<br>
      * 3) Incorrect via station was given<br>
      * 4) Destination station was not specified. <br>
      * 5) The departure station was given but not correctly. <br>
-     * 6) Where user tries to input the same station. <br>
+     * 6) When user tries to input the same station. <br>
+     * 7) <br>
      * 
      * Corresponding caution messages:<br>
      * 1) "Please specify the departure station."<br>
@@ -66,60 +84,62 @@ public class IOL {
      * 
      * @param frame
      *                    the main frame to display caution messages on.
-     * @param hash
-     *                    the linear probing hash of String key and Integer values,
-     *                    which maps names of the stations to theirs indices
      * @param varargs
      *                    the array of input which has 3 values; the names of
      *                    departure, via and the destination station.
      * @return true if input is correct
      */
-    public static boolean validate(Frame frame, LinearProbingHashST<String, Integer> hash, String... varargs) {
+    @SuppressWarnings("deprecation")
+    public static boolean validate(String... varargs) {
 
 	/** Case 1 */
-	if (varargs[0] == null || varargs[0].length() == 0) {
-	    JOptionPane.showMessageDialog(frame, "Please specify the departure station.");
+	if (varargs[0] == null) {
+	    JOptionPane.showMessageDialog(MainMenu.getFrame(), "Please specify the departure station.");
 	    return false;
 	}
 	/** Case 2. */
-	if (!hash.contains(varargs[0])) {
-	    JOptionPane.showMessageDialog(frame, "Departure station does not exist.");
+	if (!IOL.hash.contains(varargs[0])) {
+	    JOptionPane.showMessageDialog(MainMenu.getFrame(), "Departure station does not exist.");
 	    return false;
 	}
 
 	/** Case 3. */
-	System.out.println(varargs[1] + "|" + !hash.contains(varargs[1]));
-	if (varargs[1] != null && !hash.contains(varargs[1]) && !varargs[1].equals("")) {
-	    JOptionPane.showMessageDialog(frame, "Via station does not exist.");
+	if (varargs[1] != null && !IOL.hash.contains(varargs[1])) {
+	    JOptionPane.showMessageDialog(MainMenu.getFrame(), "Via station does not exist.");
 	    return false;
 	}
 
 	/** Case 4. */
-	if (varargs[2] == null || varargs[2].length() == 0) {
-	    JOptionPane.showMessageDialog(frame, "Please specify the destionation station.");
+	if (varargs[2] == null) {
+	    JOptionPane.showMessageDialog(MainMenu.getFrame(), "Please specify the destionation station.");
 	    return false;
 	}
 
 	/** Case 5. */
-	if (!hash.contains(varargs[2])) {
-	    JOptionPane.showMessageDialog(frame, "Destination station does not exist.");
+	if (!IOL.hash.contains(varargs[2])) {
+	    JOptionPane.showMessageDialog(MainMenu.getFrame(), "Destination station does not exist.");
 	    return false;
 	}
 
 	/** Case 6. */
 	boolean flag = false;
-	if (varargs[1] == null || varargs[1].equals("")) {
+	if (varargs[1] == null) {
 	    /* when there is no 'via' */
 	    if (varargs[0].equals(varargs[2])) {
 		flag = true;
 	    }
 	} else {
+	    /** Case 7. */
+	    if (!IOL.hash.contains(varargs[2])) {
+		JOptionPane.showMessageDialog(MainMenu.getFrame(), "Destination station does not exist.");
+		return false;
+	    }
 	    if (varargs[0].equals(varargs[1]) || varargs[1].equals(varargs[2])) {
 		flag = true;
 	    }
 	}
 	if (flag) {
-	    JOptionPane.showMessageDialog(frame, "Can't choose the same station.");
+	    JOptionPane.showMessageDialog(MainMenu.getFrame(), "Can't choose the same station.");
 	    return false;
 	}
 
@@ -158,7 +178,7 @@ public class IOL {
      *                           done.
      * @return An instance of <code>KeyAdapter</code> that will contain instruction.
      */
-    public static KeyAdapter addAutoCompletion(JTextField textFldCurrent, List<String> list) {
+    public static KeyAdapter addAutoCompletion(JTextField textFldCurrent) {
 
 	return new KeyAdapter() {
 	    @Override
@@ -166,10 +186,14 @@ public class IOL {
 		if (CONCURRENCY)
 		    return;
 		CONCURRENCY = true;
+
+		ArrayList<String> list = new ArrayList<>();
+		hash.keys().iterator().forEachRemaining(list::add);
+
 		/* Save the Text Field in a list */
 		textFields.add(textFldCurrent);
 		/* Get the list of suggested options */
-		sugg = Autocompletion.query(textFldCurrent.getText(), list);
+		sugg = query(textFldCurrent.getText(), list);
 
 		/*
 		 * If there is no input, or no suggestion or else current text field has no
@@ -182,19 +206,20 @@ public class IOL {
 		}
 
 		/* Set the first suggested word */
-		// FIXME: might be adjusted to suggest 3 best out of list
 		toolTip.setTipText(sugg.get(0));
 
 		// Coordinates
 		int x = IOL.toInt(textFldCurrent.getLocationOnScreen().getX());
 		int y = IOL.toInt(textFldCurrent.getLocationOnScreen().getY()) + textFldCurrent.getHeight();
 
-		/* Initialize popup */
+		/* Initialize pop-up */
 		popup_show(false);
 		popup = pf.getPopup(textFldCurrent, toolTip, x, y);
 		popup_show(true);
 
-		/* Mouse Listener for clicking on popup to paste the contents into text field */
+		/*
+		 * Mouse Listener for clicking on pop-up to paste the contents into text field
+		 */
 		toolTip.addMouseListener(new MouseAdapter() {
 		    @Override
 		    public void mouseClicked(MouseEvent e) {
@@ -208,6 +233,21 @@ public class IOL {
 	    }
 	};
 
+    }
+
+    public static List<String> query(String queryStr, List<String> list) {
+	List<String> suggestion = new ArrayList<>();
+	list.forEach(std -> {
+	    if (isMatched(queryStr, std)) {
+		suggestion.add(String.valueOf(std));
+	    }
+	});
+
+	return suggestion;
+    }
+
+    private static boolean isMatched(String query, String text) {
+	return text.toLowerCase().contains(query.toLowerCase());
     }
 
     /**

@@ -6,6 +6,8 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Scanner;
 
+import javax.swing.JOptionPane;
+
 import DS.DepthFirstSearch;
 import DS.DijkstraUndirectedSP;
 import DS.Graph;
@@ -13,6 +15,7 @@ import DS.MWEdge;
 import DS.Basic.LinearProbingHashST;
 import DS.Basic.Queue;
 import DS.Basic.Stack;
+import Dependencies.StdOut;
 import Utils.JUtil;
 
 public class Algorithm {
@@ -23,6 +26,10 @@ public class Algorithm {
     public static StringBuilder searchResultsExtended;
 
     public static final char SEPERATOR_CHAR = '▬';
+
+    public static void main(String[] args) {
+
+    }
 
     public static boolean hasTranfer(String path, String transfer) {
 	boolean retval = false;
@@ -41,60 +48,84 @@ public class Algorithm {
 	return retval;
     }
 
+    private static void hasTransfer2(String w, String v, MWEdge e) {
+	if (crossEquals(w, v, e.w_name, e.v_name)) {
+
+	}
+    }
+
+    private static String getLine(String w, String v, Graph graph) {
+	for (MWEdge e : graph.edges()) {
+	    if (crossEquals(w, v, e.w_name, e.v_name)) {
+		return e.getLine();
+	    }
+	}
+	return null;
+
+    }
+
+    private static boolean crossEquals(String a, String b, String v, String w) {
+	if ((a.equals(v) && b.equals(w)) || (a.equals(w) && b.equals(v)))
+	    return true;
+	return false;
+    }
+
     private static int PREVIOUS_INDEX = 0;
 
     public static Queue<MWEdge> searchMin(String from, String to, Graph graph,
 	    LinearProbingHashST<String, Integer> hash) {
 	DepthFirstSearch dfs = new DepthFirstSearch(graph, hash, from, to);
 	ArrayList<Stack<String>> ALL_PATHS = dfs.getAllPaths();
-
 	if (ALL_PATHS.size() == 0) {
 	    return null;
 	}
-
 	int size = ALL_PATHS.size();
 	int W[] = new int[size];
 
-	/** Calculating the amount of transfers */
-	for (int i = 0; i < size; i++) {
-	    String path = ALL_PATHS.get(i).toString();
-	    try (Scanner sc = new Scanner(new File(MainMenu.DATA_REPO + MainMenu.city + "//transfer.txt"))) {
-		while (sc.hasNext()) {
-		    String transfer = sc.nextLine();
-		    if (hasTranfer(path, transfer)) {
-			W[i]++;
+	for (int j = 0; j < size; j++) {
+	    String min_path_vertices[] = ALL_PATHS.get(j).toString().split("/");
+	    for (int i = 0; i < min_path_vertices.length - 1; i++) {
+		Iterator<MWEdge> edges = graph.edges().iterator();
+		String prevline = edges.next().getLine();
+		while (edges.hasNext()) {
+		    if (!prevline.equals(prevline = edges.next().getLine())) {
+			W[j]++;
 		    }
 		}
-	    } catch (FileNotFoundException e) {
-		System.err.print("NOT FOUND" + e);
+		for (MWEdge e : graph.edges()) {
+		    String name = e.w_name + e.v_name;
+		    if (name.equals(min_path_vertices[i] + min_path_vertices[i + 1])
+			    || name.equals(min_path_vertices[i + 1] + min_path_vertices[i])) {
+
+		    }
+		}
 	    }
 	}
-
-	ArrayList<Integer> rand_indecies = new ArrayList<Integer>();
+	/** Indices of the minimum paths */
+	ArrayList<Integer> mindecies = new ArrayList<Integer>();
 	int min = Integer.MAX_VALUE;
 	int ind = 0;
-	rand_indecies.add(ind);
+	mindecies.add(ind);
 	for (int i = 0; i < size; i++) {
 
 	    if (W[i] < min) {
 		min = W[i];
 		ind = i;
-		rand_indecies.clear();
+		mindecies.clear();
 	    }
 
 	    if (W[i] == min) {
-		rand_indecies.add(i);
+		mindecies.add(i);
 	    }
 
 	}
 	PREVIOUS_INDEX++;
-	if (PREVIOUS_INDEX >= rand_indecies.size())
+	if (PREVIOUS_INDEX >= mindecies.size())
 	    PREVIOUS_INDEX = 0;
 
-	String min_path_vertices[] = ALL_PATHS.get(rand_indecies.get(PREVIOUS_INDEX)).toString().split("/");
+	String min_path_vertices[] = ALL_PATHS.get(mindecies.get(PREVIOUS_INDEX)).toString().split("/");
 
 	Queue<MWEdge> path = new Queue<>();
-
 	for (int i = 0; i < min_path_vertices.length - 1; i++) {
 	    for (MWEdge e : graph.edges()) {
 		String name = e.w_name + e.v_name;
@@ -106,6 +137,7 @@ public class Algorithm {
 	}
 
 	return path;
+
     }
 
     /**
@@ -143,17 +175,17 @@ public class Algorithm {
 
 	/** ALL SHORTEST PATHS FROM 'from' */
 	Queue<MWEdge> pathTo = searchMin(from, via, graph, hash);
+
+	/* Shortest path between 'from' and 'via */
+	MWEdge e = null;
+	int transfer = 0;
+	int stations = 1; // Stations start at one, because oz mindiyin esseyi de saymaq lazimdir
 	String line_changed = null;
 	str2Append = "\nDeparture \t| ";
 	searchResults.append(str2Append);
 	searchResultsExtended.append(str2Append);
 
-	/** Shortest path between 'from' and 'via */
-	MWEdge e = null;
-	int transfer = 0;
-	int stations = 1; // Stations start at one, because oz mindiyin esseyi de saymaq lazimdir
-
-	/* DEPARTURE STATION */
+	/* < DEPARTURE STATION > */
 	e = pathTo.dequeue();
 	str2Append = e + "\n";
 	searchResults.append(str2Append);
@@ -162,6 +194,8 @@ public class Algorithm {
 	stations++;
 	time += e.getWeightAt(0);
 	distance += e.getWeightAt(1);
+	/* </DEPARTURE STATION > */
+
 	while (!pathTo.isEmpty()) {
 	    e = pathTo.dequeue();
 	    time += e.getWeightAt(0);
@@ -169,25 +203,22 @@ public class Algorithm {
 	    stations++;
 	    str2Append = e + "\n";
 	    searchResultsExtended.append('‣' + str2Append); // extended results saves all, while normal not
-	    /** Display the only edge where the transfer has happened */
+	    /* Display the only edge where the transfer has happened */
 	    if (!e.getLine().equals(line_changed)) {
 		transfer++;
 		searchResults.append("↳Transfer \t| " + line_changed + " → " + str2Append);
 	    }
 	    line_changed = e.getLine();
+
 	}
 	/*-------------------------------------------------------------------*/
 	/*----------------------------via→to-----------------------------*/
 	/*-----------------------------------------------------------------*/
 
-	/** if via station has been given */
+	/* if via station has been given */
 	if (to != null) {
-	    str2Append = "Stop \t| ";
-	    searchResults.append(str2Append);
-	    searchResultsExtended.append(str2Append);
 
 	    pathTo = searchMin(via, to, graph, hash);
-	    e = null;
 
 	    /* DEPARTURE STATION */
 	    e = pathTo.dequeue();
@@ -195,8 +226,19 @@ public class Algorithm {
 	    time += e.getWeightAt(0);
 	    distance += e.getWeightAt(1);
 	    str2Append = e + "\n";
-	    line_changed = e.getLine();
+
+	    /*
+	     * Check if there is a transfer in between, a very particular case when the
+	     * specified via station is the stop station
+	     */
+	    if (!line_changed.equals(e.getLine())) {
+		transfer++;
+		searchResults.append("↳Transfer \t| " + line_changed + " → " + str2Append);
+	    }
+	    str2Append = "Stop \t| " + e + "\n";
 	    searchResults.append(str2Append);
+	    searchResultsExtended.append(str2Append);
+	    line_changed = e.getLine();
 
 	    while (!pathTo.isEmpty()) {
 		e = pathTo.dequeue();
@@ -294,16 +336,21 @@ public class Algorithm {
 	}
 	/** ALL SHORTEST PATHS FROM 'from' */
 	DijkstraUndirectedSP first = new DijkstraUndirectedSP(graph, hash.get(from), MainMenu.MODE);
+	/** Shortest path between 'from' and 'via */
+	Iterable<MWEdge> allStationsBetween = first.pathTo(hash.get(via));
+	if (allStationsBetween == null) {
+	    JOptionPane.showMessageDialog(MainMenu.getFrame(), "There is no route.");
+	    return searchResults;
+	}
+	Iterator<MWEdge> pathTo = allStationsBetween.iterator();
+
+	MWEdge e = null;
+	int transfer = 0;
+	int stations = 1; // Stations start at one, because oz mindiyin esseyi de saymaq lazimdir
 	String line_changed = null;
 	str2Append = "\nDeparture \t| ";
 	searchResults.append(str2Append);
 	searchResultsExtended.append(str2Append);
-
-	/** Shortest path between 'from' adn 'via */
-	Iterator<MWEdge> pathTo = first.pathTo(hash.get(via)).iterator();
-	MWEdge e = null;
-	int transfer = 0;
-	int stations = 1; // Stations start at one, because oz mindiyin esseyi de saymaq lazimdir
 
 	/* DEPARTURE STATION */
 	e = pathTo.next();
@@ -336,24 +383,28 @@ public class Algorithm {
 	/*-----------------------------------------------------------------*/
 	DijkstraUndirectedSP second = null;
 
-	/** if via station has been given */
+	/* if via station has been given */
 	if (to != null) {
 	    second = new DijkstraUndirectedSP(graph, hash.get(via), MainMenu.MODE);
-	    str2Append = "Stop \t| ";
+	    allStationsBetween = second.pathTo(hash.get(to));
+	    if (allStationsBetween == null) {
+		JOptionPane.showMessageDialog(MainMenu.getFrame(), "There is no route.");
+		return searchResults;
+	    }
+	    pathTo = allStationsBetween.iterator();
+
+	    /*
+	     * Check if there is a transfer in between, a very particular case when the
+	     * specified via station is the stop station
+	     */
+	    if (!line_changed.equals(e.getLine())) {
+		transfer++;
+		searchResults.append("↳Transfer \t| " + line_changed + " → " + str2Append);
+	    }
+	    str2Append = "Stop \t| " + e + "\n";
 	    searchResults.append(str2Append);
 	    searchResultsExtended.append(str2Append);
-
-	    pathTo = second.pathTo(hash.get(to)).iterator();
-	    e = null;
-
-	    /* DEPARTURE STATION */
-	    e = pathTo.next();
-	    stations++;
-	    str2Append = e + "\n";
 	    line_changed = e.getLine();
-	    searchResults.append(str2Append);
-	    time += e.getWeightAt(0);
-	    distance += e.getWeightAt(1);
 	    while (pathTo.hasNext()) {
 		e = pathTo.next();
 		time += e.getWeightAt(0);

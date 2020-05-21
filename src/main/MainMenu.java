@@ -59,14 +59,13 @@ import javax.swing.JScrollPane;
 import java.awt.Cursor;
 
 public class MainMenu {
+    // TODO: need an idea to how to fix the direction of an edge while being
+    // displaying for example: A-B-C-D-E<br> Edges: A-B, B-C, C-D, D-E<br> when you
+    // search for a route from E to C it gives: D-E, C-D
     // TODO: ADD SOME COLOUR TO CONSOLE
-    // TODO: fix suggestion when switching between cities
-    // TODO: Make an algo so that it check 2 edges in that path given by dfs, and
-    // looks for lines of that edges and if any change then transfer++, basically
-    // automate
+    // TODO: Try to make autosuggestion in a list, instead of one item
 
-    // FIXME: from: Cebeci, Via: Topkapi, To: Yenimahalle | Stop interferes with
-    // transfer
+
 
     /*
      * .**************************************************************************
@@ -96,7 +95,7 @@ public class MainMenu {
      ***************************************************************************/
 
     /** Main frame */
-    public JFrame frame;
+    private static JFrame frame;
     /** The Width of the screen */
     public static final int SCREEN_WIDTH = (int) JHardware.getScreenSize().getWidth();
     /** The Height of the screen */
@@ -190,7 +189,7 @@ public class MainMenu {
      * of the stations to theirs indices
      */
     private LinearProbingHashST<String, Integer> hash;
-    /** Metro */
+    /** Metro Map */
     private Graph GRAPH;
 
     /**
@@ -198,6 +197,7 @@ public class MainMenu {
      */
     public static void main(String[] args) {
 	EventQueue.invokeLater(new Runnable() {
+	    @SuppressWarnings("static-access")
 	    public void run() {
 		try {
 		    MainMenu window = new MainMenu();
@@ -231,7 +231,6 @@ public class MainMenu {
 	int ID = 0;
 	for (File line : roadlines) {
 	    try (Scanner sc = new Scanner(line);) {
-
 		sc.nextLine();
 		while (sc.hasNext()) {
 		    String key = sc.nextLine();
@@ -245,6 +244,7 @@ public class MainMenu {
 	    } catch (FileNotFoundException e) {
 	    }
 	}
+	IOL.setHash(hash);
 
 	/* Display on the console, for Developers only */
 	for (String s : hash.keys()) {
@@ -757,11 +757,10 @@ public class MainMenu {
 	    }
 	});
 	/*----------------------ADDING AUTOCOMPLETION-----------------------*/
-	ArrayList<String> list = new ArrayList<>();
-	hash.keys().iterator().forEachRemaining(list::add);
-	textfield_dpt.addKeyListener(IOL.addAutoCompletion(textfield_dpt, list));
-	textfield_via.addKeyListener(IOL.addAutoCompletion(textfield_via, list));
-	textfield_arv.addKeyListener(IOL.addAutoCompletion(textfield_arv, list));
+
+	textfield_dpt.addKeyListener(IOL.addAutoCompletion(textfield_dpt));
+	textfield_via.addKeyListener(IOL.addAutoCompletion(textfield_via));
+	textfield_arv.addKeyListener(IOL.addAutoCompletion(textfield_arv));
 
 	textfield_dpt.addMouseListener(IOL.closePopup());
 	textfield_via.addMouseListener(IOL.closePopup());
@@ -919,29 +918,33 @@ public class MainMenu {
 
 	    @Override
 	    public void actionPerformed(ActionEvent e) {
-		String from = textfield_dpt.getText().trim();
-		String via = (hash.contains(textfield_via.getText().trim())) ? textfield_via.getText().trim() : null;
-		String to = textfield_arv.getText().trim();
+		String from = formatInput(textfield_dpt.getText());
+		String via = formatInput(textfield_via.getText());
+		String to = formatInput(textfield_arv.getText());
 
-		/** Adding case insensitivity */
+		/* Making via station optional */
+		if (via != null && via.length() == 0)
+		    via = null;
+
+		/* Adding case insensitivity */
 		for (String station : hash.keys()) {
 		    from = IOL.equalsCaseInsensitive(station, from);
 		    via = IOL.equalsCaseInsensitive(station, via);
 		    to = IOL.equalsCaseInsensitive(station, to);
 		}
 
-		/** Input validation, spell check */
-		if (!IOL.validate(frame, hash, from, via, to)) {
+		/* Input validation, spell check */
+		if (!IOL.validate(from, via, to)) {
 		    return;
 		}
 
 		StringBuilder searchResults;
 
-		/** If the mode is on MINIMUM */
+		/* If the mode is on MINIMUM */
 		if (MODE == 2) {
 		    searchResults = Algorithm.displayMin(from, via, to, GRAPH, hash);
 		} else {
-		    /** For the modes SHORTEST and FASTEST */
+		    /* For the modes SHORTEST and FASTEST */
 		    searchResults = Algorithm.search(from, via, to, GRAPH, hash);
 		}
 
@@ -949,5 +952,20 @@ public class MainMenu {
 		display_pane.setCaretPosition(0);
 	    }
 	};
+    }
+
+    private String formatInput(String str) {
+	if (str == null)
+	    return str;
+	str = str.trim();
+	return (str.equals("")) ? null : str;
+    }
+
+    /**
+     * @deprecated Bad access to frame
+     * @return main frame
+     */
+    public static JFrame getFrame() {
+	return frame;
     }
 }
