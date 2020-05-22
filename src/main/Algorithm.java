@@ -2,6 +2,9 @@ package main;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Scanner;
@@ -28,7 +31,16 @@ public class Algorithm {
     public static final char SEPERATOR_CHAR = '▬';
 
     public static void main(String[] args) {
+	File selectedFile = new File("C:\\Users\\sadig\\Desktop\\hey.txt");
 
+	FileWriter fWriter;
+	try {
+	    fWriter = new FileWriter(selectedFile);
+	    PrintWriter pWriter = new PrintWriter(fWriter);
+	    pWriter.println("hey");
+	    pWriter.close();
+	} catch (IOException e) {
+	}
     }
 
     public static boolean hasTranfer(String path, String transfer) {
@@ -207,6 +219,8 @@ public class Algorithm {
 	    if (!e.getLine().equals(line_changed)) {
 		transfer++;
 		searchResults.append("↳Transfer \t| " + line_changed + " → " + str2Append);
+		searchResultsExtended.replace(0, searchResultsExtended.toString().indexOf('‣' + str2Append),
+			searchResultsExtended.toString() + "↳Transfer \t| " + line_changed + " → " + str2Append);
 	    }
 	    line_changed = e.getLine();
 
@@ -251,6 +265,8 @@ public class Algorithm {
 		if (!e.getLine().equals(line_changed)) {
 		    transfer++;
 		    searchResults.append("↳Transfer \t| " + line_changed + " → " + str2Append);
+		    searchResultsExtended.replace(0, searchResultsExtended.toString().indexOf('‣' + str2Append),
+			    searchResultsExtended.toString() + "↳Transfer \t| " + line_changed + " → " + str2Append);
 		}
 		line_changed = e.getLine();
 	    }
@@ -374,6 +390,8 @@ public class Algorithm {
 	    if (!e.getLine().equals(line_changed)) {
 		transfer++;
 		searchResults.append("↳Transfer \t| " + line_changed + " → " + str2Append);
+		searchResultsExtended.replace(0, searchResultsExtended.toString().indexOf('‣' + str2Append),
+			searchResultsExtended.toString() + "↳Transfer \t| " + line_changed + " → " + str2Append);
 	    }
 	    line_changed = e.getLine();
 	}
@@ -416,7 +434,8 @@ public class Algorithm {
 		if (!e.getLine().equals(line_changed)) {
 		    transfer++;
 		    searchResults.append("↳Transfer \t| " + line_changed + " → " + str2Append);
-
+		    searchResultsExtended.replace(0, searchResultsExtended.toString().indexOf('‣' + str2Append),
+			    searchResultsExtended.toString() + "↳Transfer \t| " + line_changed + " → " + str2Append);
 		}
 		line_changed = e.getLine();
 	    }

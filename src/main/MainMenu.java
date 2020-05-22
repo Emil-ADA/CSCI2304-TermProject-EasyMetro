@@ -33,6 +33,9 @@ import javax.swing.JButton;
 import javax.swing.JTextField;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Scanner;
@@ -54,7 +57,9 @@ import Dependencies.StdOut;
 
 import javax.swing.ImageIcon;
 import javax.swing.JCheckBoxMenuItem;
+import javax.swing.JFileChooser;
 import javax.swing.JTextPane;
+import javax.swing.LookAndFeel;
 import javax.swing.JScrollPane;
 import java.awt.Cursor;
 
@@ -64,8 +69,6 @@ public class MainMenu {
     // search for a route from E to C it gives: D-E, C-D
     // TODO: ADD SOME COLOUR TO CONSOLE
     // TODO: Try to make autosuggestion in a list, instead of one item
-
-
 
     /*
      * .**************************************************************************
@@ -329,9 +332,67 @@ public class MainMenu {
 	menu_item_test.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 	menu_file.add(menu_item_test);
 
-	JMenuItem menu_item_newFile = new JMenuItem("New");
-	menu_item_newFile.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-	menu_file.add(menu_item_newFile);
+	JMenuItem mntmSave = new JMenuItem("Save");
+	mntmSave.addActionListener(new ActionListener() {
+	    public void actionPerformed(ActionEvent arg0) {
+		JFileChooser fileChooser = new JFileChooser();
+		LookAndFeel previousLF = UIManager.getLookAndFeel();
+		try {
+		    UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+		    fileChooser = new JFileChooser();
+		    UIManager.setLookAndFeel(previousLF);
+		} catch (IllegalAccessException | UnsupportedLookAndFeelException | InstantiationException
+			| ClassNotFoundException e) {
+		}
+		fileChooser.setDialogTitle("Select Folder");
+		fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+		fileChooser.setCurrentDirectory(new File(".\\saves"));
+		int result = fileChooser.showOpenDialog(frame);
+		if (result == JFileChooser.APPROVE_OPTION) {
+		    String name = "";
+
+		    String from = formatInput(textfield_dpt.getText());
+		    String via = formatInput(textfield_via.getText());
+		    String to = formatInput(textfield_arv.getText());
+
+		    /* Making via station optional */
+		    if (via != null && via.length() == 0)
+			via = null;
+
+		    /* Adding case insensitivity */
+		    for (String station : hash.keys()) {
+			from = IOL.equalsCaseInsensitive(station, from);
+			via = IOL.equalsCaseInsensitive(station, via);
+			to = IOL.equalsCaseInsensitive(station, to);
+		    }
+
+		    /* Input validation, spell check */
+		    if (!IOL.validate(from, via, to)) {
+			return;
+		    }
+
+		    name += from.toLowerCase() + "→" + ((via != null) ? via.toLowerCase() + "→" : "")
+			    + to.toLowerCase();
+
+		    File selectedFile = fileChooser.getSelectedFile();
+		    int num = (selectedFile.listFiles() == null) ? 0 : selectedFile.listFiles().length;
+		    File output = new File(selectedFile + "\\Metro Map - Result(" + num + ").txt");
+		    StdOut.println(output);
+		    FileWriter fWriter;
+		    try {
+			fWriter = new FileWriter(output);
+			PrintWriter pWriter = new PrintWriter(fWriter);
+			pWriter.println(from + "→" + ((via != null) ? via + "→" : "") + to);
+			pWriter.println(display_pane.getText());
+			pWriter.close();
+		    } catch (IOException e) {
+			e.printStackTrace();
+		    }
+
+		}
+	    }
+	});
+	menu_file.add(mntmSave);
 
 	JMenuItem menu_item_Open = new JMenuItem("Open...");
 	menu_item_Open.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));

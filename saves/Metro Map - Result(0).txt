@@ -1,0 +1,11 @@
+Cebeci→Bahcelievler
+28 Station(s). | 2 Transfer(s).
+Distance: 102 kilometers, 299 meters
+Lead Time: 3 hours, 45 minutes
+Fare: 7.80 TRY
+▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬▬
+Departure 	| T4:Cebeci - Sultanciftligi
+↳Transfer 	| T4 → T1:Cevizlibag AOY - Topkapi
+↳Transfer 	| T1 → M1:Zeytinburnu - Bakirkoy Incirli
+Destination 	| M1:Bakirkoy Incirli - Bahcelievler
+
