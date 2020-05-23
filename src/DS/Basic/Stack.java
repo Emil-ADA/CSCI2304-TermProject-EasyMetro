@@ -3,8 +3,6 @@ package DS.Basic;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
-import Dependencies.StdIn;
-import Dependencies.StdOut;
 
 public class Stack<Item> implements Iterable<Item> {
     /** size of the stack */
@@ -135,21 +133,5 @@ public class Stack<Item> implements Iterable<Item> {
 	}
     }
 
-    /**
-     * Unit tests the {@code Stack} data type.
-     *
-     * @param args
-     *                 the command-line arguments
-     */
-    public static void main(String[] args) {
-	Stack<String> stack = new Stack<String>();
-	while (!StdIn.isEmpty()) {
-	    String item = StdIn.readString();
-	    if (!item.equals("-"))
-		stack.push(item);
-	    else if (!stack.isEmpty())
-		StdOut.print(stack.pop() + " ");
-	}
-	StdOut.println("(" + stack.size() + " left on stack)");
-    }
+
 }

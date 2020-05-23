@@ -1,8 +1,7 @@
 package DS.Extra;
 
 import DS.Graph;
-import DS.MWEdge;
-import DS.UnionFind;
+import DS.Edge;
 import DS.Basic.MinPQ;
 import DS.Basic.Queue;
 
@@ -10,7 +9,7 @@ public class KruskalMST {
     private static final double FLOATING_POINT_EPSILON = 1E-12;
 
     private double weight; // weight of MST
-    private Queue<MWEdge> mst = new Queue<MWEdge>(); // edges in MST
+    private Queue<Edge> mst = new Queue<Edge>(); // edges in MST
 
     /**
      * Compute a minimum spanning tree (or forest) of an edge-weighted graph.
@@ -20,15 +19,15 @@ public class KruskalMST {
      */
     public KruskalMST(Graph G, int w_in) {
 	// more efficient to build heap by passing array of edges
-	MinPQ<MWEdge> pq = new MinPQ<MWEdge>();
-	for (MWEdge e : G.edges()) {
+	MinPQ<Edge> pq = new MinPQ<Edge>();
+	for (Edge e : G.edges()) {
 	    pq.insert(e);
 	}
 
 	// run greedy algorithm
 	UnionFind uf = new UnionFind(G.V());
 	while (!pq.isEmpty() && mst.size() < G.V() - 1) {
-	    MWEdge e = pq.delMin();
+	    Edge e = pq.delMin();
 	    int v = e.either();
 	    int w = e.other(v);
 	    if (uf.find(v) != uf.find(w)) { // v-w does not create a cycle
@@ -48,7 +47,7 @@ public class KruskalMST {
      * @return the edges in a minimum spanning tree (or forest) as an iterable of
      *         edges
      */
-    public Iterable<MWEdge> edges() {
+    public Iterable<Edge> edges() {
 	return mst;
     }
 
@@ -66,7 +65,7 @@ public class KruskalMST {
 
 	// check total weight
 	double total = 0.0;
-	for (MWEdge e : edges()) {
+	for (Edge e : edges()) {
 	    total += e.getWeightAt(w_in);
 	}
 	if (Math.abs(total - weight()) > FLOATING_POINT_EPSILON) {
@@ -76,7 +75,7 @@ public class KruskalMST {
 
 	// check that it is acyclic
 	UnionFind uf = new UnionFind(G.V());
-	for (MWEdge e : edges()) {
+	for (Edge e : edges()) {
 	    int v = e.either(), w = e.other(v);
 	    if (uf.find(v) == uf.find(w)) {
 		System.err.println("Not a forest");
@@ -86,7 +85,7 @@ public class KruskalMST {
 	}
 
 	// check that it is a spanning forest
-	for (MWEdge e : G.edges()) {
+	for (Edge e : G.edges()) {
 	    int v = e.either(), w = e.other(v);
 	    if (uf.find(v) != uf.find(w)) {
 		System.err.println("Not a spanning forest");
@@ -95,18 +94,18 @@ public class KruskalMST {
 	}
 
 	// check that it is a minimal spanning forest (cut optimality conditions)
-	for (MWEdge e : edges()) {
+	for (Edge e : edges()) {
 
 	    // all edges in MST except e
 	    uf = new UnionFind(G.V());
-	    for (MWEdge f : mst) {
+	    for (Edge f : mst) {
 		int x = f.either(), y = f.other(x);
 		if (f != e)
 		    uf.union(x, y);
 	    }
 
 	    // check that e is min weight edge in crossing cut
-	    for (MWEdge f : G.edges()) {
+	    for (Edge f : G.edges()) {
 		int x = f.either(), y = f.other(x);
 		if (uf.find(x) != uf.find(y)) {
 		    if (f.getWeightAt(w_in) < e.getWeightAt(w_in)) {

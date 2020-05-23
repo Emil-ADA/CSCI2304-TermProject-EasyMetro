@@ -1,4 +1,4 @@
-package main;
+package Main;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -11,14 +11,13 @@ import java.util.Scanner;
 
 import javax.swing.JOptionPane;
 
-import DS.DepthFirstSearch;
-import DS.DijkstraUndirectedSP;
+import DS.DFS;
+import DS.Dijkstra;
 import DS.Graph;
-import DS.MWEdge;
+import DS.Edge;
 import DS.Basic.LinearProbingHashST;
 import DS.Basic.Queue;
 import DS.Basic.Stack;
-import Dependencies.StdOut;
 import Utils.JUtil;
 
 public class Algorithm {
@@ -60,33 +59,12 @@ public class Algorithm {
 	return retval;
     }
 
-    private static void hasTransfer2(String w, String v, MWEdge e) {
-	if (crossEquals(w, v, e.w_name, e.v_name)) {
-
-	}
-    }
-
-    private static String getLine(String w, String v, Graph graph) {
-	for (MWEdge e : graph.edges()) {
-	    if (crossEquals(w, v, e.w_name, e.v_name)) {
-		return e.getLine();
-	    }
-	}
-	return null;
-
-    }
-
-    private static boolean crossEquals(String a, String b, String v, String w) {
-	if ((a.equals(v) && b.equals(w)) || (a.equals(w) && b.equals(v)))
-	    return true;
-	return false;
-    }
 
     private static int PREVIOUS_INDEX = 0;
 
-    public static Queue<MWEdge> searchMin(String from, String to, Graph graph,
+    public static Queue<Edge> searchMin(String from, String to, Graph graph,
 	    LinearProbingHashST<String, Integer> hash) {
-	DepthFirstSearch dfs = new DepthFirstSearch(graph, hash, from, to);
+	DFS dfs = new DFS(graph, hash, from, to);
 	ArrayList<Stack<String>> ALL_PATHS = dfs.getAllPaths();
 	if (ALL_PATHS.size() == 0) {
 	    return null;
@@ -97,14 +75,14 @@ public class Algorithm {
 	for (int j = 0; j < size; j++) {
 	    String min_path_vertices[] = ALL_PATHS.get(j).toString().split("/");
 	    for (int i = 0; i < min_path_vertices.length - 1; i++) {
-		Iterator<MWEdge> edges = graph.edges().iterator();
+		Iterator<Edge> edges = graph.edges().iterator();
 		String prevline = edges.next().getLine();
 		while (edges.hasNext()) {
 		    if (!prevline.equals(prevline = edges.next().getLine())) {
 			W[j]++;
 		    }
 		}
-		for (MWEdge e : graph.edges()) {
+		for (Edge e : graph.edges()) {
 		    String name = e.w_name + e.v_name;
 		    if (name.equals(min_path_vertices[i] + min_path_vertices[i + 1])
 			    || name.equals(min_path_vertices[i + 1] + min_path_vertices[i])) {
@@ -137,9 +115,9 @@ public class Algorithm {
 
 	String min_path_vertices[] = ALL_PATHS.get(mindecies.get(PREVIOUS_INDEX)).toString().split("/");
 
-	Queue<MWEdge> path = new Queue<>();
+	Queue<Edge> path = new Queue<>();
 	for (int i = 0; i < min_path_vertices.length - 1; i++) {
-	    for (MWEdge e : graph.edges()) {
+	    for (Edge e : graph.edges()) {
 		String name = e.w_name + e.v_name;
 		if (name.equals(min_path_vertices[i] + min_path_vertices[i + 1])
 			|| name.equals(min_path_vertices[i + 1] + min_path_vertices[i])) {
@@ -186,10 +164,10 @@ public class Algorithm {
 	}
 
 	/** ALL SHORTEST PATHS FROM 'from' */
-	Queue<MWEdge> pathTo = searchMin(from, via, graph, hash);
+	Queue<Edge> pathTo = searchMin(from, via, graph, hash);
 
 	/* Shortest path between 'from' and 'via */
-	MWEdge e = null;
+	Edge e = null;
 	int transfer = 0;
 	int stations = 1; // Stations start at one, because oz mindiyin esseyi de saymaq lazimdir
 	String line_changed = null;
@@ -283,7 +261,7 @@ public class Algorithm {
 	searchResults.replace(0, searchResults.length(), str2Append + searchResults.toString());
 	searchResultsExtended.replace(0, searchResultsExtended.length(), str2Append + searchResultsExtended.toString());
 
-	try (Scanner sc = new Scanner(new File(MainMenu.DATA_REPO + MainMenu.city + "//fare.txt"))) {
+	try (Scanner sc = new Scanner(new File(MainMenu.DATA_REPO + MainMenu.CITY + "//fare.txt"))) {
 	    String line = sc.nextLine();
 	    /* Add total cost */
 	    line = line.substring(line.indexOf('=') + 1, line.length());
@@ -333,6 +311,7 @@ public class Algorithm {
 	return searchResults;
     }
 
+    @SuppressWarnings({ "deprecation" })
     public static StringBuilder search(String from, String via, String to, Graph graph,
 	    LinearProbingHashST<String, Integer> hash) {
 	/** Output variables */
@@ -351,16 +330,16 @@ public class Algorithm {
 	    to = null;
 	}
 	/** ALL SHORTEST PATHS FROM 'from' */
-	DijkstraUndirectedSP first = new DijkstraUndirectedSP(graph, hash.get(from), MainMenu.MODE);
+	Dijkstra first = new Dijkstra(graph, hash.get(from), MainMenu.MODE);
 	/** Shortest path between 'from' and 'via */
-	Iterable<MWEdge> allStationsBetween = first.pathTo(hash.get(via));
+	Iterable<Edge> allStationsBetween = first.pathTo(hash.get(via));
 	if (allStationsBetween == null) {
 	    JOptionPane.showMessageDialog(MainMenu.getFrame(), "There is no route.");
 	    return searchResults;
 	}
-	Iterator<MWEdge> pathTo = allStationsBetween.iterator();
+	Iterator<Edge> pathTo = allStationsBetween.iterator();
 
-	MWEdge e = null;
+	Edge e = null;
 	int transfer = 0;
 	int stations = 1; // Stations start at one, because oz mindiyin esseyi de saymaq lazimdir
 	String line_changed = null;
@@ -399,11 +378,11 @@ public class Algorithm {
 	/*-------------------------------------------------------------------*/
 	/*----------------------------via→to-----------------------------*/
 	/*-----------------------------------------------------------------*/
-	DijkstraUndirectedSP second = null;
+	Dijkstra second = null;
 
 	/* if via station has been given */
 	if (to != null) {
-	    second = new DijkstraUndirectedSP(graph, hash.get(via), MainMenu.MODE);
+	    second = new Dijkstra(graph, hash.get(via), MainMenu.MODE);
 	    allStationsBetween = second.pathTo(hash.get(to));
 	    if (allStationsBetween == null) {
 		JOptionPane.showMessageDialog(MainMenu.getFrame(), "There is no route.");
@@ -452,7 +431,7 @@ public class Algorithm {
 	searchResults.replace(0, searchResults.length(), str2Append + searchResults.toString());
 	searchResultsExtended.replace(0, searchResultsExtended.length(), str2Append + searchResultsExtended.toString());
 
-	try (Scanner sc = new Scanner(new File(MainMenu.DATA_REPO + MainMenu.city + "//fare.txt"))) {
+	try (Scanner sc = new Scanner(new File(MainMenu.DATA_REPO + MainMenu.CITY + "//fare.txt"))) {
 	    String line = sc.nextLine();
 	    /* Add total cost */
 	    line = line.substring(line.indexOf('=') + 1, line.length());

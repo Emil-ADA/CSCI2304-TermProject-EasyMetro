@@ -5,18 +5,18 @@ import java.util.Iterator;
 
 import DS.Basic.LinearProbingHashST;
 import DS.Basic.Stack;
-import Dependencies.StdOut;
 
 /**
  * Depth First Search Algorithm
+ * 
  * @author Sadig Akhund
  *
  */
-public class DepthFirstSearch {
+public class DFS {
     private boolean[] onPath; // vertices in current path
     private Stack<String> path; // the current path
     private ArrayList<Stack<String>> paths;
-    LinearProbingHashST<String, Integer> hash;
+    private LinearProbingHashST<String, Integer> hash;
     private int numberOfPaths; // number of simple path
 
     public ArrayList<Stack<String>> getAllPaths() {
@@ -36,10 +36,10 @@ public class DepthFirstSearch {
      * @param t
      *                 End
      */
-    public DepthFirstSearch(Graph G, LinearProbingHashST<String, Integer> hash, String s, String t) {
+    public DFS(Graph G, LinearProbingHashST<String, Integer> hash, String s, String t) {
 	this.hash = hash;
 	Graph copy = G.clone();
-	Iterator<MWEdge> iter = copy.edges().iterator();
+	Iterator<Edge> iter = copy.edges().iterator();
 
 	/**
 	 * This while loop is kind of a lazy programming, thats why deprecated. It gets
@@ -47,9 +47,9 @@ public class DepthFirstSearch {
 	 * that directed graph becomes undirected.
 	 */
 	while (iter.hasNext()) {
-	    MWEdge e = iter.next();
-	    copy.addEdge(new MWEdge(hash.get(e.w_name), hash.get(e.v_name), e.weights).setVertexNames(e.w_name, e.v_name)
-		    .setLine(e.getLine()));
+	    Edge e = iter.next();
+	    copy.addEdge(new Edge(hash.get(e.w_name), hash.get(e.v_name), e.weights)
+		    .setVertexNames(e.w_name, e.v_name).setLine(e.getLine()));
 	}
 
 	onPath = new boolean[copy.V()];
@@ -75,7 +75,7 @@ public class DepthFirstSearch {
 
 	// consider all neighbors that would continue path with repeating a node
 	else {
-	    for (MWEdge edge : G.adj(v)) {
+	    for (Edge edge : G.adj(v)) {
 		int w = hash.get(edge.w_name);
 		if (!onPath[w])
 		    dfs(G, edge.w_name, b);
@@ -115,28 +115,28 @@ public class DepthFirstSearch {
 	// G.addEdge(new Edge(3, 6, 1).setVertexNames("A3", "A6").setLine("AA"));
 	// G.addEdge(new Edge(4, 6, 1).setVertexNames("A4", "A6").setLine("AA"));
 
-	G.addEdge(new MWEdge(0, 1, 1).setVertexNames("A0", "A1").setLine("AA"));
-	G.addEdge(new MWEdge(1, 2, 1).setVertexNames("A0", "A1").setLine("AA"));
-	G.addEdge(new MWEdge(2, 3, 1).setVertexNames("A0", "A1").setLine("AA"));
-	G.addEdge(new MWEdge(3, 4, 1).setVertexNames("A0", "A1").setLine("AA"));
-	G.addEdge(new MWEdge(4, 5, 1).setVertexNames("A0", "A1").setLine("AA"));
+	G.addEdge(new Edge(0, 1, 1).setVertexNames("A0", "A1").setLine("AA"));
+	G.addEdge(new Edge(1, 2, 1).setVertexNames("A0", "A1").setLine("AA"));
+	G.addEdge(new Edge(2, 3, 1).setVertexNames("A0", "A1").setLine("AA"));
+	G.addEdge(new Edge(3, 4, 1).setVertexNames("A0", "A1").setLine("AA"));
+	G.addEdge(new Edge(4, 5, 1).setVertexNames("A0", "A1").setLine("AA"));
 
 	// StdOut.println(G);
 
 	LinearProbingHashST<String, Integer> hash = new LinearProbingHashST<>();
 	for (int i = 0; i < 7; i++)
 	    hash.put("A" + i, i);
-	StdOut.println();
-	StdOut.println("all simple paths between 0 and 6:");
-	DepthFirstSearch allpaths1 = new DepthFirstSearch(G, hash, "A0", "A6");
-	StdOut.println(allpaths1.paths.toString());
-	StdOut.println("# paths = " + allpaths1.numberOfPaths());
-	StdOut.println(allpaths1.getAllPaths().get(0).peek());
-	StdOut.println();
-	StdOut.println("all simple paths between 1 and 5:");
-	DepthFirstSearch allpaths2 = new DepthFirstSearch(G, hash, "A0", "A1");
-	StdOut.println("# paths = " + allpaths2.numberOfPaths());
-	StdOut.println(allpaths2.paths.toString());
+	System.out.println();
+	System.out.println("all simple paths between 0 and 6:");
+	DFS allpaths1 = new DFS(G, hash, "A0", "A6");
+	System.out.println(allpaths1.paths.toString());
+	System.out.println("# paths = " + allpaths1.numberOfPaths());
+	System.out.println(allpaths1.getAllPaths().get(0).peek());
+	System.out.println();
+	System.out.println("all simple paths between 1 and 5:");
+	DFS allpaths2 = new DFS(G, hash, "A0", "A1");
+	System.out.println("# paths = " + allpaths2.numberOfPaths());
+	System.out.println(allpaths2.paths.toString());
 
     }
 }

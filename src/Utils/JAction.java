@@ -25,12 +25,14 @@ public class JAction {
     /**
      * Auto-Delay Time for the Instance of Robot
      */
+    @SuppressWarnings("unused")
     private static int ROBOT_AUTODELAY = 0;
 
     /**
      * Boolean for identifying whether or not to wait for idle for the Instance of
      * Robot
      */
+    @SuppressWarnings("unused")
     private static boolean ROBOT_WAITFORIDLE = false;
 
     public static void main(String[] args) throws AWTException {
@@ -383,6 +385,7 @@ public class JAction {
     }
 }
 
+@SuppressWarnings("serial")
 class UnconfiguredRobotException extends Error {
     public UnconfiguredRobotException() {
 	super();

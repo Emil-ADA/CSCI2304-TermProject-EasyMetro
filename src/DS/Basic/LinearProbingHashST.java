@@ -1,7 +1,5 @@
 package DS.Basic;
 
-import Dependencies.StdIn;
-import Dependencies.StdOut;
 
 public class LinearProbingHashST<Key, Value> {
     /** Initial Capacity */
@@ -228,24 +226,4 @@ public class LinearProbingHashST<Key, Value> {
 	return true;
     }
 
-    /**
-     * Unit tests the {@code LinearProbingHashST} data type.
-     *
-     * @param args
-     *                 the command-line arguments
-     */
-    public static void main(String[] args) {
-	LinearProbingHashST<String, Integer> st = new LinearProbingHashST<String, Integer>();
-	for (int i = 0;; i++) {
-	    String key = StdIn.readLine();
-	    if (key.equals("FFF"))
-		break;
-	    st.put(key, i);
-
-	}
-
-	// print keys
-	for (String s : st.keys())
-	    StdOut.println(s + ":/t/t/t" + st.get(s));
-    }
 }

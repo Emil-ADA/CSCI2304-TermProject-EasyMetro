@@ -1,5 +1,6 @@
-package main;
+package Main;
 
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Point;
 import java.awt.event.KeyAdapter;
@@ -338,12 +339,21 @@ public class IOL {
 	    return b;
     }
 
-    public static String getValue(String pattern) {
-	for (int i = 0; i < MainMenu.args.length; i++) {
-	    if (MainMenu.args[i].contains(pattern)) {
-		return MainMenu.args[i].substring(MainMenu.args[i].indexOf("=") + 1);
+    public static String getArgValue(String pattern) {
+	for (int i = 0; i < MainMenu.args.size(); i++) {
+	    String item = MainMenu.args.get(i);
+	    if (item.contains(pattern)) {
+		return item.substring(item.indexOf("=") + 1);
 	    }
 	}
 	return null;
     }
+
+    public static Color getArgColor(String pattern) {
+	String[] RGB = getArgValue(pattern).split(",");
+	
+	return new Color(Integer.parseInt(RGB[0].trim()), Integer.parseInt(RGB[1].trim()),
+		Integer.parseInt(RGB[2].trim()));
+    }
+
 }

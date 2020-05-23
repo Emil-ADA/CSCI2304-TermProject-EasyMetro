@@ -1,4 +1,4 @@
-package DS;
+package DS.Extra;
 
 public class UnionFind {
 

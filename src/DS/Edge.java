@@ -1,7 +1,7 @@
 package DS;
 
 // MULTI-WEIGHTED EDGE
-public class MWEdge implements Comparable<MWEdge> {
+public class Edge implements Comparable<Edge> {
     /** The maximum length of the name that ever added */
     public static int MAX_NAME_LENGTH = 1;
     /** Vertex v */
@@ -17,7 +17,7 @@ public class MWEdge implements Comparable<MWEdge> {
     /** An array that makes it multi-weighted Edge */
     public final double[] weights;
 
-    public MWEdge(int v, int w, double... weights) {
+    public Edge(int v, int w, double... weights) {
 	if (v < 0)
 	    throw new IllegalArgumentException("vertex index must be a nonnegative integer");
 	if (w < 0)
@@ -60,7 +60,7 @@ public class MWEdge implements Comparable<MWEdge> {
 	    throw new IllegalArgumentException("Illegal endpoint");
     }
 
-    public int compareTo(MWEdge that, int i) {
+    public int compareTo(Edge that, int i) {
 	if (this.weights.length != that.weights.length)
 	    throw new IllegalArgumentException("Edges are not compatible");
 
@@ -85,13 +85,13 @@ public class MWEdge implements Comparable<MWEdge> {
     }
 
     @Override
-    public int compareTo(MWEdge arg0) {
+    public int compareTo(Edge arg0) {
 	return compareTo(arg0, 0); // Default: Compares time
     }
 
     public static void main(String[] args) {
-	MWEdge e = new MWEdge(0, 1, 1, 2, 3, 4, 5, 6, 7);
-	MWEdge e2 = new MWEdge(0, 1, 1, 2, 3, 4, 5);
+	Edge e = new Edge(0, 1, 1, 2, 3, 4, 5, 6, 7);
+	Edge e2 = new Edge(0, 1, 1, 2, 3, 4, 5);
 	e.setVertexNames("aaaaaaa", "a");
 	e2.setVertexNames("b", "bb");
 	System.out.println(e);
@@ -99,7 +99,7 @@ public class MWEdge implements Comparable<MWEdge> {
     }
 
     /** Setter for line name */
-    public MWEdge setLine(String line) {
+    public Edge setLine(String line) {
 	this.line = line;
 	return this;
     }
@@ -110,7 +110,7 @@ public class MWEdge implements Comparable<MWEdge> {
     }
 
     /** Setter for vertex names */
-    public MWEdge setVertexNames(String vertex_v, String vertex_w) {
+    public Edge setVertexNames(String vertex_v, String vertex_w) {
 	MAX_NAME_LENGTH = Math.max(MAX_NAME_LENGTH, (vertex_v + " - " + vertex_w).length() + 1); // +1 is important
 	v_name = vertex_v;
 	w_name = vertex_w;

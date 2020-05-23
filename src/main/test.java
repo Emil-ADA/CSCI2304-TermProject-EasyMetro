@@ -1,4 +1,4 @@
-package main;
+package Main;
 
 import java.awt.*;
 import javax.swing.*;
@@ -29,6 +29,11 @@ public class test {
 }
 
 class ColoredPanel extends JPanel {
+
+    /**
+     * 
+     */
+    private static final long serialVersionUID = 1L;
 
     ColoredPanel(Color color) {
         setBackground(color);

@@ -1,11 +1,10 @@
-package main;
+package Main;
 
 import java.awt.Dimension;
 import java.awt.EventQueue;
 import javax.swing.JFrame;
 
 import Utils.JHardware;
-import Utils.JUtil;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JMenu;
@@ -37,7 +36,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.Scanner;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
@@ -45,15 +43,10 @@ import javax.swing.JRadioButtonMenuItem;
 import java.awt.event.ItemListener;
 import java.awt.event.ItemEvent;
 
-import DS.DepthFirstSearch;
-import DS.DijkstraUndirectedSP;
 import DS.Graph;
-import DS.MWEdge;
+import DS.Edge;
 import DS.Basic.LinearProbingHashST;
-import DS.Basic.Queue;
-import DS.Basic.Stack;
 import Dependencies.FilenameUtils;
-import Dependencies.StdOut;
 
 import javax.swing.ImageIcon;
 import javax.swing.JCheckBoxMenuItem;
@@ -75,17 +68,14 @@ public class MainMenu {
      * GETTING CONFIGURATIONS
      ***************************************************************************/
     /** Command-Line Argument from fare.txt */
-    static String[] args;
+    static ArrayList<String> args;
 
     static {
-	try (Scanner sc = new Scanner(new File(".//data//settings.cfg"))) {
+	try (Scanner sc = new Scanner(new File(".//settings.cfg"))) {
+	    args = new ArrayList<>();
 
-	    int n = Integer.parseInt(sc.nextLine());
-	    args = new String[n];
-
-	    for (int i = 0; i < n; i++) {
-		args[i] = sc.nextLine();
-	    }
+	    while (sc.hasNext())
+		args.add(sc.nextLine());
 
 	} catch (FileNotFoundException e) {
 	    e.printStackTrace();
@@ -104,22 +94,22 @@ public class MainMenu {
     /** The Height of the screen */
     public static final int SCREEN_HEIGHT = (int) JHardware.getScreenSize().getHeight();
     /** The size of the frame determined by the ratio of screen size */
-    public static final double RATIO = Double.parseDouble(IOL.getValue("RATIO"));
+    public static final double RATIO = Double.parseDouble(IOL.getArgValue("RATIO"));
     /** The unit increment of the Vertical scroll bar of Scroll pane */
-    public static final short VSCROLL_RATE = (short) Integer.parseInt(IOL.getValue("VSCROLL_RATE"));
+    public static final short VSCROLL_RATE = (short) Integer.parseInt(IOL.getArgValue("VSCROLL_RATE"));
     /** The unit increment of the Horizontal scroll bar of Scroll pane */
-    public static final short HSCROLL_RATE = (short) Integer.parseInt(IOL.getValue("HSCROLL_RATE"));
+    public static final short HSCROLL_RATE = (short) Integer.parseInt(IOL.getArgValue("HSCROLL_RATE"));
 
-    public static final short COMPONENT_MARGIN = 10;
+    public static final short COMPONENT_MARGIN = (short) Integer.parseInt(IOL.getArgValue("COMPONENT_MARGIN"));
     /**
      * The max length of a <code>String</code> that can be printed in one line
      * without reduction
      */
     /* 54~56,I don't know why it varies, but yes magic */
-    public static int DISPLAY_PANE_LINE_LENGTH = 85;
+    public static int DISPLAY_PANE_LINE_LENGTH = Integer.parseInt(IOL.getArgValue("DISPLAY_PANE_LINE_LENGTH"));
 
     /** Variable ratio for zooming in and out, default value 10% */
-    public static final double ZOOM_SCALE = Double.parseDouble(IOL.getValue("ZOOM_SCALE"));
+    public static final double ZOOM_SCALE = Double.parseDouble(IOL.getArgValue("ZOOM_SCALE"));
 
     /**
      * By default it is 0; 0 means Fastest route, 1 means Shortest route, 2 means to
@@ -143,15 +133,15 @@ public class MainMenu {
     /** The data repository */
     static final String DATA_REPO = ".//data//Cities//";
 
-    private static final Font DEFAULT_FONT = new Font(IOL.getValue("DEFAULT_FONT"), Font.BOLD, SCREEN_WIDTH / 100);
+    private static final Font DEFAULT_FONT = new Font(IOL.getArgValue("DEFAULT_FONT"), Font.BOLD, SCREEN_WIDTH / 100);
 
     /** Bright color for the text highlight */
-    private Color textBright = new Color(255, 255, 255);
+    private static final Color TEXT_BRIGHT_COLOR = IOL.getArgColor("TEXT_BRIGHT_COLOR");
     /** Dark color for the text highlight */
-    private Color textDark = new Color(110, 159, 255);
+    private static final Color TEXT_DARK_COLOR = IOL.getArgColor("TEXT_DARK_COLOR");
 
     /** Current city of which map is displayed */
-    static String city = "Istanbul";
+    public static String CITY = IOL.getArgValue("CITY");
 
     /** Image of the map to be displayed */
     private static Image MAP_IMAGE;
@@ -228,7 +218,7 @@ public class MainMenu {
 	hash = new LinearProbingHashST<>();
 
 	/* The Lines in metro */
-	File[] roadlines = new File(DATA_REPO + city + "//lines").listFiles();
+	File[] roadlines = new File(DATA_REPO + CITY + "//lines").listFiles();
 
 	/* Adding each station and assigning it an ID */
 	int ID = 0;
@@ -251,7 +241,7 @@ public class MainMenu {
 
 	/* Display on the console, for Developers only */
 	for (String s : hash.keys()) {
-	    StdOut.println(hash.get(s) + ":\t" + s);
+	    System.out.println(hash.get(s) + ":\t" + s);
 	}
 
 	/* Initialize initial space for Map */
@@ -273,7 +263,7 @@ public class MainMenu {
 			prev = sc.nextLine();
 			key = sc.nextLine();
 		    }
-		    MWEdge newEdge = new MWEdge(hash.get(prev), hash.get(key), time, distance);
+		    Edge newEdge = new Edge(hash.get(prev), hash.get(key), time, distance);
 		    newEdge.setVertexNames(prev, key);
 		    newEdge.setLine(FilenameUtils.getBaseName(line.getAbsolutePath()));
 		    GRAPH.addEdge(newEdge);
@@ -293,7 +283,7 @@ public class MainMenu {
 
 	frame = new JFrame();
 	frame.setIconImage(new ImageIcon(".//data//icon.png").getImage());
-	frame.setTitle("Metro Map");
+	frame.setTitle("Easy Metro");
 	frame.setResizable(false);
 	frame.setBounds(SCREEN_WIDTH / 2 - FRAME_SIZE.width / 2,
 		SCREEN_HEIGHT / 2 - FRAME_SIZE.height / 2 - COMPONENT_MARGIN, FRAME_SIZE.width, FRAME_SIZE.height);
@@ -313,20 +303,6 @@ public class MainMenu {
 	menu_item_test.addActionListener(new ActionListener() {
 	    public void actionPerformed(ActionEvent arg0) {
 		// TODO: ADD YOUR CODE HERE TO TEST
-
-		int max = 0;
-		for (char i = 0; i < 256 / 2; i++) {
-		    if (!Character.isAlphabetic(i) && !Character.isDigit(i))
-			continue;
-		    int num = (int) (display_pane.getWidth() / frame.getFontMetrics(DEFAULT_FONT).getWidths()[i]);
-		    if (max <= num) {
-			max = num;
-			StdOut.println((char) i);
-		    }
-		}
-		DISPLAY_PANE_LINE_LENGTH = max;
-		// DISPLAY_PANE_LINE_LENGTH = 85;
-		StdOut.println(DISPLAY_PANE_LINE_LENGTH);
 	    }
 	});
 	menu_item_test.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
@@ -349,7 +325,6 @@ public class MainMenu {
 		fileChooser.setCurrentDirectory(new File(".\\saves"));
 		int result = fileChooser.showOpenDialog(frame);
 		if (result == JFileChooser.APPROVE_OPTION) {
-		    String name = "";
 
 		    String from = formatInput(textfield_dpt.getText());
 		    String via = formatInput(textfield_via.getText());
@@ -371,13 +346,9 @@ public class MainMenu {
 			return;
 		    }
 
-		    name += from.toLowerCase() + "→" + ((via != null) ? via.toLowerCase() + "→" : "")
-			    + to.toLowerCase();
-
 		    File selectedFile = fileChooser.getSelectedFile();
 		    int num = (selectedFile.listFiles() == null) ? 0 : selectedFile.listFiles().length;
-		    File output = new File(selectedFile + "\\Metro Map - Result(" + num + ").txt");
-		    StdOut.println(output);
+		    File output = new File(selectedFile + "\\EasyMetro-Save(" + num + ").txt");
 		    FileWriter fWriter;
 		    try {
 			fWriter = new FileWriter(output);
@@ -416,7 +387,7 @@ public class MainMenu {
 	JMenu menu_City = new JMenu("City");
 	menu_edit.add(menu_City);
 
-	JRadioButtonMenuItem radio_button_Istanbul = new JRadioButtonMenuItem("Istanbul");
+	JRadioButtonMenuItem radio_button_Istanbul = new JRadioButtonMenuItem(CITY);
 	radio_button_Istanbul.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 	radio_button_Istanbul.setSelected(true);
 	menu_City.add(radio_button_Istanbul);
@@ -603,7 +574,7 @@ public class MainMenu {
 	left_navbar.setLayout(null);
 	main_panel.add(left_navbar);
 
-	JLabel lblMetroMap = new JLabel("METRO MAP");
+	JLabel lblMetroMap = new JLabel("EASY METRO");
 	lblMetroMap.setBackground(SystemColor.controlShadow);
 	lblMetroMap.setBorder(new EtchedBorder(EtchedBorder.LOWERED, null, null));
 	lblMetroMap.setForeground(new Color(220, 220, 220));
@@ -617,7 +588,7 @@ public class MainMenu {
 	JButton optbutton_fastest = new JButton("Fastest");
 	optbutton_fastest.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 	optbutton_fastest.setFont(DEFAULT_FONT);
-	optbutton_fastest.setForeground(textBright);
+	optbutton_fastest.setForeground(TEXT_BRIGHT_COLOR);
 	optbutton_fastest.setBounds(COMPONENT_MARGIN, lblMetroMap.getY() + lblMetroMap.getHeight() + COMPONENT_MARGIN,
 		IOL.toInt(BUTTON_SIZE.getWidth()), IOL.toInt(BUTTON_SIZE.getHeight()));
 	optbutton_fastest.setUI(new MyButton());
@@ -627,7 +598,7 @@ public class MainMenu {
 	JButton optbutton_shortest = new JButton("Shortest");
 	optbutton_shortest.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 	optbutton_shortest.setFont(DEFAULT_FONT);
-	optbutton_shortest.setForeground(textDark);
+	optbutton_shortest.setForeground(TEXT_DARK_COLOR);
 	optbutton_shortest.setBounds(optbutton_fastest.getX() + optbutton_fastest.getWidth() + COMPONENT_MARGIN,
 		lblMetroMap.getY() + lblMetroMap.getHeight() + COMPONENT_MARGIN, IOL.toInt(BUTTON_SIZE.getWidth()),
 		IOL.toInt(BUTTON_SIZE.getHeight()));
@@ -638,7 +609,7 @@ public class MainMenu {
 	JButton optbutton_min = new JButton("Minimum");
 	optbutton_min.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 	optbutton_min.setFont(DEFAULT_FONT);
-	optbutton_min.setForeground(textDark);
+	optbutton_min.setForeground(TEXT_DARK_COLOR);
 	optbutton_min.setBounds(optbutton_shortest.getX() + optbutton_shortest.getWidth() + COMPONENT_MARGIN,
 		lblMetroMap.getY() + lblMetroMap.getHeight() + COMPONENT_MARGIN, IOL.toInt(BUTTON_SIZE.getWidth()),
 		IOL.toInt(BUTTON_SIZE.getHeight()));
@@ -705,7 +676,7 @@ public class MainMenu {
 	input_panel.add(label_arv);
 
 	JButton button_expand = new JButton("Expand");
-	button_expand.setForeground(textDark);
+	button_expand.setForeground(TEXT_DARK_COLOR);
 	button_expand.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 	button_expand.setFont(DEFAULT_FONT);
 	button_expand.setUI(new MyButton());
@@ -715,7 +686,7 @@ public class MainMenu {
 	buttons.add(button_expand);
 
 	JButton button_search = new JButton("Search");
-	button_search.setForeground(textDark);
+	button_search.setForeground(TEXT_DARK_COLOR);
 	button_search.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 	button_search.setFont(DEFAULT_FONT);
 	button_search.setBounds(button_expand.getX() + button_expand.getWidth() + COMPONENT_MARGIN,
@@ -726,7 +697,7 @@ public class MainMenu {
 	buttons.add(button_search);
 
 	JButton button_refresh = new JButton("Refresh");
-	button_refresh.setForeground(textDark);
+	button_refresh.setForeground(TEXT_DARK_COLOR);
 	button_refresh.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 	button_refresh.setFont(DEFAULT_FONT);
 	button_refresh.setBounds(button_search.getX() + button_search.getWidth() + COMPONENT_MARGIN,
@@ -774,8 +745,10 @@ public class MainMenu {
 	scrollpane_map.getHorizontalScrollBar().setUnitIncrement(HSCROLL_RATE);
 	main_panel.add(scrollpane_map);
 
-	MAP_IMAGE = new ImageIcon(DATA_REPO + city + "//map.png").getImage();
+	MAP_IMAGE = new ImageIcon(DATA_REPO + CITY + "//map.png").getImage();
 	MAP_IMG_LBL = new JLabel("");
+	MAP_IMG_LBL.setBorder(new BevelBorder(BevelBorder.RAISED, new Color(153, 180, 209), new Color(0, 120, 215),
+		new Color(64, 64, 64), new Color(128, 128, 128)));
 	MAP_IMG_LBL.setIcon(new ImageIcon(MAP_IMAGE));
 	MAP_IMG_LBL.setBounds(scrollpane_map.getBounds());
 	setMAP_size(scrollpane_map.getWidth() - COMPONENT_MARGIN, scrollpane_map.getHeight() - COMPONENT_MARGIN);
@@ -789,11 +762,11 @@ public class MainMenu {
 	radio_button_Seoul.addActionListener(new ActionListener() {
 	    public void actionPerformed(ActionEvent e) {
 
-		city = "Seoul";
+		CITY = "Seoul";
 		radio_button_Seoul.setSelected(true);
 		radio_button_Istanbul.setSelected(false);
 		initMAP();
-		MAP_IMAGE = new ImageIcon(DATA_REPO + city + "//map.png").getImage();
+		MAP_IMAGE = new ImageIcon(DATA_REPO + CITY + "//map.png").getImage();
 		MAP_IMG_LBL.setIcon(new ImageIcon(MAP_IMAGE));
 
 		setMAP_size(scrollpane_map.getWidth() - COMPONENT_MARGIN,
@@ -804,11 +777,11 @@ public class MainMenu {
 	});
 	radio_button_Istanbul.addActionListener(new ActionListener() {
 	    public void actionPerformed(ActionEvent arg0) {
-		city = "Istanbul";
+		CITY = "Istanbul";
 		radio_button_Istanbul.setSelected(true);
 		radio_button_Seoul.setSelected(false);
 		initMAP();
-		MAP_IMAGE = new ImageIcon(DATA_REPO + city + "//map.png").getImage();
+		MAP_IMAGE = new ImageIcon(DATA_REPO + CITY + "//map.png").getImage();
 		MAP_IMG_LBL.setIcon(new ImageIcon(MAP_IMAGE));
 		setMAP_size(scrollpane_map.getWidth() - COMPONENT_MARGIN,
 			scrollpane_map.getHeight() - COMPONENT_MARGIN);
@@ -839,25 +812,25 @@ public class MainMenu {
 	/** ----------------------'FASTEST' BUTTON---------------------- */
 	optbutton_fastest.addActionListener(new ActionListener() {
 	    public void actionPerformed(ActionEvent e) {
-		optbutton_fastest.setForeground(textBright);
-		optbutton_min.setForeground(textDark);
-		optbutton_shortest.setForeground(textDark);
+		optbutton_fastest.setForeground(TEXT_BRIGHT_COLOR);
+		optbutton_min.setForeground(TEXT_DARK_COLOR);
+		optbutton_shortest.setForeground(TEXT_DARK_COLOR);
 		MODE = 0;
 	    }
 	});/** ----------------------'SHORTEST' BUTTON---------------------- */
 	optbutton_shortest.addActionListener(new ActionListener() {
 	    public void actionPerformed(ActionEvent e) {
-		optbutton_shortest.setForeground(textBright);
-		optbutton_min.setForeground(textDark);
-		optbutton_fastest.setForeground(textDark);
+		optbutton_shortest.setForeground(TEXT_BRIGHT_COLOR);
+		optbutton_min.setForeground(TEXT_DARK_COLOR);
+		optbutton_fastest.setForeground(TEXT_DARK_COLOR);
 		MODE = 1;
 	    }
 	});/** ----------------------'MINIMUM' BUTTON---------------------- */
 	optbutton_min.addActionListener(new ActionListener() {
 	    public void actionPerformed(ActionEvent e) {
-		optbutton_min.setForeground(textBright);
-		optbutton_fastest.setForeground(textDark);
-		optbutton_shortest.setForeground(textDark);
+		optbutton_min.setForeground(TEXT_BRIGHT_COLOR);
+		optbutton_fastest.setForeground(TEXT_DARK_COLOR);
+		optbutton_shortest.setForeground(TEXT_DARK_COLOR);
 		MODE = 2;
 	    }
 	});
@@ -961,9 +934,9 @@ public class MainMenu {
 	a[0].setLocation(0, 0);
 	IOL.prev_p = null;
 	IOL.curr_p = null;
-	a[1].setForeground(textBright);
-	a[2].setForeground(textDark);
-	a[3].setForeground(textDark);
+	a[1].setForeground(TEXT_BRIGHT_COLOR);
+	a[2].setForeground(TEXT_DARK_COLOR);
+	a[3].setForeground(TEXT_DARK_COLOR);
 	MODE = 0;
 	textfield_dpt.setText("");
 	textfield_via.setText("");

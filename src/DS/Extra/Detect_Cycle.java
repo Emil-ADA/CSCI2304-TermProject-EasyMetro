@@ -1,7 +1,7 @@
 package DS.Extra;
 
 import DS.Graph;
-import DS.MWEdge;
+import DS.Edge;
 import DS.Basic.Stack;
 
 /**
@@ -38,7 +38,7 @@ public class Detect_Cycle {
     // side effect: initialize cycle to be self loop
     private boolean hasSelfLoop(Graph G) {
 	for (int v = 0; v < G.V(); v++) {
-	    for (MWEdge e : G.adj(v)) {
+	    for (Edge e : G.adj(v)) {
 		int w = e.getW();
 		if (v == w) {
 		    cycle = new Stack<Integer>();
@@ -59,7 +59,7 @@ public class Detect_Cycle {
 	for (int v = 0; v < G.V(); v++) {
 
 	    // check for parallel edges incident to v
-	    for (MWEdge e : G.adj(v)) {
+	    for (Edge e : G.adj(v)) {
 		int w = e.getW();
 		if (marked[w]) {
 		    cycle = new Stack<Integer>();
@@ -72,7 +72,7 @@ public class Detect_Cycle {
 	    }
 
 	    // reset so marked[v] = false for all v
-	    for (MWEdge e : G.adj(v)) {
+	    for (Edge e : G.adj(v)) {
 		int w = e.getW();
 		marked[w] = false;
 	    }
@@ -101,7 +101,7 @@ public class Detect_Cycle {
 
     private void dfs(Graph G, int u, int v) {
 	marked[v] = true;
-	for (MWEdge e : G.adj(v)) {
+	for (Edge e : G.adj(v)) {
 	    int w = e.getW();
 
 	    // short circuit if cycle already found
