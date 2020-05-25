@@ -28,6 +28,10 @@ public class Algorithm {
     public static StringBuilder searchResultsExtended;
 
     public static final char SEPERATOR_CHAR = '▬';
+    public static final String STR_TRANSFER = "↳Transfer\t| ";
+    public static final String STR_DEPARTURE = "\nDeparture \t| ";
+    public static final String STR_ARRIVAL = "⏹Arrival \t| ";
+    public static final String STR_STOP = "⏸Stop \t| ";
 
     public static void main(String[] args) {
 	File selectedFile = new File("C:\\Users\\sadig\\Desktop\\hey.txt");
@@ -58,7 +62,6 @@ public class Algorithm {
 	retval = (retval || (path.contains(transfer)));
 	return retval;
     }
-
 
     private static int PREVIOUS_INDEX = 0;
 
@@ -139,7 +142,7 @@ public class Algorithm {
      * @param via
      *                 station to stop
      * @param to
-     *                 destination station
+     *                 Arrival station
      * @return Results in String form
      */
     public static StringBuilder displayMin(String from, String via, String to, Graph graph,
@@ -171,7 +174,7 @@ public class Algorithm {
 	int transfer = 0;
 	int stations = 1; // Stations start at one, because oz mindiyin esseyi de saymaq lazimdir
 	String line_changed = null;
-	str2Append = "\nDeparture \t| ";
+	str2Append = STR_DEPARTURE;
 	searchResults.append(str2Append);
 	searchResultsExtended.append(str2Append);
 
@@ -196,9 +199,9 @@ public class Algorithm {
 	    /* Display the only edge where the transfer has happened */
 	    if (!e.getLine().equals(line_changed)) {
 		transfer++;
-		searchResults.append("↳Transfer \t| " + line_changed + " → " + str2Append);
+		searchResults.append(STR_TRANSFER + line_changed + " → " + str2Append);
 		searchResultsExtended.replace(0, searchResultsExtended.toString().indexOf('‣' + str2Append),
-			searchResultsExtended.toString() + "↳Transfer \t| " + line_changed + " → " + str2Append);
+			searchResultsExtended.toString() + STR_TRANSFER + line_changed + " → " + str2Append);
 	    }
 	    line_changed = e.getLine();
 
@@ -225,9 +228,9 @@ public class Algorithm {
 	     */
 	    if (!line_changed.equals(e.getLine())) {
 		transfer++;
-		searchResults.append("↳Transfer \t| " + line_changed + " → " + str2Append);
+		searchResults.append(STR_TRANSFER + line_changed + " → " + str2Append);
 	    }
-	    str2Append = "Stop \t| " + e + "\n";
+	    str2Append = STR_STOP + e + "\n";
 	    searchResults.append(str2Append);
 	    searchResultsExtended.append(str2Append);
 	    line_changed = e.getLine();
@@ -242,16 +245,16 @@ public class Algorithm {
 
 		if (!e.getLine().equals(line_changed)) {
 		    transfer++;
-		    searchResults.append("↳Transfer \t| " + line_changed + " → " + str2Append);
+		    searchResults.append(STR_TRANSFER + line_changed + " → " + str2Append);
 		    searchResultsExtended.replace(0, searchResultsExtended.toString().indexOf('‣' + str2Append),
-			    searchResultsExtended.toString() + "↳Transfer \t| " + line_changed + " → " + str2Append);
+			    searchResultsExtended.toString() + STR_TRANSFER + line_changed + " → " + str2Append);
 		}
 		line_changed = e.getLine();
 	    }
 
 	}
-	// append DESTINATION as well
-	str2Append = "Destination \t| " + str2Append;
+	// append Arrival as well
+	str2Append = STR_ARRIVAL + str2Append;
 	searchResults.append(str2Append);
 	searchResultsExtended.append(str2Append);
 	/*
@@ -343,7 +346,7 @@ public class Algorithm {
 	int transfer = 0;
 	int stations = 1; // Stations start at one, because oz mindiyin esseyi de saymaq lazimdir
 	String line_changed = null;
-	str2Append = "\nDeparture \t| ";
+	str2Append = STR_DEPARTURE;
 	searchResults.append(str2Append);
 	searchResultsExtended.append(str2Append);
 
@@ -368,9 +371,9 @@ public class Algorithm {
 	    /** Display the only edge where the transfer has happened */
 	    if (!e.getLine().equals(line_changed)) {
 		transfer++;
-		searchResults.append("↳Transfer \t| " + line_changed + " → " + str2Append);
+		searchResults.append(STR_TRANSFER + line_changed + " → " + str2Append);
 		searchResultsExtended.replace(0, searchResultsExtended.toString().indexOf('‣' + str2Append),
-			searchResultsExtended.toString() + "↳Transfer \t| " + line_changed + " → " + str2Append);
+			searchResultsExtended.toString() + STR_TRANSFER + line_changed + " → " + str2Append);
 	    }
 	    line_changed = e.getLine();
 	}
@@ -396,9 +399,9 @@ public class Algorithm {
 	     */
 	    if (!line_changed.equals(e.getLine())) {
 		transfer++;
-		searchResults.append("↳Transfer \t| " + line_changed + " → " + str2Append);
+		searchResults.append(STR_TRANSFER + line_changed + " → " + str2Append);
 	    }
-	    str2Append = "Stop \t| " + e + "\n";
+	    str2Append = STR_STOP + e + "\n";
 	    searchResults.append(str2Append);
 	    searchResultsExtended.append(str2Append);
 	    line_changed = e.getLine();
@@ -412,16 +415,16 @@ public class Algorithm {
 
 		if (!e.getLine().equals(line_changed)) {
 		    transfer++;
-		    searchResults.append("↳Transfer \t| " + line_changed + " → " + str2Append);
+		    searchResults.append(STR_TRANSFER + line_changed + " → " + str2Append);
 		    searchResultsExtended.replace(0, searchResultsExtended.toString().indexOf('‣' + str2Append),
-			    searchResultsExtended.toString() + "↳Transfer \t| " + line_changed + " → " + str2Append);
+			    searchResultsExtended.toString() + STR_TRANSFER + line_changed + " → " + str2Append);
 		}
 		line_changed = e.getLine();
 	    }
 
 	}
-	// append DESTINATION as well
-	str2Append = "Destination \t| " + str2Append;
+	// append Arrival as well
+	str2Append = STR_ARRIVAL + str2Append;
 	searchResults.append(str2Append);
 	searchResultsExtended.append(str2Append);
 	/*

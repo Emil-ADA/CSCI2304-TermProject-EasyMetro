@@ -16,7 +16,12 @@ import java.awt.Color;
 import java.awt.Component;
 
 import javax.swing.border.BevelBorder;
+import javax.swing.border.EmptyBorder;
 import javax.swing.border.SoftBevelBorder;
+import javax.swing.text.AttributeSet;
+import javax.swing.text.SimpleAttributeSet;
+import javax.swing.text.StyleConstants;
+import javax.swing.text.StyleContext;
 import javax.swing.JLabel;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
@@ -26,6 +31,7 @@ import javax.swing.UnsupportedLookAndFeelException;
 
 import java.awt.Font;
 import java.awt.Image;
+import java.awt.Insets;
 import java.awt.SystemColor;
 import javax.swing.border.EtchedBorder;
 import javax.swing.JButton;
@@ -36,6 +42,8 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Iterator;
 import java.util.Scanner;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
@@ -182,6 +190,8 @@ public class MainMenu {
      * of the stations to theirs indices
      */
     private LinearProbingHashST<String, Integer> hash;
+
+    private LinearProbingHashST<String, Color> colors;
     /** Metro Map */
     private Graph GRAPH;
 
@@ -274,6 +284,20 @@ public class MainMenu {
 	    }
 	}
 
+	// Getting the colours of the city
+	try (Scanner sc = new Scanner(new File(DATA_REPO + CITY + "//line-color.txt"))) {
+	    colors = new LinearProbingHashST<>();
+	    while (sc.hasNext()) {
+		String key_val[] = sc.nextLine().split("=");
+
+		String cols[] = key_val[1].split(",");
+		colors.put(key_val[0],
+			new Color(Integer.parseInt(cols[0]), Integer.parseInt(cols[1]), Integer.parseInt(cols[2])));
+	    }
+	} catch (FileNotFoundException e) {
+	    e.printStackTrace();
+	}
+
     }
 
     /**
@@ -285,8 +309,8 @@ public class MainMenu {
 	frame.setIconImage(new ImageIcon(".//data//icon.png").getImage());
 	frame.setTitle("Easy Metro");
 	frame.setResizable(false);
-	frame.setBounds(SCREEN_WIDTH / 2 - FRAME_SIZE.width / 2,
-		SCREEN_HEIGHT / 2 - FRAME_SIZE.height / 2 - COMPONENT_MARGIN, FRAME_SIZE.width, FRAME_SIZE.height);
+	frame.setSize(FRAME_SIZE.width, FRAME_SIZE.height);
+	frame.setLocationRelativeTo(null);
 	frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 	frame.getContentPane().setLayout(null);
 
@@ -354,7 +378,7 @@ public class MainMenu {
 			fWriter = new FileWriter(output);
 			PrintWriter pWriter = new PrintWriter(fWriter);
 			pWriter.println(from + "→" + ((via != null) ? via + "→" : "") + to);
-			pWriter.println(display_pane.getText());
+			pWriter.println(display_pane.getText().trim());
 			pWriter.close();
 		    } catch (IOException e) {
 			e.printStackTrace();
@@ -399,22 +423,6 @@ public class MainMenu {
 	JMenuItem menu_item_refresh = new JMenuItem("Refresh");
 	menu_item_refresh.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 	menu_edit.add(menu_item_refresh);
-
-	JMenuItem menu_item_cut = new JMenuItem("Cut");
-	menu_item_cut.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-	menu_edit.add(menu_item_cut);
-
-	JMenuItem menu_item_copy = new JMenuItem("Copy");
-	menu_item_copy.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-	menu_edit.add(menu_item_copy);
-
-	JMenuItem menu_item_paste = new JMenuItem("Paste");
-	menu_item_paste.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-	menu_edit.add(menu_item_paste);
-
-	JMenuItem menu_item_delete = new JMenuItem("Delete");
-	menu_item_delete.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-	menu_edit.add(menu_item_delete);
 
 	JMenu menu_settings = new JMenu("Settings");
 	menu_settings.setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
@@ -713,9 +721,13 @@ public class MainMenu {
 		left_navbar.getHeight() - (button_search.getHeight() + button_search.getY() + 55));
 	left_navbar.add(scrollpane_display);
 	scrollpane_display.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
-	display_pane = new JTextPane();
 
-	display_pane.setFont(new Font(DEFAULT_FONT.getFamily(), Font.PLAIN, DEFAULT_FONT.getSize()));
+	display_pane = new JTextPane();
+	EmptyBorder eb = new EmptyBorder(new Insets(10, 10, 10, 10));
+	display_pane.setBorder(eb);
+	// tPane.setBorder(BorderFactory.createLineBorder(Color.DARK_GRAY));
+	display_pane.setMargin(new Insets(5, 5, 5, 5));
+	display_pane.setFont(new Font(DEFAULT_FONT.getFamily(), Font.BOLD, DEFAULT_FONT.getSize()));
 	display_pane.setEditable(false);
 	scrollpane_display.setViewportView(display_pane);
 
@@ -982,10 +994,48 @@ public class MainMenu {
 		    searchResults = Algorithm.search(from, via, to, GRAPH, hash);
 		}
 
-		display_pane.setText(searchResults.toString());
+		display_pane.setText("");// Clear
+		colorifyOutput(display_pane, searchResults);// Add Color
 		display_pane.setCaretPosition(0);
 	    }
 	};
+    }
+
+    private void colorifyOutput(JTextPane tp, StringBuilder sb) {
+	String[] lines = sb.toString().split("\\n");
+	for (String line : lines) {
+	    Color lastToGet = Color.BLACK;
+
+	    Iterator<String> iter = colors.keys().iterator();
+	    while (iter.hasNext()) {
+		String color = iter.next();
+		System.out.println("Color:" + color);
+		if (line.contains(color)) {
+		    String str = line.substring(line.indexOf("|") + 1, line.indexOf(":")).trim();
+		    if (str.contains(" "))
+			str = str.substring(str.lastIndexOf(" "), str.length()).trim();
+		    lastToGet = colors.get(str);
+
+		    break;
+		}
+	    }
+
+	    tp.setEditable(true);
+
+	    appendToPane(tp, line.substring(0, line.indexOf("|") + 1), Color.BLACK);
+	    appendToPane(tp, line.substring(line.indexOf("|") + 1, line.length()) + "\n", lastToGet);
+
+	    tp.setEditable(false);
+	}
+    }
+
+    private void appendToPane(JTextPane tp, String msg, Color c) {
+	if (c == null)
+	    c = Color.BLACK;
+	StyleContext sc = StyleContext.getDefaultStyleContext();
+	AttributeSet aset = sc.addAttribute(SimpleAttributeSet.EMPTY, StyleConstants.Foreground, c);
+	tp.setCharacterAttributes(aset, false);
+	tp.replaceSelection(msg);
     }
 
     private String formatInput(String str) {
