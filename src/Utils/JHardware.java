@@ -12,8 +12,6 @@ import java.net.UnknownHostException;
 import java.util.Map;
 import java.util.Set;
 
-import Dependencies.Kernel32;
-
 
 
 public class JHardware {

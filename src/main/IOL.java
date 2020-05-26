@@ -7,10 +7,8 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.event.MouseMotionAdapter;
-/**Note: Sorry for not using mine but I get problems while casting*/
-import java.util.ArrayList;
-import java.util.List;
+
+/*I am using this only for lambda expressions, since lambda exp. uses List interface. */
 
 import javax.swing.JOptionPane;
 import javax.swing.JTextField;
@@ -18,6 +16,7 @@ import javax.swing.JToolTip;
 import javax.swing.Popup;
 import javax.swing.PopupFactory;
 
+import DS.Basic.ArrayList;
 import DS.Basic.LinearProbingHashST;
 
 /***
@@ -38,17 +37,19 @@ public class IOL {
 	return hash;
     }
 
-    /**
-     * @param hash
-     *                 the hash to set
+    /* VARIABLES FOR AUTO-SUGGESTION */
+    /*
+     * These Variables are shared between 3 text fields in order to reduce memory
+     * usage plus only one instance of suggestion needed at a time
      */
-    public static void setHash(LinearProbingHashST<String, Integer> hash) {
-	IOL.hash = hash;
-    }
+    private static JToolTip toolTip = new JToolTip();
+    private static Popup popup;
+    private static PopupFactory pf = new PopupFactory();
 
-    public static int toInt(double a) {
-	return (int) a;
-    }
+    /** List containing the suggestions */
+    private static ArrayList<String> sugg = new ArrayList<String>();
+    /** List containing references for the text-fields */
+    private static DS.Basic.ArrayList<JTextField> textFields = new DS.Basic.ArrayList<>();
 
     public static String formatResult(double res, int mode) {
 	String retval = "";
@@ -68,12 +69,13 @@ public class IOL {
     /**
      * Method used to check input by user. Malformed input cases: <br>
      * 1) Departure station was not specified.<br>
-     * 2) Incorrect Departure station was given<br>
-     * 3) Incorrect via station was given<br>
+     * 2) Incorrect Departure station was given.<br>
+     * 3) Incorrect via station was given; but only when it is not empty<br>
      * 4) Destination station was not specified. <br>
-     * 5) The departure station was given but not correctly. <br>
+     * 5) The Destination station was given but not correctly. <br>
      * 6) When user tries to input the same station. <br>
-     * 7) <br>
+     * 7) When there is no possible route or the lines are not connect. (This case
+     * can only be tested during calculation). See: <code>Algorithm.java</code><br>
      * 
      * Corresponding caution messages:<br>
      * 1) "Please specify the departure station."<br>
@@ -82,6 +84,7 @@ public class IOL {
      * 4) "Please specify the destination station." <br>
      * 5) "Destination station does not exist." <br>
      * 6) "Can't choose the same station." <br>
+     * 7) "There is no route."
      * 
      * @param frame
      *                    the main frame to display caution messages on.
@@ -95,30 +98,30 @@ public class IOL {
 
 	/** Case 1 */
 	if (varargs[0] == null) {
-	    JOptionPane.showMessageDialog(MainMenu.getFrame(), "Please specify the departure station.");
+	    JOptionPane.showMessageDialog(Main.getFrame(), "Please specify the departure station.");
 	    return false;
 	}
 	/** Case 2. */
 	if (!IOL.hash.contains(varargs[0])) {
-	    JOptionPane.showMessageDialog(MainMenu.getFrame(), "Departure station does not exist.");
+	    JOptionPane.showMessageDialog(Main.getFrame(), "Departure station does not exist.");
 	    return false;
 	}
 
 	/** Case 3. */
 	if (varargs[1] != null && !IOL.hash.contains(varargs[1])) {
-	    JOptionPane.showMessageDialog(MainMenu.getFrame(), "Via station does not exist.");
+	    JOptionPane.showMessageDialog(Main.getFrame(), "Via station does not exist.");
 	    return false;
 	}
 
 	/** Case 4. */
 	if (varargs[2] == null) {
-	    JOptionPane.showMessageDialog(MainMenu.getFrame(), "Please specify the destionation station.");
+	    JOptionPane.showMessageDialog(Main.getFrame(), "Please specify the destination station.");
 	    return false;
 	}
 
 	/** Case 5. */
 	if (!IOL.hash.contains(varargs[2])) {
-	    JOptionPane.showMessageDialog(MainMenu.getFrame(), "Destination station does not exist.");
+	    JOptionPane.showMessageDialog(Main.getFrame(), "Destination station does not exist.");
 	    return false;
 	}
 
@@ -130,34 +133,19 @@ public class IOL {
 		flag = true;
 	    }
 	} else {
-	    /** Case 7. */
-	    if (!IOL.hash.contains(varargs[2])) {
-		JOptionPane.showMessageDialog(MainMenu.getFrame(), "Destination station does not exist.");
-		return false;
-	    }
+
 	    if (varargs[0].equals(varargs[1]) || varargs[1].equals(varargs[2])) {
 		flag = true;
 	    }
 	}
 	if (flag) {
-	    JOptionPane.showMessageDialog(MainMenu.getFrame(), "Can't choose the same station.");
+	    JOptionPane.showMessageDialog(Main.getFrame(), "Can't choose the same station.");
 	    return false;
 	}
 
 	return true;
 
     }
-
-    /* VARIABLES FOR AUTO-SUGGESTION */
-    /*
-     * These Variables are shared between 3 text fields in order to reduce memory
-     * usage plus only one instance of suggestion needed at a time
-     */
-    private static JToolTip toolTip = new JToolTip();
-    private static Popup popup;
-    private static PopupFactory pf = new PopupFactory();
-    private static List<String> sugg = new ArrayList<String>();
-    private static ArrayList<JTextField> textFields = new ArrayList<>();
 
     /**
      * There is a need to test for a concurrency since each keyboard key press is
@@ -201,7 +189,7 @@ public class IOL {
 		 * focus, don't do anything
 		 */
 		if (textFldCurrent.getText().length() == 0 || sugg.size() == 0 || !textFldCurrent.hasFocus()) {
-		    popup_show(false);
+		    showPopUp(false);
 		    CONCURRENCY = false;
 		    return;
 		}
@@ -214,9 +202,9 @@ public class IOL {
 		int y = IOL.toInt(textFldCurrent.getLocationOnScreen().getY()) + textFldCurrent.getHeight();
 
 		/* Initialize pop-up */
-		popup_show(false);
+		showPopUp(false);
 		popup = pf.getPopup(textFldCurrent, toolTip, x, y);
-		popup_show(true);
+		showPopUp(true);
 
 		/*
 		 * Mouse Listener for clicking on pop-up to paste the contents into text field
@@ -224,10 +212,13 @@ public class IOL {
 		toolTip.addMouseListener(new MouseAdapter() {
 		    @Override
 		    public void mouseClicked(MouseEvent e) {
-			for (JTextField textfield : textFields)
+
+			for (int i = 0; i < textFields.size; i++) {
+			    JTextField textfield = textFields.get(i);
 			    if (textfield.hasFocus())
 				textfield.setText(toolTip.getTipText());
-			popup_show(false);
+			}
+			showPopUp(false);
 		    }
 		});
 		CONCURRENCY = false;
@@ -236,17 +227,37 @@ public class IOL {
 
     }
 
-    public static List<String> query(String queryStr, List<String> list) {
-	List<String> suggestion = new ArrayList<>();
-	list.forEach(std -> {
+    /**
+     * Finds the list of suggested strings.
+     * 
+     * @param queryStr
+     *                     string to look for
+     * @param list
+     *                     Looking out of string in this list
+     * @return list of suggested strings
+     */
+    public static ArrayList<String> query(String queryStr, ArrayList<String> list) {
+	ArrayList<String> suggestion = new ArrayList<>();
+	java.util.Iterator<String> iter = list.iterator();
+	while (iter.hasNext()) {
+	    String std = iter.next();
 	    if (isMatched(queryStr, std)) {
 		suggestion.add(String.valueOf(std));
 	    }
-	});
-
+	}
 	return suggestion;
     }
 
+    /**
+     * Asserts equality of given strings, where case of a letter is not taken into
+     * account.
+     * 
+     * @param query
+     *                  query string
+     * @param text
+     *                  text string
+     * @return true if equals.
+     */
     private static boolean isMatched(String query, String text) {
 	return text.toLowerCase().contains(query.toLowerCase());
     }
@@ -261,54 +272,57 @@ public class IOL {
 	return new MouseAdapter() {
 	    @Override
 	    public void mouseClicked(MouseEvent e) {
-		IOL.popup_show(false);
+		IOL.showPopUp(false);
 	    }
 	};
     }
 
     /**
-     * AUX method for showing and hiding suggestion popup
+     * AUX method for showing and hiding suggestion pop-up
      * 
-     * @param yes
-     *                boolean flag
+     * @param show
+     *                 boolean flag
      */
-    public static void popup_show(boolean yes) {
+    public static void showPopUp(boolean show) {
 	if (popup == null)
 	    return;
-	if (yes)
+	if (show)
 	    popup.show();
 	else {
 	    popup.hide();
 	}
     }
 
-    /* Points used for dragging left navigation bar */
-    /** Previous point on screen */
-    public static Point prev_p;
-    /** Current point on screen */
-    public static Point curr_p;
-
     /**
-     * Method that initializes a dragging feature in
-     * <code>MouseMotionAdapter</code>.
+     * Method that initializes a dragging feature in an instance of
+     * <code><b>MouseMotionAdapter</b></code>.
      * 
      * @param left_navbar
-     *                        the component that is intended to be dragable.
-     * @return An instance of <code>MouseMotionAdapter</code> that will contain
-     *         instruction.
+     *                        the component that is intended to be drag-able.
+     * @return An instance of <code><b>MouseMotionAdapter</b></code> that will
+     *         contain instruction.
      */
-    public static MouseMotionAdapter dragLeftNavBar(Component left_navbar) {
+    public static MouseAdapter dragLeftNavBar(Component left_navbar) {
 
-	return new MouseMotionAdapter() {
+	return new MouseAdapter() {
+
+	    /* Points used for dragging left navigation bar */
+	    /** Previous point on screen */
+	    public Point prev_p;
+	    /** Current point on screen */
+	    public Point curr_p;
 
 	    @Override
 	    public void mouseDragged(MouseEvent e) {
+
 		/* check for dragging option */
-		if (!MainMenu.DRAG_FLAG)
+		if (!Main.DRAG_FLAG) {
+		    prev_p = null;
 		    return;
+		}
 
 		/* Close all pop-ups */
-		IOL.popup_show(false);
+		IOL.showPopUp(false);
 
 		/* Current location of the mouse on the screen */
 		curr_p = e.getLocationOnScreen();
@@ -330,7 +344,18 @@ public class IOL {
 	};
     }
 
+    /**
+     * Asserts equality of given strings, where case of a letter is not taken into
+     * account.
+     * 
+     * @param a
+     *              first string
+     * @param b
+     *              second string
+     * @return The first String if equals, else the second one
+     */
     public static String equalsCaseInsensitive(String a, String b) {
+
 	if (a == null || b == null)
 	    return null;
 	if (a.toLowerCase().equals(b.toLowerCase()))
@@ -339,9 +364,17 @@ public class IOL {
 	    return b;
     }
 
+    /**
+     * Retrieves value of a given key, similar to hash map. Example: "key=value"
+     * method returns "value".
+     * 
+     * @param pattern
+     *                    a string pattern containing information for color
+     * @return retrieved value
+     */
     public static String getArgValue(String pattern) {
-	for (int i = 0; i < MainMenu.args.size(); i++) {
-	    String item = MainMenu.args.get(i);
+	for (int i = 0; i < Main.args.size(); i++) {
+	    String item = Main.args.get(i);
 	    if (item.contains(pattern)) {
 		return item.substring(item.indexOf("=") + 1);
 	    }
@@ -349,11 +382,32 @@ public class IOL {
 	return null;
     }
 
+    /**
+     * Gets an instance of <code>Color</code> class, from given pattern.
+     * 
+     * @param pattern
+     *                    a string pattern containing information for color
+     * @return retrieved Color
+     */
     public static Color getArgColor(String pattern) {
 	String[] RGB = getArgValue(pattern).split(",");
-	
 	return new Color(Integer.parseInt(RGB[0].trim()), Integer.parseInt(RGB[1].trim()),
 		Integer.parseInt(RGB[2].trim()));
+    }
+
+    /**
+     * Setter for this class's field of
+     * <code><b>LinearProbingHashST<String, Integer></b></code> instance.
+     * 
+     * @param hash
+     *                 the hash to set
+     */
+    public static void setHash(LinearProbingHashST<String, Integer> hash) {
+	IOL.hash = hash;
+    }
+
+    public static int toInt(double a) {
+	return (int) a;
     }
 
 }

@@ -18,9 +18,6 @@ import java.util.Scanner;
 import javax.swing.ImageIcon;
 import javax.swing.filechooser.FileSystemView;
 
-import Dependencies.FilenameUtils;
-import Dependencies.OsDetector;
-
 public class JFiles {
     public static void main(String[] args) {
 	

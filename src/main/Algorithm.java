@@ -2,10 +2,6 @@ package Main;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Scanner;
 
@@ -15,6 +11,7 @@ import DS.DFS;
 import DS.Dijkstra;
 import DS.Graph;
 import DS.Edge;
+import DS.Basic.ArrayList;
 import DS.Basic.LinearProbingHashST;
 import DS.Basic.Queue;
 import DS.Basic.Stack;
@@ -28,39 +25,14 @@ public class Algorithm {
     public static StringBuilder searchResultsExtended;
 
     public static final char SEPERATOR_CHAR = '▬';
+
     public static final String STR_TRANSFER = "↳Transfer\t| ";
     public static final String STR_DEPARTURE = "\nDeparture \t| ";
     public static final String STR_ARRIVAL = "⏹Arrival \t| ";
     public static final String STR_STOP = "⏸Stop \t| ";
 
     public static void main(String[] args) {
-	File selectedFile = new File("C:\\Users\\sadig\\Desktop\\hey.txt");
-
-	FileWriter fWriter;
-	try {
-	    fWriter = new FileWriter(selectedFile);
-	    PrintWriter pWriter = new PrintWriter(fWriter);
-	    pWriter.println("hey");
-	    pWriter.close();
-	} catch (IOException e) {
-	}
-    }
-
-    public static boolean hasTranfer(String path, String transfer) {
-	boolean retval = false;
-
-	retval = (retval || (path.contains(transfer)));
-
-	String arr[] = transfer.split("/");
-	/**
-	 * We need to consider, for ex.: <br>
-	 * Bayrampasa-Maltepe/Topkapi-Ulubatli/Fetihkapi<br>
-	 * AND <br>
-	 * Fetihkapi/Topkapi-Ulubatli/Bayrampasa-Maltepe
-	 */
-	transfer = arr[2] + "/" + arr[1] + "/" + arr[0];
-	retval = (retval || (path.contains(transfer)));
-	return retval;
+	
     }
 
     private static int PREVIOUS_INDEX = 0;
@@ -68,6 +40,7 @@ public class Algorithm {
     public static Queue<Edge> searchMin(String from, String to, Graph graph,
 	    LinearProbingHashST<String, Integer> hash) {
 	DFS dfs = new DFS(graph, hash, from, to);
+	/**/
 	ArrayList<Stack<String>> ALL_PATHS = dfs.getAllPaths();
 	if (ALL_PATHS.size() == 0) {
 	    return null;
@@ -260,11 +233,11 @@ public class Algorithm {
 	/*
 	 * Adding travel info.
 	 */
-	str2Append = "\n" + JUtil.n_times_char(MainMenu.DISPLAY_PANE_LINE_LENGTH, SEPERATOR_CHAR);
+	str2Append = "\n" + JUtil.n_times_char(Main.DISPLAY_PANE_LINE_LENGTH, SEPERATOR_CHAR);
 	searchResults.replace(0, searchResults.length(), str2Append + searchResults.toString());
 	searchResultsExtended.replace(0, searchResultsExtended.length(), str2Append + searchResultsExtended.toString());
 
-	try (Scanner sc = new Scanner(new File(MainMenu.DATA_REPO + MainMenu.CITY + "//fare.txt"))) {
+	try (Scanner sc = new Scanner(new File(Main.DATA_REPO + Main.CITY + "//fare.txt"))) {
 	    String line = sc.nextLine();
 	    /* Add total cost */
 	    line = line.substring(line.indexOf('=') + 1, line.length());
@@ -289,23 +262,23 @@ public class Algorithm {
 	searchResults.replace(0, searchResults.length(), str2Append + searchResults.toString());
 	searchResultsExtended.replace(0, searchResultsExtended.length(), str2Append + searchResultsExtended.toString());
 	/** Temporarily changing modes for displaying different parameters */
-	int temp = MainMenu.MODE;
+	int temp = Main.MODE;
 
 	/* Mode = 0, is for displaying time */
-	MainMenu.MODE = 0;
+	Main.MODE = 0;
 
-	str2Append = "Lead Time: " + IOL.formatResult(time, MainMenu.MODE) + "\n";
+	str2Append = "Lead Time: " + IOL.formatResult(time, Main.MODE) + "\n";
 	searchResults.replace(0, searchResults.length(), str2Append + searchResults.toString());
 	searchResultsExtended.replace(0, searchResultsExtended.length(), str2Append + searchResultsExtended.toString());
 
 	/* Mode = 0, is for displaying distance */
-	MainMenu.MODE = 1;
+	Main.MODE = 1;
 
-	str2Append = "Distance: " + IOL.formatResult(distance, MainMenu.MODE) + "\n";
+	str2Append = "Distance: " + IOL.formatResult(distance, Main.MODE) + "\n";
 	searchResults.replace(0, searchResults.length(), str2Append + searchResults.toString());
 	searchResultsExtended.replace(0, searchResultsExtended.length(), str2Append + searchResultsExtended.toString());
 
-	MainMenu.MODE = temp;
+	Main.MODE = temp;
 
 	str2Append = stations + " Station(s). | " + transfer + " Transfer(s)." + "\n";
 	searchResults.replace(0, searchResults.length(), str2Append + searchResults.toString());
@@ -333,12 +306,13 @@ public class Algorithm {
 	    to = null;
 	}
 	/** ALL SHORTEST PATHS FROM 'from' */
-	Dijkstra first = new Dijkstra(graph, hash.get(from), MainMenu.MODE);
+	Dijkstra first = new Dijkstra(graph, hash.get(from), Main.MODE);
 	/** Shortest path between 'from' and 'via */
 	Iterable<Edge> allStationsBetween = first.pathTo(hash.get(via));
 	if (allStationsBetween == null) {
-	    JOptionPane.showMessageDialog(MainMenu.getFrame(), "There is no route.");
-	    return searchResults;
+	    JOptionPane.showMessageDialog(Main.getFrame(), "There is no route.");
+	    
+	    return searchResults = null;
 	}
 	Iterator<Edge> pathTo = allStationsBetween.iterator();
 
@@ -385,11 +359,12 @@ public class Algorithm {
 
 	/* if via station has been given */
 	if (to != null) {
-	    second = new Dijkstra(graph, hash.get(via), MainMenu.MODE);
+	    second = new Dijkstra(graph, hash.get(via), Main.MODE);
 	    allStationsBetween = second.pathTo(hash.get(to));
+	    
 	    if (allStationsBetween == null) {
-		JOptionPane.showMessageDialog(MainMenu.getFrame(), "There is no route.");
-		return searchResults;
+		JOptionPane.showMessageDialog(Main.getFrame(), "There is no route.");
+		return searchResults = null;
 	    }
 	    pathTo = allStationsBetween.iterator();
 
@@ -430,11 +405,11 @@ public class Algorithm {
 	/*
 	 * Adding travel info.
 	 */
-	str2Append = "\n" + JUtil.n_times_char(MainMenu.DISPLAY_PANE_LINE_LENGTH, SEPERATOR_CHAR);
+	str2Append = "\n" + JUtil.n_times_char(Main.DISPLAY_PANE_LINE_LENGTH, SEPERATOR_CHAR);
 	searchResults.replace(0, searchResults.length(), str2Append + searchResults.toString());
 	searchResultsExtended.replace(0, searchResultsExtended.length(), str2Append + searchResultsExtended.toString());
 
-	try (Scanner sc = new Scanner(new File(MainMenu.DATA_REPO + MainMenu.CITY + "//fare.txt"))) {
+	try (Scanner sc = new Scanner(new File(Main.DATA_REPO + Main.CITY + "//fare.txt"))) {
 	    String line = sc.nextLine();
 	    /* Add total cost */
 	    line = line.substring(line.indexOf('=') + 1, line.length());
@@ -459,21 +434,21 @@ public class Algorithm {
 	searchResults.replace(0, searchResults.length(), str2Append + searchResults.toString());
 	searchResultsExtended.replace(0, searchResultsExtended.length(), str2Append + searchResultsExtended.toString());
 	/** Temporarily changing modes for displaying different parameters */
-	int temp = MainMenu.MODE;
+	int temp = Main.MODE;
 
 	/* Mode = 0, is for displaying time */
-	MainMenu.MODE = 0;
-	str2Append = "Lead Time: " + IOL.formatResult(time, MainMenu.MODE) + "\n";
+	Main.MODE = 0;
+	str2Append = "Lead Time: " + IOL.formatResult(time, Main.MODE) + "\n";
 	searchResults.replace(0, searchResults.length(), str2Append + searchResults.toString());
 	searchResultsExtended.replace(0, searchResultsExtended.length(), str2Append + searchResultsExtended.toString());
 
 	/* Mode = 0, is for displaying distance */
-	MainMenu.MODE = 1;
-	str2Append = "Distance: " + IOL.formatResult(distance, MainMenu.MODE) + "\n";
+	Main.MODE = 1;
+	str2Append = "Distance: " + IOL.formatResult(distance, Main.MODE) + "\n";
 	searchResults.replace(0, searchResults.length(), str2Append + searchResults.toString());
 	searchResultsExtended.replace(0, searchResultsExtended.length(), str2Append + searchResultsExtended.toString());
 
-	MainMenu.MODE = temp;
+	Main.MODE = temp;
 
 	str2Append = stations + " Station(s). | " + transfer + " Transfer(s)." + "\n";
 	searchResults.replace(0, searchResults.length(), str2Append + searchResults.toString());

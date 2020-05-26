@@ -1,8 +1,9 @@
 package DS;
 
-import java.util.ArrayList;
+
 import java.util.Iterator;
 
+import DS.Basic.ArrayList;
 import DS.Basic.LinearProbingHashST;
 import DS.Basic.Stack;
 
@@ -13,11 +14,20 @@ import DS.Basic.Stack;
  *
  */
 public class DFS {
-    private boolean[] onPath; // vertices in current path
-    private Stack<String> path; // the current path
+    /** vertices in current path */
+    private boolean[] onPath;
+
+    /** the current path */
+    private Stack<String> path;
+
+    /** collector, for returning at the end */
     private ArrayList<Stack<String>> paths;
+
+    /** The hash containing the indices of the stations */
     private LinearProbingHashST<String, Integer> hash;
-    private int numberOfPaths; // number of simple path
+
+    /** number of simple path */
+    private int numberOfPaths;
 
     public ArrayList<Stack<String>> getAllPaths() {
 	return paths;
@@ -44,12 +54,12 @@ public class DFS {
 	/**
 	 * This while loop is kind of a lazy programming, thats why deprecated. It gets
 	 * all the edges from old graph and adds it to new plus reversed version, so
-	 * that directed graph becomes undirected.
+	 * that directed graph becomes sort of undirected.
 	 */
 	while (iter.hasNext()) {
 	    Edge e = iter.next();
-	    copy.addEdge(new Edge(hash.get(e.w_name), hash.get(e.v_name), e.weights)
-		    .setVertexNames(e.w_name, e.v_name).setLine(e.getLine()));
+	    copy.addEdge(new Edge(hash.get(e.w_name), hash.get(e.v_name), e.weights).setVertexNames(e.w_name, e.v_name)
+		    .setLine(e.getLine()));
 	}
 
 	onPath = new boolean[copy.V()];

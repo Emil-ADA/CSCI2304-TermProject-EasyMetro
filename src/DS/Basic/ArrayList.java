@@ -1,8 +1,10 @@
 package DS.Basic;
 
-public class ArrayList<T> implements ListInterface<T> {
+import java.util.Iterator;
+
+public class ArrayList<T> implements ListInterface<T>, Iterable<T> {
     T data[];
-    int size;
+    public int size;
 
     public static final int DEFUALT_CAPACITY = 16;
 
@@ -169,6 +171,23 @@ public class ArrayList<T> implements ListInterface<T> {
 	}
 	return " cap: " + getCapacity() + " " + out.substring(0, out.length() - 2) + "]";
 
+    }
+
+    @Override
+    public Iterator<T> iterator() {
+	return new Iterator<T>() {
+	    private int iterator = 0;
+
+	    @Override
+	    public boolean hasNext() {
+		return iterator < size;
+	    }
+
+	    @Override
+	    public T next() {
+		return get(iterator++);
+	    }
+	};
     }
 
 }

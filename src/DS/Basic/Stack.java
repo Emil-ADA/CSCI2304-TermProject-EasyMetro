@@ -3,7 +3,6 @@ package DS.Basic;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
-
 public class Stack<Item> implements Iterable<Item> {
     /** size of the stack */
     private int n;
@@ -112,7 +111,7 @@ public class Stack<Item> implements Iterable<Item> {
 	return new ListIterator();
     }
 
-    // an iterator, doesn't implement remove() since it's optional
+    /** an iterator, doesn't implement remove() since it's optional */
     private class ListIterator implements Iterator<Item> {
 	private Node current = first;
 
@@ -132,6 +131,5 @@ public class Stack<Item> implements Iterable<Item> {
 	    return item;
 	}
     }
-
 
 }
