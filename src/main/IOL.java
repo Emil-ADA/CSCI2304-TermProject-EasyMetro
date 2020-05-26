@@ -86,8 +86,6 @@ public class IOL {
      * 6) "Can't choose the same station." <br>
      * 7) "There is no route."
      * 
-     * @param frame
-     *                    the main frame to display caution messages on.
      * @param varargs
      *                    the array of input which has 3 values; the names of
      *                    departure, via and the destination station.
@@ -98,30 +96,30 @@ public class IOL {
 
 	/** Case 1 */
 	if (varargs[0] == null) {
-	    JOptionPane.showMessageDialog(Main.getFrame(), "Please specify the departure station.");
+	    JOptionPane.showMessageDialog(LaunchGUI.getFrame(), "Please specify the departure station.");
 	    return false;
 	}
 	/** Case 2. */
 	if (!IOL.hash.contains(varargs[0])) {
-	    JOptionPane.showMessageDialog(Main.getFrame(), "Departure station does not exist.");
+	    JOptionPane.showMessageDialog(LaunchGUI.getFrame(), "Departure station does not exist.");
 	    return false;
 	}
 
 	/** Case 3. */
 	if (varargs[1] != null && !IOL.hash.contains(varargs[1])) {
-	    JOptionPane.showMessageDialog(Main.getFrame(), "Via station does not exist.");
+	    JOptionPane.showMessageDialog(LaunchGUI.getFrame(), "Via station does not exist.");
 	    return false;
 	}
 
 	/** Case 4. */
 	if (varargs[2] == null) {
-	    JOptionPane.showMessageDialog(Main.getFrame(), "Please specify the destination station.");
+	    JOptionPane.showMessageDialog(LaunchGUI.getFrame(), "Please specify the destination station.");
 	    return false;
 	}
 
 	/** Case 5. */
 	if (!IOL.hash.contains(varargs[2])) {
-	    JOptionPane.showMessageDialog(Main.getFrame(), "Destination station does not exist.");
+	    JOptionPane.showMessageDialog(LaunchGUI.getFrame(), "Destination station does not exist.");
 	    return false;
 	}
 
@@ -139,7 +137,7 @@ public class IOL {
 	    }
 	}
 	if (flag) {
-	    JOptionPane.showMessageDialog(Main.getFrame(), "Can't choose the same station.");
+	    JOptionPane.showMessageDialog(LaunchGUI.getFrame(), "Can't choose the same station.");
 	    return false;
 	}
 
@@ -162,9 +160,6 @@ public class IOL {
      * 
      * @param textFldCurrent
      *                           The text field which is being added.
-     * @param list
-     *                           The list of string out of which suggestion will be
-     *                           done.
      * @return An instance of <code>KeyAdapter</code> that will contain instruction.
      */
     public static KeyAdapter addAutoCompletion(JTextField textFldCurrent) {
@@ -316,7 +311,7 @@ public class IOL {
 	    public void mouseDragged(MouseEvent e) {
 
 		/* check for dragging option */
-		if (!Main.DRAG_FLAG) {
+		if (!LaunchGUI.DRAG_FLAG) {
 		    prev_p = null;
 		    return;
 		}
@@ -373,8 +368,8 @@ public class IOL {
      * @return retrieved value
      */
     public static String getArgValue(String pattern) {
-	for (int i = 0; i < Main.args.size(); i++) {
-	    String item = Main.args.get(i);
+	for (int i = 0; i < LaunchGUI.args.size(); i++) {
+	    String item = LaunchGUI.args.get(i);
 	    if (item.contains(pattern)) {
 		return item.substring(item.indexOf("=") + 1);
 	    }
@@ -397,7 +392,7 @@ public class IOL {
 
     /**
      * Setter for this class's field of
-     * <code><b>LinearProbingHashST<String, Integer></b></code> instance.
+     * <code><b>LinearProbingHashST</b></code> instance.
      * 
      * @param hash
      *                 the hash to set

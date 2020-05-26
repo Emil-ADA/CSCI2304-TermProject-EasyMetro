@@ -36,7 +36,6 @@ public class DFS {
     /**
      * Shows all simple paths from s to t - use DFS
      * 
-     * @deprecate : Can not be applied to undirected graph
      * @param G
      *                 Graph
      * @param hash

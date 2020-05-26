@@ -21,8 +21,8 @@ public interface ListInterface<T> {
      * @param newEntry
      *                        The object to be added as a new entry.
      * @throws IndexOutOfBoundsException
-     *                                       if either newPosition < 1 or
-     *                                       newPosition > getLength() + 1.
+     *                                       if either newPosition less than 1 or
+     *                                       newPosition more than getLength() + 1.
      */
     public T add(int newPosition, T newEntry);
 
@@ -37,8 +37,8 @@ public interface ListInterface<T> {
      *                                       if the specified element is null and
      *                                       this list does not permit null elements
      * @throws IndexOutOfBoundsException
-     *                                       if the index is out of range (index < 0
-     *                                       || index >= size()).
+     *                                       if the index is out of range (index less than 0
+     *                                       or index more than and equal size()).
      */
     public void set(int index, T target);
 
@@ -52,8 +52,8 @@ public interface ListInterface<T> {
      *                          to be removed.
      * @return A reference to the removed entry.
      * @throws IndexOutOfBoundsException
-     *                                       if either givenPosition < 1 or
-     *                                       givenPosition > getLength().
+     *                                       if either givenPosition less than 1 or
+     *                                       givenPosition more than getLength().
      */
     public T remove(int givenPosition);
 
@@ -85,8 +85,8 @@ public interface ListInterface<T> {
      *                          position givenPosition.
      * @return The original entry that was replaced.
      * @throws IndexOutOfBoundsException
-     *                                       if either givenPosition < 1 or
-     *                                       givenPosition > getLength().
+     *                                       if either givenPosition less than 1 or
+     *                                       givenPosition more than getLength().
      */
     public T replace(int givenPosition, T newEntry);
 
@@ -98,8 +98,8 @@ public interface ListInterface<T> {
      *                          desired entry.
      * @return A reference to the indicated entry.
      * @throws IndexOutOfBoundsException
-     *                                       if either givenPosition < 1 or
-     *                                       givenPosition > getLength().
+     *                                       if either givenPosition less than 1 or
+     *                                       givenPosition more than getLength().
      */
     public T get(int givenPosition);
 
