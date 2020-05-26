@@ -24,15 +24,15 @@ public class Algorithm {
      */
     public static StringBuilder searchResultsExtended;
 
-    public static final char SEPERATOR_CHAR = '-';
+    public static final char SEPERATOR_CHAR = '▬';
 
-    public static final String STR_TRANSFER = "Transfer\t| ";
+    public static final String STR_TRANSFER = "↳Transfer\t| ";
     public static final String STR_DEPARTURE = "\nDeparture \t| ";
-    public static final String STR_ARRIVAL = "Arrival \t| ";
-    public static final String STR_STOP = "Stop \t| ";
+    public static final String STR_ARRIVAL = "⏹Arrival \t| ";
+    public static final String STR_STOP = "⏸Stop \t| ";
 
     public static void main(String[] args) {
-
+	
     }
 
     private static int PREVIOUS_INDEX = 0;
@@ -171,13 +171,13 @@ public class Algorithm {
 	    distance += e.getWeightAt(1);
 	    stations++;
 	    str2Append = e + "\n";
-	    searchResultsExtended.append('*' + str2Append); // extended results saves all, while normal not
+	    searchResultsExtended.append('‣' + str2Append); // extended results saves all, while normal not
 	    /* Display the only edge where the transfer has happened */
 	    if (!e.getLine().equals(line_changed)) {
 		transfer++;
-		searchResults.append(STR_TRANSFER + line_changed + " -> " + str2Append);
-		searchResultsExtended.replace(0, searchResultsExtended.toString().indexOf('*' + str2Append),
-			searchResultsExtended.toString() + STR_TRANSFER + line_changed + " -> " + str2Append);
+		searchResults.append(STR_TRANSFER + line_changed + " → " + str2Append);
+		searchResultsExtended.replace(0, searchResultsExtended.toString().indexOf('‣' + str2Append),
+			searchResultsExtended.toString() + STR_TRANSFER + line_changed + " → " + str2Append);
 	    }
 	    line_changed = e.getLine();
 
@@ -217,13 +217,13 @@ public class Algorithm {
 		distance += e.getWeightAt(1);
 		stations++;
 		str2Append = e + "\n";
-		searchResultsExtended.append('*' + str2Append);
+		searchResultsExtended.append('‣' + str2Append);
 
 		if (!e.getLine().equals(line_changed)) {
 		    transfer++;
-		    searchResults.append(STR_TRANSFER + line_changed + " -> " + str2Append);
-		    searchResultsExtended.replace(0, searchResultsExtended.toString().indexOf('*' + str2Append),
-			    searchResultsExtended.toString() + STR_TRANSFER + line_changed + " -> " + str2Append);
+		    searchResults.append(STR_TRANSFER + line_changed + " → " + str2Append);
+		    searchResultsExtended.replace(0, searchResultsExtended.toString().indexOf('‣' + str2Append),
+			    searchResultsExtended.toString() + STR_TRANSFER + line_changed + " → " + str2Append);
 		}
 		line_changed = e.getLine();
 	    }
@@ -314,7 +314,7 @@ public class Algorithm {
 	Iterable<Edge> allStationsBetween = first.pathTo(hash.get(via));
 	if (allStationsBetween == null) {
 	    JOptionPane.showMessageDialog(LaunchGUI.getFrame(), "There is no route.");
-
+	    
 	    return searchResults = null;
 	}
 	Iterator<Edge> pathTo = allStationsBetween.iterator();
@@ -343,14 +343,14 @@ public class Algorithm {
 	    distance += e.getWeightAt(1);
 	    stations++;
 	    str2Append = e + "\n";
-	    searchResultsExtended.append('*' + str2Append); // extended results saves all, while normal not
+	    searchResultsExtended.append('‣' + str2Append); // extended results saves all, while normal not
 
 	    /** Display the only edge where the transfer has happened */
 	    if (!e.getLine().equals(line_changed)) {
 		transfer++;
-		searchResults.append(STR_TRANSFER + line_changed + " -> " + str2Append);
-		searchResultsExtended.replace(0, searchResultsExtended.toString().indexOf('*' + str2Append),
-			searchResultsExtended.toString() + STR_TRANSFER + line_changed + " -> " + str2Append);
+		searchResults.append(STR_TRANSFER + line_changed + " → " + str2Append);
+		searchResultsExtended.replace(0, searchResultsExtended.toString().indexOf('‣' + str2Append),
+			searchResultsExtended.toString() + STR_TRANSFER + line_changed + " → " + str2Append);
 	    }
 	    line_changed = e.getLine();
 	}
@@ -364,7 +364,7 @@ public class Algorithm {
 	if (to != null) {
 	    second = new Dijkstra(graph, hash.get(via), LaunchGUI.MODE);
 	    allStationsBetween = second.pathTo(hash.get(to));
-
+	    
 	    if (allStationsBetween == null) {
 		JOptionPane.showMessageDialog(LaunchGUI.getFrame(), "There is no route.");
 		return searchResults = null;
@@ -389,13 +389,13 @@ public class Algorithm {
 		distance += e.getWeightAt(1);
 		stations++;
 		str2Append = e + "\n";
-		searchResultsExtended.append('*' + str2Append);
+		searchResultsExtended.append('‣' + str2Append);
 
 		if (!e.getLine().equals(line_changed)) {
 		    transfer++;
-		    searchResults.append(STR_TRANSFER + line_changed + " -> " + str2Append);
-		    searchResultsExtended.replace(0, searchResultsExtended.toString().indexOf('*' + str2Append),
-			    searchResultsExtended.toString() + STR_TRANSFER + line_changed + " -> " + str2Append);
+		    searchResults.append(STR_TRANSFER + line_changed + " → " + str2Append);
+		    searchResultsExtended.replace(0, searchResultsExtended.toString().indexOf('‣' + str2Append),
+			    searchResultsExtended.toString() + STR_TRANSFER + line_changed + " → " + str2Append);
 		}
 		line_changed = e.getLine();
 	    }

@@ -133,7 +133,7 @@ public class ArrayList<T> implements ListInterface<T>, Iterable<T> {
     }
 
     /* My methods */
-    public int contains2(T anEntry) {
+    private int contains2(T anEntry) {
 	for (int i = 0; i < size; i++)
 	    if (data[i] == anEntry)
 		return i;
