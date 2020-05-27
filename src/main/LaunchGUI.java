@@ -66,6 +66,7 @@ import javax.swing.JScrollPane;
 import java.awt.Cursor;
 
 public class LaunchGUI {
+    
     // TODO: need an idea to how to fix the direction of an edge while being
     // displaying for example: A-B-C-D-E<br> Edges: A-B, B-C, C-D, D-E<br> when you
     // search for a route from E to C it gives: D-E, C-D

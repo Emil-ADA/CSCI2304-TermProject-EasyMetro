@@ -46,6 +46,7 @@ public class Algorithm {
 	    return null;
 	}
 	int size = ALL_PATHS.size();
+	
 	int W[] = new int[size];
 
 	for (int j = 0; j < size; j++) {

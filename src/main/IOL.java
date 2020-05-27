@@ -74,7 +74,7 @@ public class IOL {
      * 4) Destination station was not specified. <br>
      * 5) The Destination station was given but not correctly. <br>
      * 6) When user tries to input the same station. <br>
-     * 7) When there is no possible route or the lines are not connect. (This case
+     * 7) When there is no possible route or the lines are not connected. (This case
      * can only be tested during calculation). See: <code>Algorithm.java</code><br>
      * 
      * Corresponding caution messages:<br>
