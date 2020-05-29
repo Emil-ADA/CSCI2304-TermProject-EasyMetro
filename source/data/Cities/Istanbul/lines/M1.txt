@@ -1,0 +1,26 @@
+10 2
+Kirazli Bagcilar
+Bagcilar Meydan
+Ucyuzlu
+Menderes
+Esenler
+Otogar
+Terazidere
+Davutpasa YTU
+Merter
+Zeytinburnu
+Bakirkoy Incirli
+Bahcelievler
+Atakoy-Sirinevler
+Yenibosna
+DTM-Istanbul Fuar Merkezi
+Ataturk Havalimani
+CR/LF
+Otogar
+Kocatepe
+Sagmalcilar
+Bayrampasa-Maltepe
+Topkapi-Ulubatli
+Emniyet-Fatih
+Aksaray
+Yenikapi
