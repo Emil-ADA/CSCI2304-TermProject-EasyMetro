@@ -1,0 +1,57 @@
+1 1
+Sinseol-dong
+Yongdu
+Sindap
+Yongdap
+Seongsu
+Konkuk Univ.
+CR/LF
+Seongsu
+Ttukseom
+Hanyang Univ.
+Wangsimni
+Sangwang simni
+Sindang
+Dongdaemun His. & Cul. Park
+Euljiro 4(sa)ga
+Euljiro 3(sam)ga
+Euljiro 1(il)ga
+City Hall
+Chungjeongno
+Ahyeon
+Ewha Womans univ.
+Sinchon
+Hongik Univ.
+Hapjeong
+Dangsan
+Yeongdeungpo-gu Office
+Mullae
+Sindorim
+Dorimcheon
+Yangcheon-gu Office
+Sinjeongnegeori
+Kkachisan
+CR/LF
+Sindorim
+Daerim(Guro-gu Office)
+Guro Digital Complex
+Sindaebang
+Sillim
+Bongcheon
+Seoul Nat'l Univ(Gwanak-gu Office)
+Nakseongdae
+Sadang
+Bangbae
+Seocho
+Seoul Nat'l Univ of Education
+Gangnam
+Yeoksam
+Seolleung
+Samseong
+Sports Complex
+Jamsilsaenae
+Jamsil(Songpa-gu Office)
+Jamsillaru
+Gangbyeon(Dongseoul Bus Terminal)
+Guui(Gwangjin-gu Office)
+Konkuk Univ.

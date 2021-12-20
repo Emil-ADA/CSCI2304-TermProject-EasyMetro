@@ -1,0 +1,2 @@
+Fare=1350
+Currency=KRW
